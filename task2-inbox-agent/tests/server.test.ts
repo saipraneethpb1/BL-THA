@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadConfig } from "../src/config.js";
+import { LearningService } from "../src/feedback/learning.js";
 import { InboxAgent } from "../src/pipeline.js";
 import { buildApp } from "../src/server.js";
 import { InboxStore } from "../src/store/db.js";
@@ -11,7 +12,8 @@ function app(withAgent = true) {
   const agent = withAgent
     ? new InboxAgent(store, new FakeClassifier(), new FakeDrafter(), new FakeKnowledge(), config, () => 1)
     : null;
-  return { app: buildApp({ config, store, agent }), store };
+  const learning = new LearningService(store, null, null);
+  return { app: buildApp({ config, store, agent, learning }), store };
 }
 
 const email = {

@@ -75,14 +75,28 @@ CREATE TABLE IF NOT EXISTS outbox (
   mode TEXT NOT NULL,            -- human | auto
   sent_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
--- Guidance learned from human edits, versioned so it can be measured and rolled back.
-CREATE TABLE IF NOT EXISTS lessons (
+-- Guidance learned from human edits. One row = the complete set of lessons for a
+-- category at one version, so rollback is "activate an earlier row", never an edit.
+CREATE TABLE IF NOT EXISTS lesson_versions (
+  category TEXT NOT NULL,
+  version INTEGER NOT NULL,
+  status TEXT NOT NULL,          -- candidate | active | retired | rejected
+  lessons TEXT NOT NULL,         -- JSON: [{text, review_ids}]
+  mined_from TEXT NOT NULL,      -- JSON: review ids the miner saw
+  evaluation TEXT,               -- JSON: regression check result
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  decided_by TEXT,
+  decided_at TEXT,
+  note TEXT,
+  PRIMARY KEY (category, version)
+);
+CREATE TABLE IF NOT EXISTS lesson_events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   category TEXT NOT NULL,
-  text TEXT NOT NULL,
   version INTEGER NOT NULL,
-  active INTEGER NOT NULL DEFAULT 1,
-  source TEXT NOT NULL DEFAULT '',  -- review ids it was learned from
+  event TEXT NOT NULL,           -- proposed | evaluated | promoted | rejected | rolled_back
+  actor TEXT NOT NULL,
+  detail TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 `;
@@ -118,6 +132,37 @@ export interface DraftRow {
 }
 
 type Row = Record<string, unknown>;
+
+export interface Lesson {
+  text: string;
+  review_ids: number[];
+}
+
+export interface LessonVersion {
+  category: CategoryId;
+  version: number;
+  status: "candidate" | "active" | "retired" | "rejected";
+  lessons: Lesson[];
+  mined_from: number[];
+  evaluation: unknown;
+  created_at: string;
+  decided_by: string | null;
+  decided_at: string | null;
+  note: string | null;
+}
+
+/** A human decision with a final text: ground truth for mining and for checking lessons. */
+export interface ReviewedCase {
+  reviewId: number;
+  emailId: string;
+  outcome: string;
+  reason: string | null;
+  draftBody: string;
+  finalBody: string;
+  classification: unknown;
+  evidence: unknown;
+  lessonsVersion: number;
+}
 
 export class InboxStore {
   readonly db: DatabaseSync;
@@ -264,13 +309,138 @@ export class InboxStore {
       .run(emailId, to, subject, body, mode);
   }
 
-  activeLessons(category: CategoryId): string[] {
-    return (
-      this.db
-        .prepare("SELECT text FROM lessons WHERE category = ? AND active = 1 ORDER BY id")
-        .all(category) as Row[]
-    ).map((r) => String(r.text));
+  // ----- learning -----
+
+  /** The lesson set drafts use now for a category (version 0 = no lessons yet). */
+  activeLessons(category: CategoryId): { version: number; lessons: Lesson[] } {
+    const r = this.db
+      .prepare("SELECT version, lessons FROM lesson_versions WHERE category = ? AND status = 'active'")
+      .get(category) as Row | undefined;
+    return r
+      ? { version: Number(r.version), lessons: JSON.parse(String(r.lessons)) as Lesson[] }
+      : { version: 0, lessons: [] };
   }
+
+  lessonVersions(category?: CategoryId): LessonVersion[] {
+    const rows = (
+      category
+        ? this.db.prepare("SELECT * FROM lesson_versions WHERE category = ? ORDER BY version DESC").all(category)
+        : this.db.prepare("SELECT * FROM lesson_versions ORDER BY category, version DESC").all()
+    ) as Row[];
+    return rows.map(toLessonVersion);
+  }
+
+  lessonVersion(category: CategoryId, version: number): LessonVersion | undefined {
+    const r = this.db
+      .prepare("SELECT * FROM lesson_versions WHERE category = ? AND version = ?")
+      .get(category, version) as Row | undefined;
+    return r ? toLessonVersion(r) : undefined;
+  }
+
+  addLessonVersion(category: CategoryId, lessons: Lesson[], minedFrom: number[], actor: string): number {
+    const row = this.db
+      .prepare("SELECT coalesce(max(version), 0) AS v FROM lesson_versions WHERE category = ?")
+      .get(category) as Row;
+    const version = Number(row.v) + 1;
+    this.db
+      .prepare(
+        "INSERT INTO lesson_versions(category, version, status, lessons, mined_from) VALUES (?, ?, 'candidate', ?, ?)",
+      )
+      .run(category, version, JSON.stringify(lessons), JSON.stringify(minedFrom));
+    this.lessonEvent(category, version, "proposed", actor, `${lessons.length} lesson(s) from ${minedFrom.length} correction(s)`);
+    return version;
+  }
+
+  saveLessonEvaluation(category: CategoryId, version: number, evaluation: unknown, actor: string, detail: string): void {
+    this.db
+      .prepare("UPDATE lesson_versions SET evaluation = ? WHERE category = ? AND version = ?")
+      .run(JSON.stringify(evaluation), category, version);
+    this.lessonEvent(category, version, "evaluated", actor, detail);
+  }
+
+  /** Makes `version` the only active set for its category; the previous one is retired. */
+  activateLessonVersion(
+    category: CategoryId,
+    version: number,
+    actor: string,
+    event: "promoted" | "rolled_back",
+    note: string | null,
+  ): void {
+    this.db.prepare("UPDATE lesson_versions SET status = 'retired' WHERE category = ? AND status = 'active'").run(category);
+    this.db
+      .prepare(
+        `UPDATE lesson_versions SET status = 'active', decided_by = ?, decided_at = datetime('now'), note = ?
+         WHERE category = ? AND version = ?`,
+      )
+      .run(actor, note, category, version);
+    this.lessonEvent(category, version, event, actor, note ?? "");
+  }
+
+  /** Rollback to "no lessons at all" (version 0). */
+  deactivateLessons(category: CategoryId, actor: string, note: string): void {
+    const current = this.activeLessons(category).version;
+    this.db.prepare("UPDATE lesson_versions SET status = 'retired' WHERE category = ? AND status = 'active'").run(category);
+    this.lessonEvent(category, current, "rolled_back", actor, `to no lessons: ${note}`);
+  }
+
+  rejectLessonVersion(category: CategoryId, version: number, actor: string, note: string): void {
+    this.db
+      .prepare(
+        `UPDATE lesson_versions SET status = 'rejected', decided_by = ?, decided_at = datetime('now'), note = ?
+         WHERE category = ? AND version = ?`,
+      )
+      .run(actor, note, category, version);
+    this.lessonEvent(category, version, "rejected", actor, note);
+  }
+
+  lessonEvent(category: CategoryId, version: number, event: string, actor: string, detail: string): void {
+    this.db
+      .prepare("INSERT INTO lesson_events(category, version, event, actor, detail) VALUES (?, ?, ?, ?, ?)")
+      .run(category, version, event, actor, detail);
+  }
+
+  lessonEvents(limit = 50): Row[] {
+    return this.db.prepare("SELECT * FROM lesson_events ORDER BY id DESC LIMIT ?").all(limit) as Row[];
+  }
+
+  reviewedCases(category: CategoryId): ReviewedCase[] {
+    const rows = this.db
+      .prepare(
+        `SELECT r.id AS review_id, r.outcome, r.reason, r.final_body, d.body AS draft_body,
+                d.classification, d.evidence, d.models, r.email_id
+         FROM reviews r JOIN drafts d ON d.id = r.draft_id
+         WHERE r.category = ? AND r.final_body IS NOT NULL
+           AND r.outcome IN ('sent_unchanged', 'edited', 'rejected')
+         ORDER BY r.id`,
+      )
+      .all(category) as Row[];
+    return rows.map((r) => ({
+      reviewId: Number(r.review_id),
+      emailId: String(r.email_id),
+      outcome: String(r.outcome),
+      reason: (r.reason as string | null) ?? null,
+      draftBody: String(r.draft_body),
+      finalBody: String(r.final_body),
+      classification: JSON.parse(String(r.classification)),
+      evidence: JSON.parse(String(r.evidence)),
+      lessonsVersion: Number((JSON.parse(String(r.models)) as { lessons_version?: string }).lessons_version ?? 0),
+    }));
+  }
+}
+
+function toLessonVersion(r: Row): LessonVersion {
+  return {
+    category: r.category as CategoryId,
+    version: Number(r.version),
+    status: r.status as LessonVersion["status"],
+    lessons: JSON.parse(String(r.lessons)) as Lesson[],
+    mined_from: JSON.parse(String(r.mined_from)) as number[],
+    evaluation: r.evaluation ? JSON.parse(String(r.evaluation)) : null,
+    created_at: String(r.created_at),
+    decided_by: (r.decided_by as string | null) ?? null,
+    decided_at: (r.decided_at as string | null) ?? null,
+    note: (r.note as string | null) ?? null,
+  };
 }
 
 function toEmail(r: Row): EmailRow {

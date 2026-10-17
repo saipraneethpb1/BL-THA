@@ -110,11 +110,13 @@ export class InboxAgent {
     let followUp: number | null = null;
     let usedEvidence: number[] = [];
     if (category !== "not_actionable") {
+      const active = this.store.activeLessons(category);
+      models.lessons_version = String(active.version); // lets us compare edit rates per version
       const d = await this.drafter.draft({
         email: forModel,
         classification,
         evidence,
-        lessons: this.store.activeLessons(category),
+        lessons: active.lessons.map((l) => l.text),
       });
       ({ subject, body } = d.result);
       note = d.result.note_for_reviewer;

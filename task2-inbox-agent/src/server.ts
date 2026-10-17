@@ -8,6 +8,7 @@ import { EmailCase } from "./dataset/schema.js";
 import { CATEGORIES, CATEGORY_IDS } from "./email/taxonomy.js";
 import { HttpKnowledgeClient } from "./knowledge-client/client.js";
 import { ClaudeClassifier, ClaudeDrafter } from "./llm/models.js";
+import { ClaudeLessonMiner, LearningError, LearningService, LearningUnavailableError } from "./feedback/learning.js";
 import { InboxAgent, ReviewError, type ReviewAction } from "./pipeline.js";
 import { InboxStore } from "./store/db.js";
 
@@ -35,15 +36,18 @@ export interface AppDeps {
   store: InboxStore;
   /** null when no ANTHROPIC_API_KEY: the inbox and reviews still work, drafting does not. */
   agent: InboxAgent | null;
+  learning: LearningService;
 }
 
 export function defaultDeps(config = loadConfig()): AppDeps {
   const store = new InboxStore(config.dbPath);
   const kb = new HttpKnowledgeClient(config.kbUrl, config.kbApiKey);
-  const agent = config.llmEnabled
-    ? new InboxAgent(store, new ClaudeClassifier(config.classifyModel), new ClaudeDrafter(config.draftModel), kb, config)
+  const drafter = config.llmEnabled ? new ClaudeDrafter(config.draftModel) : null;
+  const agent = drafter
+    ? new InboxAgent(store, new ClaudeClassifier(config.classifyModel), drafter, kb, config)
     : null;
-  return { config, store, agent };
+  const miner = config.llmEnabled ? new ClaudeLessonMiner(config.lessonModel) : null;
+  return { config, store, agent, learning: new LearningService(store, miner, drafter) };
 }
 
 /** Drop undefined keys so the parsed body fits ReviewAction under exactOptionalPropertyTypes. */
@@ -70,6 +74,8 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   app.setErrorHandler((err, _req, reply) => {
     if (err instanceof z.ZodError) return reply.status(422).send({ error: "invalid input", issues: err.issues });
     if (err instanceof ReviewError) return reply.status(409).send({ error: err.message });
+    if (err instanceof LearningUnavailableError) return reply.status(503).send({ error: err.message });
+    if (err instanceof LearningError) return reply.status(409).send({ error: err.message });
     return reply.status(500).send({ error: err instanceof Error ? err.message : String(err) });
   });
 
@@ -136,6 +142,59 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       if (store.addEmail({ id: e.id, from_name: e.from.name, from_email: e.from.email, subject: e.subject, body: e.body, thread: e.thread, received_at: e.receivedAt })) added++;
     }
     return { split, added, total: lines.length };
+  });
+
+  // ----- learning from edits -----
+
+  const Actor = z.object({ actor: z.string().min(1), note: z.string().min(1).optional() });
+  const kindParam = (raw: string) => z.enum(CATEGORY_IDS).parse(raw);
+
+  app.get("/api/learning", async () => ({
+    categories: CATEGORY_IDS.map((c) => ({
+      category: c,
+      active: store.activeLessons(c),
+      versions: store.lessonVersions(c),
+      corrections_since_active: deps.learning.corrections(c).length,
+      metrics: deps.learning.metrics(c),
+    })),
+    events: store.lessonEvents(40),
+  }));
+
+  app.post<{ Params: { category: string } }>("/api/learning/:category/propose", async (req, reply) => {
+    const { actor } = Actor.parse(req.body);
+    const version = await deps.learning.propose(kindParam(req.params.category), actor);
+    return reply.status(201).send({ version });
+  });
+
+  app.post<{ Params: { category: string; version: string } }>(
+    "/api/learning/:category/:version/evaluate",
+    async (req) => {
+      const { actor } = Actor.parse(req.body);
+      return deps.learning.evaluate(kindParam(req.params.category), Number(req.params.version), actor);
+    },
+  );
+
+  app.post<{ Params: { category: string; version: string } }>(
+    "/api/learning/:category/:version/promote",
+    async (req) => {
+      const { actor, note } = Actor.parse(req.body);
+      deps.learning.promote(kindParam(req.params.category), Number(req.params.version), actor, note ?? null);
+      return { promoted: Number(req.params.version) };
+    },
+  );
+
+  app.post<{ Params: { category: string; version: string } }>(
+    "/api/learning/:category/:version/reject",
+    async (req) => {
+      const { actor, note } = Actor.extend({ note: z.string().min(1) }).parse(req.body);
+      deps.learning.reject(kindParam(req.params.category), Number(req.params.version), actor, note);
+      return { rejected: Number(req.params.version) };
+    },
+  );
+
+  app.post<{ Params: { category: string } }>("/api/learning/:category/rollback", async (req) => {
+    const { actor, note } = Actor.extend({ note: z.string().min(1) }).parse(req.body);
+    return { active_version: deps.learning.rollback(kindParam(req.params.category), actor, note) };
   });
 
   return app;

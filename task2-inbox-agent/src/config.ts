@@ -5,6 +5,7 @@ export interface Config {
   readonly llmEnabled: boolean;
   readonly classifyModel: string;
   readonly draftModel: string;
+  readonly lessonModel: string;
   readonly dbPath: string;
   readonly port: number;
   /** Unedited approvals in a row before a kind of email may auto-send. */
@@ -20,6 +21,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     llmEnabled: Boolean(env.ANTHROPIC_API_KEY),
     classifyModel: env.INBOX_CLASSIFY_MODEL ?? "claude-haiku-5-5",
     draftModel: env.INBOX_DRAFT_MODEL ?? "claude-sonnet-5-5",
+    lessonModel: env.INBOX_LESSON_MODEL ?? "claude-sonnet-5-5",
     dbPath: env.INBOX_DB_PATH ?? "data/inbox.db",
     port: Number(env.INBOX_PORT ?? 8002),
     autonomyThreshold: Number(env.INBOX_AUTONOMY_THRESHOLD ?? 20),

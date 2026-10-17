@@ -70,6 +70,7 @@
   <nav>
     <button data-tab="inbox" aria-selected="true">Inbox</button>
     <button data-tab="autonomy" aria-selected="false">Autonomy</button>
+    <button data-tab="learning" aria-selected="false">Learning</button>
   </nav>
   <span class="meta" id="mode"></span>
 </div></header>
@@ -87,6 +88,15 @@
     <table><thead><tr><th>Category</th><th>Status</th><th>Clean approvals in a row</th><th></th></tr></thead><tbody id="auto-rows"></tbody></table>
     <h3>Spot checks waiting</h3><div id="spots"></div>
     <h3>Recent changes</h3><div id="events"></div>
+  </div>
+</section>
+
+<section id="tab-learning" class="layout" style="grid-template-columns:1fr" hidden>
+  <div class="panel detail">
+    <h2>What the agent has learned from your edits</h2>
+    <p class="meta">When you edit drafts, the agent can propose lessons for that kind of email. A lesson only goes live after a check: past emails are re-drafted with and without it, and both are compared with what you actually sent. Every change can be rolled back in one click, and changing lessons resets that category's auto-send counter.</p>
+    <div id="learning"></div>
+    <h3>History</h3><div id="lesson-events"></div>
   </div>
 </section>
 
@@ -114,8 +124,9 @@ function banner(msg, kind = "err") { const b = $("#banner"); b.className = `bann
 
 document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => {
   document.querySelectorAll("nav button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
-  $("#tab-inbox").hidden = b.dataset.tab !== "inbox"; $("#tab-autonomy").hidden = b.dataset.tab !== "autonomy";
+  for (const t of ["inbox", "autonomy", "learning"]) $(`#tab-${t}`).hidden = b.dataset.tab !== t;
   if (b.dataset.tab === "autonomy") loadAutonomy();
+  if (b.dataset.tab === "learning") loadLearning();
 }));
 
 async function loadList() {
@@ -226,6 +237,44 @@ async function loadAutonomy() {
   });
   document.querySelectorAll("[data-open]").forEach((b) => b.onclick = () => { document.querySelector('nav button[data-tab="inbox"]').click(); openEmail(b.dataset.open); });
   $("#events").innerHTML = a.events.length ? a.events.map((e) => `<div class="meta">${esc(e.created_at)} · ${esc(e.kind)} · ${esc(e.event)} · ${esc(e.detail)}${e.email_id ? ` (${esc(e.email_id)})` : ""}</div>`).join("") : `<div class="meta">Nothing yet.</div>`;
+}
+
+const pct = (x) => `${Math.round(x * 100)}%`;
+
+async function loadLearning() {
+  const data = await api("/api/learning").catch(() => null);
+  if (!data) return;
+  const busy = data.categories.filter((c) => c.versions.length || c.corrections_since_active || c.metrics.length);
+  $("#learning").innerHTML = busy.length ? busy.map((c) => {
+    const candidate = c.versions.find((v) => v.status === "candidate");
+    const ev = candidate?.evaluation;
+    return `<div class="ev" data-cat="${esc(c.category)}">
+      <div class="row" style="margin:0;justify-content:space-between"><b>${esc(c.category)}</b><span class="meta">lessons v${c.active.version} active · ${c.corrections_since_active} correction(s) since</span></div>
+      ${c.active.lessons.length ? `<ul>${c.active.lessons.map((l) => `<li>${esc(l.text)}</li>`).join("")}</ul>` : `<div class="meta">No lessons yet: drafts follow the base prompt.</div>`}
+      ${c.metrics.length ? `<table style="margin-top:8px"><thead><tr><th>Lessons</th><th>Drafts reviewed</th><th>Sent without changes</th><th>Closeness to what was sent</th></tr></thead><tbody>${c.metrics.map((m) => `<tr><td>v${m.version}</td><td>${m.reviewed}</td><td>${pct(m.unchanged_rate)}</td><td>${pct(m.mean_similarity)}</td></tr>`).join("")}</tbody></table>` : ""}
+      ${candidate ? `<h3>Proposed lessons v${candidate.version}</h3><ul>${candidate.lessons.map((l) => `<li>${esc(l.text)} <span class="meta">(from ${l.review_ids.length} correction(s))</span></li>`).join("")}</ul>
+        ${ev ? `<div class="flag ${ev.recommended ? "info" : "warn"}">${esc(ev.verdict)}<br><span class="meta">Unseen emails: ${pct(ev.unseen_before)} → ${pct(ev.unseen_after)} close to what was sent (${ev.unseen_n} emails). All: ${pct(ev.mean_before)} → ${pct(ev.mean_after)}. Policy violations: ${ev.violations_before} → ${ev.violations_after}.</span></div>` : `<div class="meta">Not checked yet.</div>`}
+        <div class="row"><button class="btn secondary" data-act="evaluate" data-v="${candidate.version}">${ev ? "Check again" : "Run the check"}</button>${ev ? `<button class="btn" data-act="promote" data-v="${candidate.version}">Make live</button>` : ""}<button class="btn secondary" data-act="reject" data-v="${candidate.version}">Reject</button></div>`
+      : `<div class="row">${c.corrections_since_active >= 3 ? `<button class="btn secondary" data-act="propose">Propose lessons from my edits</button>` : `<span class="meta">Needs 3 corrections to propose lessons.</span>`}${c.active.version ? `<button class="btn secondary" data-act="rollback">Roll back to the previous lessons</button>` : ""}</div>`}
+      <div class="meta" data-note></div>
+    </div>`;
+  }).join("") : `<div class="meta">Nothing yet. Lessons appear after you've edited a few drafts of the same kind.</div>`;
+  document.querySelectorAll("#learning [data-act]").forEach((b) => b.onclick = async () => {
+    const card = b.closest("[data-cat]"); const cat = card.dataset.cat; const note = $("[data-note]", card);
+    const who = reviewer() || prompt("Your name?") || ""; if (!who) return; saveReviewer(who);
+    const act = b.dataset.act; const v = b.dataset.v;
+    let body = { actor: who };
+    if (act === "reject" || act === "rollback") { const r = prompt(act === "reject" ? "Why reject these lessons?" : "Why roll back?"); if (!r) return; body.note = r; }
+    if (act === "promote") {
+      const cand = (await api("/api/learning")).categories.find((c) => c.category === cat).versions.find((x) => x.version === Number(v));
+      if (!cand.evaluation?.recommended) { const r = prompt("The check did not recommend these lessons. Why make them live anyway?"); if (!r) return; body.note = r; }
+    }
+    const path = act === "propose" || act === "rollback" ? `/api/learning/${cat}/${act}` : `/api/learning/${cat}/${v}/${act}`;
+    b.disabled = true; note.textContent = act === "evaluate" ? "Re-drafting past emails with and without the lessons…" : "";
+    try { await api(path, { method: "POST", body: JSON.stringify(body) }); loadLearning(); }
+    catch (e) { note.textContent = e.message; b.disabled = false; }
+  });
+  $("#lesson-events").innerHTML = data.events.length ? data.events.map((e) => `<div class="meta">${esc(e.created_at)} · ${esc(e.category)} v${e.version} · ${esc(e.event)} by ${esc(e.actor)}${e.detail ? ` · ${esc(e.detail)}` : ""}</div>`).join("") : `<div class="meta">Nothing yet.</div>`;
 }
 
 (async () => {
