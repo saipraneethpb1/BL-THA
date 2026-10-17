@@ -11,3 +11,6 @@ dist/
 
 # Crawled data is rebuilt by the crawler or downloaded as a seed snapshot.
 task1-knowledge-brain/data/
+
+# Inbox Agent local database
+task2-inbox-agent/data/*.db*
