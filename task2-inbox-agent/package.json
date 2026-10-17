@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "dataset:check": "tsx src/dataset/check-cli.ts",
-    "dataset:print": "tsx src/dataset/print-cli.ts"
+    "dataset:print": "tsx src/dataset/print-cli.ts",
+    "eval": "tsx src/eval/run.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",

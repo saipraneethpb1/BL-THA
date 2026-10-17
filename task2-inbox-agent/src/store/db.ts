@@ -6,6 +6,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import type { Violation } from "../drafting/policy.js";
 import type { AutonomyEvent, AutonomyState, ReviewOutcome } from "../feedback/autonomy.js";
 import type { CategoryId } from "../email/taxonomy.js";
 
@@ -122,7 +123,7 @@ export interface DraftRow {
   body: string;
   note_for_reviewer: string;
   follow_up_in_days: number | null;
-  violations: { code: string; severity: string; message: string }[];
+  violations: Violation[];
   secrets_found: boolean;
   auto_send_blocker: string | null;
   models: unknown;

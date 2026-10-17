@@ -1,0 +1,18 @@
+{
+  "_how_to": "Copy to <meeting>.json after recording. List what a senior consultant would write down from this meeting. Each requirement is matched when one extracted requirement contains, for every keyword group, at least one of its words (case-insensitive). For the follow-up meeting, fill 'followup' with what changed versus the first meeting.",
+  "transcript": "transcripts/meeting_a_2026-10-18.txt",
+  "title": "Kickoff call - Example Vets",
+  "date": "2026-10-18",
+  "requirements": [
+    {"id": "G1", "statement": "Map of nearby clinics on search results", "keywords": [["map"], ["search", "results", "nearby"]]},
+    {"id": "G2", "statement": "Filters by service type", "keywords": [["filter"], ["service", "type"]]}
+  ],
+  "followup": {
+    "baseline": "meeting_a",
+    "changes": [
+      {"change": "removed", "keywords": [["payment", "card"]]},
+      {"change": "added", "keywords": [["blog"]]},
+      {"change": "modified", "keywords": [["map"], ["hours", "opening"]]}
+    ]
+  }
+}

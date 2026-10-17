@@ -1,0 +1,24 @@
+{"id": "F01", "requirement": "Show a map of nearby clinics on the search results page", "accept": ["existing_configuration", "existing_with_limitation"], "why": "Google Map Search Results article"}
+{"id": "F02", "requirement": "Let members choose a category and sub-categories for their listing", "accept": ["existing_configuration"], "why": "Member categories are built in"}
+{"id": "F03", "requirement": "Give new members a discount code they can enter when signing up", "accept": ["existing_configuration", "existing_with_limitation"], "why": "Easy Coupon Codes add-on"}
+{"id": "F04", "requirement": "Charge VAT on membership payments from European members", "accept": ["existing_configuration", "existing_with_limitation"], "why": "Tax and VAT Manager add-on"}
+{"id": "F05", "requirement": "Hide the site behind a coming soon page until launch day", "accept": ["existing_configuration"], "why": "Staging Mode setting"}
+{"id": "F06", "requirement": "Show a verified badge on profiles of premium members", "accept": ["existing_configuration", "existing_with_limitation"], "why": "Member Profile Badges add-on"}
+{"id": "F07", "requirement": "Import our 2,000 existing listings from a spreadsheet", "accept": ["existing_configuration", "existing_with_limitation"], "why": "CSV member import"}
+{"id": "F08", "requirement": "Let our staff log in as a member to fix their profile for them", "accept": ["existing_configuration"], "why": "Login As Member"}
+{"id": "F09", "requirement": "Members must be able to select more than one top-level category", "accept": ["existing_with_limitation"], "why": "Only one top-level category; documented workaround"}
+{"id": "F10", "requirement": "Send visitors from old page addresses to the new ones after the redesign", "accept": ["existing_configuration"], "why": "301 Redirects"}
+{"id": "F11", "requirement": "Visitors can leave reviews, but they only appear after an admin approves them", "accept": ["existing_configuration"], "why": "Review approval settings"}
+{"id": "F12", "requirement": "Track visitors with Google Analytics 4", "accept": ["existing_configuration"], "why": "GA4 in General Settings"}
+{"id": "F13", "requirement": "Admins must log in with two-factor authentication", "accept": ["existing_configuration", "existing_with_limitation"], "why": "2FA article (gradual rollout)"}
+{"id": "F14", "requirement": "Offer the site in Spanish as well as English, with a language switcher", "accept": ["existing_configuration", "existing_with_limitation"], "why": "Google Website Translator add-on"}
+{"id": "F15", "requirement": "When someone submits the contact form, send the data to Zapier", "accept": ["existing_configuration", "existing_with_limitation"], "why": "Webhooks to Zapier"}
+{"id": "F16", "requirement": "Members pay their yearly listing fee by card through Stripe", "accept": ["existing_configuration", "existing_with_limitation"], "why": "Stripe payment gateway"}
+{"id": "F17", "requirement": "A native iPhone and Android app for our members", "accept": ["existing_with_limitation", "needs_clarification"], "why": "Only a WebView app via third-party no-code builders; not native"}
+{"id": "F18", "requirement": "Push every new order into our in-house warehouse system through its private SOAP API", "accept": ["custom_development"], "why": "Private third-party system; nothing documented"}
+{"id": "F19", "requirement": "Two-way real-time sync of member records with our Salesforce CRM", "accept": ["custom_development", "needs_clarification"], "why": "No Salesforce integration documented"}
+{"id": "F20", "requirement": "Automatically set each listing's price with a machine-learning model of local demand", "accept": ["custom_development"], "why": "Nothing like this in the product"}
+{"id": "F21", "requirement": "Make the search better", "accept": ["needs_clarification"], "why": "Too vague to judge"}
+{"id": "F22", "requirement": "Add some AI to the site", "accept": ["needs_clarification"], "why": "Too vague to judge"}
+{"id": "F23", "requirement": "Modernise the look of the homepage", "accept": ["needs_clarification", "existing_with_limitation"], "why": "Vague; design settings exist but 'modern' is undefined"}
+{"id": "F24", "requirement": "Make the website load faster", "accept": ["existing_with_limitation", "needs_clarification"], "why": "Performance optimisation article exists; result depends on the site"}

@@ -88,6 +88,7 @@ export class InboxAgent {
       answers.forEach((a, i) => {
         const question = classification.questions[i] ?? "";
         if (a.status === "fulfilled") {
+          cost += a.value.cost_usd; // the email's true cost includes its knowledge lookups
           evidence.push({
             number: evidence.length + 1,
             question,
