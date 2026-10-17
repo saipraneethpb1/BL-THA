@@ -31,6 +31,13 @@ class Settings(BaseSettings):
     # real questions scored >= 0.68, unrelated ones <= 0.56).
     min_evidence_score: float = 0.60
 
+    # Screenshots. Haiku is the starting point; the vision eval compares it with Sonnet.
+    vision_model: str = "claude-haiku-5-5"
+
+    # Daily refresh, in UTC. Set refresh_enabled=false to run refreshes only on demand.
+    refresh_enabled: bool = True
+    refresh_hour_utc: int = 2
+
     # Shared secret for callers (Tasks 2 and 3). None = no auth, for local development only.
     api_key: str | None = None
 

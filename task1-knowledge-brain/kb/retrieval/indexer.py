@@ -4,6 +4,7 @@ An article is re-indexed when its "index signature" changes: the article text pl
 descriptions of its screenshots. So a new image description also refreshes its chunks.
 """
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -74,7 +75,12 @@ async def sync_index(
             (a, sig, chunk_article(a["title"], a["body"], descs, config)) for a, descs, sig in batch
         ]
         texts = [c.text for _, _, chunks in planned for c in chunks]
-        vectors = embedder.embed_documents(texts) if texts else np.zeros((0, embedder.dim))
+        # Embedding is CPU-bound; run it in a thread so the API stays responsive.
+        vectors = (
+            await asyncio.to_thread(embedder.embed_documents, texts)
+            if texts
+            else np.zeros((0, embedder.dim))
+        )
         i = 0
         for a, sig, chunks in planned:
             await db.execute(

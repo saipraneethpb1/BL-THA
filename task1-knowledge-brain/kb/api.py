@@ -1,14 +1,19 @@
 """HTTP API of the Knowledge Brain. Tasks 2 and 3 talk to this, never to the internals."""
 
+import asyncio
+import contextlib
 import os
 import secrets
 import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import asdict
-from typing import Annotated, Literal
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+from typing import Annotated, Any, Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from kb.answer import escalations as esc
@@ -16,8 +21,12 @@ from kb.answer.llm import Answerer, ClaudeAnswerer
 from kb.answer.service import answer_question
 from kb.config import settings
 from kb.db import connect, init_db
+from kb.ingestion.vision import ClaudeImageDescriber
+from kb.refresh import Refresher, daily_loop, seconds_until
 from kb.retrieval.embedder import FastEmbedder
 from kb.retrieval.search import Searcher
+
+UI_FILE = Path(__file__).parent / "ui" / "index.html"
 
 
 @asynccontextmanager
@@ -36,7 +45,23 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             if os.environ.get("ANTHROPIC_API_KEY")
             else None
         )
+    if not hasattr(app.state, "refresher"):
+        describer = (
+            ClaudeImageDescriber(settings.vision_model)
+            if os.environ.get("ANTHROPIC_API_KEY")
+            else None
+        )
+        app.state.refresher = Refresher(settings, app.state.searcher.embedder, describer)
+    scheduler = (
+        asyncio.create_task(daily_loop(app.state.refresher, settings.refresh_hour_utc))
+        if settings.refresh_enabled
+        else None
+    )
     yield
+    if scheduler is not None:
+        scheduler.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await scheduler
 
 
 app = FastAPI(
@@ -66,7 +91,16 @@ class Health(BaseModel):
 
 class IngestionStatus(BaseModel):
     pages_by_status: dict[str, int]
-    last_run: dict[str, str | int | None] | None
+    last_run: dict[str, str | int | None] | None = Field(description="Last crawl run")
+    chunks: int
+    images_total: int
+    images_described: int
+    images_failed: int
+    open_escalations: int
+    answering_enabled: bool
+    refresh_running: bool
+    last_refresh: dict[str, Any] | None
+    next_scheduled_refresh: str | None
 
 
 class SearchRequest(BaseModel):
@@ -98,7 +132,8 @@ async def health() -> Health:
 
 
 @app.get("/ingestion/status", response_model=IngestionStatus, dependencies=[Protected])
-async def ingestion_status() -> IngestionStatus:
+async def ingestion_status(request: Request) -> IngestionStatus:
+    """Crawl progress, index size, screenshot coverage and the refresh schedule."""
     async with connect(settings.db_path) as db:
         counts = await db.execute_fetchall(
             "SELECT status, count(*) AS n FROM pages GROUP BY status"
@@ -106,10 +141,52 @@ async def ingestion_status() -> IngestionStatus:
         last = list(
             await db.execute_fetchall("SELECT * FROM ingestion_runs ORDER BY id DESC LIMIT 1")
         )
+        [stats] = list(
+            await db.execute_fetchall(
+                """SELECT (SELECT count(*) FROM chunks) AS chunks,
+                          (SELECT count(*) FROM images) AS images_total,
+                          (SELECT count(*) FROM images WHERE described_with IS NOT NULL
+                             AND described_with NOT LIKE 'failed:%') AS images_described,
+                          (SELECT count(*) FROM images WHERE described_with LIKE 'failed:%')
+                             AS images_failed,
+                          (SELECT count(*) FROM escalations WHERE status='open') AS open_esc"""
+            )
+        )
+    refresher: Refresher = request.app.state.refresher
+    next_run = None
+    if settings.refresh_enabled:
+        next_run = (
+            datetime.now(UTC) + timedelta(seconds=seconds_until(settings.refresh_hour_utc))
+        ).isoformat(timespec="minutes")
     return IngestionStatus(
         pages_by_status={r["status"]: r["n"] for r in counts},
         last_run=dict(last[0]) if last else None,
+        chunks=stats["chunks"],
+        images_total=stats["images_total"],
+        images_described=stats["images_described"],
+        images_failed=stats["images_failed"],
+        open_escalations=stats["open_esc"],
+        answering_enabled=request.app.state.answerer is not None,
+        refresh_running=refresher.running,
+        last_refresh=asdict(refresher.last) if refresher.last else None,
+        next_scheduled_refresh=next_run,
     )
+
+
+@app.post("/ingestion/run", status_code=202, dependencies=[Protected])
+async def run_refresh(request: Request) -> dict[str, str]:
+    """Start a refresh now (crawl changes, describe new screenshots, re-index).
+    Returns at once; poll `/ingestion/status` for progress."""
+    refresher: Refresher = request.app.state.refresher
+    if refresher.running:
+        raise HTTPException(409, "a refresh is already running")
+    request.app.state.refresh_task = asyncio.create_task(refresher.run(trigger="manual"))
+    return {"status": "started"}
+
+
+@app.get("/", include_in_schema=False)
+async def ui() -> FileResponse:
+    return FileResponse(UI_FILE)
 
 
 @app.post("/search", response_model=SearchResponse, dependencies=[Protected])

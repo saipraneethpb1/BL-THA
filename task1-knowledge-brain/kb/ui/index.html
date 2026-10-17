@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knowledge Brain</title>
+<style>
+  :root {
+    --bg: #f7f7f5; --panel: #ffffff; --text: #1d1d1b; --muted: #6b6b66; --line: #e4e3df;
+    --accent: #2f5bd3; --accent-ink: #ffffff;
+    --ok-bg: #e5f4ea; --ok: #1d6b3a; --warn-bg: #fdf1dc; --warn: #8a5a00;
+    --info-bg: #e8eefc; --info: #2a4aa8; --err-bg: #fde8e6; --err: #a8261b;
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #151514; --panel: #1f1f1d; --text: #ecebe7; --muted: #a09f98; --line: #34332f;
+      --accent: #7b9cff; --accent-ink: #10131c;
+      --ok-bg: #173323; --ok: #8fd8a8; --warn-bg: #3a2c10; --warn: #f0c46b;
+      --info-bg: #1b2645; --info: #a9bdff; --err-bg: #3d1915; --err: #ff9d92;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { background: var(--panel); border-bottom: 1px solid var(--line); }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 16px; }
+  .bar { display: flex; align-items: center; gap: 24px; height: 56px; }
+  .brand { font-weight: 650; }
+  nav { display: flex; gap: 4px; }
+  nav button { background: none; border: 0; padding: 8px 12px; border-radius: 8px;
+               color: var(--muted); font: inherit; cursor: pointer; }
+  nav button[aria-selected="true"] { color: var(--text); background: var(--bg); font-weight: 600; }
+  .count { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 4px;
+           border-radius: 10px; background: var(--warn-bg); color: var(--warn);
+           font-size: 12px; text-align: center; }
+  main { padding: 24px 0 64px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+           padding: 20px; margin-bottom: 16px; }
+  h2 { font-size: 17px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 16px; }
+  textarea, input { width: 100%; font: inherit; color: var(--text); background: var(--bg);
+                    border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  textarea { resize: vertical; min-height: 70px; }
+  .row { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+  .btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px;
+         padding: 9px 16px; font: inherit; font-weight: 600; cursor: pointer; }
+  .btn.secondary { background: var(--bg); color: var(--text); border: 1px solid var(--line); }
+  .btn:disabled { opacity: .55; cursor: default; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px;
+           font-weight: 600; }
+  .answered { background: var(--ok-bg); color: var(--ok); }
+  .partial { background: var(--warn-bg); color: var(--warn); }
+  .insufficient_evidence { background: var(--info-bg); color: var(--info); }
+  .answer { white-space: pre-wrap; margin: 12px 0; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .sources { display: grid; gap: 10px; margin-top: 12px; }
+  .source { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .source a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .source a:hover { text-decoration: underline; }
+  .thumbs { display: flex; gap: 8px; margin-top: 8px; overflow-x: auto; }
+  .thumbs img { height: 90px; border: 1px solid var(--line); border-radius: 6px; }
+  .banner { padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; }
+  .banner.err { background: var(--err-bg); color: var(--err); }
+  .banner.info { background: var(--info-bg); color: var(--info); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .stat { border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  .stat b { display: block; font-size: 22px; }
+  .stat span { color: var(--muted); font-size: 13px; }
+  .q { font-weight: 600; }
+  .ev a { color: var(--accent); }
+  .empty { color: var(--muted); text-align: center; padding: 24px; }
+  [hidden] { display: none !important; }
+  @media (max-width: 560px) { .bar { gap: 10px; } .brand { display: none; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap bar">
+    <div class="brand">Knowledge Brain</div>
+    <nav role="tablist">
+      <button role="tab" data-tab="ask" aria-selected="true">Ask</button>
+      <button role="tab" data-tab="queue" aria-selected="false">Expert queue <span class="count" id="queue-count" hidden>0</span></button>
+      <button role="tab" data-tab="status" aria-selected="false">Status</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="banner" class="banner err" hidden></div>
+
+  <section id="tab-ask">
+    <div class="panel">
+      <h2>Ask about the product</h2>
+      <p class="sub">Answers come only from the Brilliant Directories help center. If it isn't covered, the question goes to a human expert.</p>
+      <form id="ask-form">
+        <textarea id="question" placeholder="e.g. How do I refund a member's payment?" required minlength="3"></textarea>
+        <div class="row"><button class="btn" id="ask-btn">Ask</button><span class="meta" id="ask-meta"></span></div>
+      </form>
+    </div>
+    <div id="result" class="panel" hidden></div>
+  </section>
+
+  <section id="tab-queue" hidden>
+    <div class="panel">
+      <h2>Questions waiting for an expert</h2>
+      <p class="sub">Most-asked first. Your answer is saved as a new knowledge record and used in future answers straight away.</p>
+      <div id="queue"></div>
+    </div>
+  </section>
+
+  <section id="tab-status" hidden>
+    <div class="panel">
+      <h2>Knowledge status</h2>
+      <p class="sub">The help center is re-checked daily. Only changed pages are fetched again.</p>
+      <div class="grid" id="stats"></div>
+      <div class="row"><button class="btn secondary" id="refresh-btn">Run refresh now</button><span class="meta" id="refresh-meta"></span></div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const STATUS_LABEL = { answered: "Answered", partial: "Partly answered", insufficient_evidence: "Sent to an expert" };
+
+function getKey() { try { return sessionStorage.getItem("kb-key") || ""; } catch { return ""; } }
+function setKey(k) { try { sessionStorage.setItem("kb-key", k); } catch {} }
+
+async function api(path, options = {}, retried = false) {
+  let res;
+  try {
+    res = await fetch(path, { ...options, headers: { "content-type": "application/json", "X-API-Key": getKey(), ...(options.headers || {}) } });
+  } catch {
+    showBanner("Knowledge service unavailable. Check that it is running.");
+    throw new Error("offline");
+  }
+  if (res.status === 401 && !retried) {
+    const key = prompt("Enter the Knowledge Brain access key:");
+    if (key) { setKey(key.trim()); return api(path, options, true); }
+  }
+  hideBanner();
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) { const err = new Error(body.detail ? (typeof body.detail === "string" ? body.detail : "Invalid input") : `Error ${res.status}`); err.status = res.status; throw err; }
+  return body;
+}
+function showBanner(msg, kind = "err") { const b = $("#banner"); b.className = `banner ${kind}`; b.textContent = msg; b.hidden = false; }
+function hideBanner() { $("#banner").hidden = true; }
+
+// Tabs
+document.querySelectorAll("nav button").forEach((btn) => btn.addEventListener("click", () => {
+  document.querySelectorAll("nav button").forEach((b) => b.setAttribute("aria-selected", String(b === btn)));
+  for (const t of ["ask", "queue", "status"]) $(`#tab-${t}`).hidden = t !== btn.dataset.tab;
+  if (btn.dataset.tab === "queue") loadQueue();
+  if (btn.dataset.tab === "status") loadStatus();
+}));
+
+// Ask
+$("#ask-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const question = $("#question").value.trim();
+  if (question.length < 3) return;
+  $("#ask-btn").disabled = true; $("#ask-meta").textContent = "Looking it up…";
+  try {
+    const r = await api("/query", { method: "POST", body: JSON.stringify({ question, caller: "chat-ui" }) });
+    renderAnswer(r);
+    $("#ask-meta").textContent = "";
+    loadQueueCount();
+  } catch (err) {
+    $("#ask-meta").textContent = "";
+    if (err.status === 503) showBanner("Answering is switched off: the Claude API key is not configured. Search and the expert queue still work.", "info");
+    else if (err.message !== "offline") showBanner(err.message);
+  } finally { $("#ask-btn").disabled = false; }
+});
+
+function renderAnswer(r) {
+  const sources = r.sources.map((s) => `
+    <div class="source">
+      ${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>` : `<strong>${esc(s.title)}</strong>`}
+      <div class="meta">${s.source_type === "expert" ? "Expert answer" : "Help article"}${s.section && s.section !== s.title ? " · " + esc(s.section) : ""}</div>
+      ${s.image_urls.length ? `<div class="thumbs">${s.image_urls.slice(0, 4).map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="Screenshot from ${esc(s.title)}" loading="lazy"></a>`).join("")}</div>` : ""}
+    </div>`).join("");
+  const el = $("#result");
+  el.innerHTML = `
+    <span class="badge ${r.status}">${STATUS_LABEL[r.status]}</span>
+    <div class="answer">${esc(r.answer)}</div>
+    ${r.missing_info && r.status !== "answered" ? `<p class="meta">Not covered: ${esc(r.missing_info)}</p>` : ""}
+    ${r.escalation_id ? `<p class="meta">Expert task #${r.escalation_id} opened. The answer will be reused next time.</p>` : ""}
+    ${sources ? `<h2 style="margin-top:16px">Sources</h2><div class="sources">${sources}</div>` : ""}
+    <p class="meta" style="margin-top:14px">${r.model ? esc(r.model) + " · " : ""}${(r.latency_ms / 1000).toFixed(1)}s · $${r.cost_usd.toFixed(4)}</p>`;
+  el.hidden = false;
+}
+
+// Expert queue
+async function loadQueueCount() {
+  try { const items = await api("/escalations?status=open"); setCount(items.length); } catch {}
+}
+function setCount(n) { const c = $("#queue-count"); c.textContent = n; c.hidden = n === 0; }
+
+async function loadQueue() {
+  const box = $("#queue");
+  box.innerHTML = `<div class="empty">Loading…</div>`;
+  let items;
+  try { items = await api("/escalations?status=open"); } catch { box.innerHTML = ""; return; }
+  setCount(items.length);
+  if (!items.length) { box.innerHTML = `<div class="empty">No open questions. Anything the help center can’t answer will appear here.</div>`; return; }
+  box.innerHTML = items.map((it) => `
+    <div class="source" style="margin-bottom:12px" data-id="${it.id}">
+      <div class="q">${esc(it.question)}</div>
+      <div class="meta">Asked ${it.times_asked}× · ${esc(it.caller || "unknown")} · ${esc(it.created_at)} UTC · why: ${esc(it.reason)}</div>
+      ${it.evidence.length ? `<div class="meta ev">Closest articles: ${it.evidence.slice(0, 3).map((e) => e.url ? `<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a>` : esc(e.title)).join(" · ")}</div>` : ""}
+      <textarea placeholder="Write the approved answer customers should get…" style="margin-top:10px"></textarea>
+      <div class="row"><input placeholder="Your name" style="max-width:220px"><button class="btn">Save answer</button><span class="meta"></span></div>
+    </div>`).join("");
+  box.querySelectorAll("[data-id]").forEach((card) => {
+    card.querySelector("button").addEventListener("click", async () => {
+      const answer = card.querySelector("textarea").value.trim();
+      const author = card.querySelector("input").value.trim();
+      const note = card.querySelector(".row .meta");
+      if (answer.length < 10 || author.length < 2) { note.textContent = "Add an answer (10+ characters) and your name."; return; }
+      card.querySelector("button").disabled = true;
+      try {
+        await api(`/escalations/${card.dataset.id}/resolve`, { method: "POST", body: JSON.stringify({ answer, author }) });
+        card.innerHTML = `<div class="meta">Saved. Future answers to this question will cite your answer.</div>`;
+        loadQueueCount();
+      } catch (err) { note.textContent = err.message; card.querySelector("button").disabled = false; }
+    });
+  });
+}
+
+// Status
+async function loadStatus() {
+  let s;
+  try { s = await api("/ingestion/status"); } catch { return; }
+  const pages = s.pages_by_status;
+  const stat = (v, label) => `<div class="stat"><b>${v}</b><span>${label}</span></div>`;
+  $("#stats").innerHTML = [
+    stat(pages.done ?? 0, "articles indexed"),
+    stat(s.chunks, "searchable passages"),
+    stat(`${s.images_described}/${s.images_total}`, "screenshots described"),
+    stat(pages.failed ?? 0, "pages failing"),
+    stat(s.open_escalations, "open expert tasks"),
+    stat(s.answering_enabled ? "On" : "Off", "answering (Claude)"),
+  ].join("");
+  const last = s.last_refresh;
+  $("#refresh-btn").disabled = s.refresh_running;
+  $("#refresh-meta").textContent = s.refresh_running ? "Refresh running…"
+    : last ? `Last refresh ${last.status} at ${(last.finished_at || last.started_at).replace("T", " ").replace("+00:00", "")} UTC: ${last.ingestion.new ?? 0} new, ${last.ingestion.changed ?? 0} changed, ${last.ingestion.removed ?? 0} removed.`
+    : s.last_run ? `Last crawl finished ${s.last_run.finished_at} UTC.` : "";
+  if (s.next_scheduled_refresh) $("#refresh-meta").textContent += ` Next automatic refresh ${s.next_scheduled_refresh.replace("T", " ").replace("+00:00", "")} UTC.`;
+  if (s.refresh_running) setTimeout(loadStatus, 3000);
+}
+$("#refresh-btn").addEventListener("click", async () => {
+  try { await api("/ingestion/run", { method: "POST" }); } catch (err) { $("#refresh-meta").textContent = err.message; return; }
+  loadStatus();
+});
+
+loadQueueCount();
+</script>
+</body>
+</html>
