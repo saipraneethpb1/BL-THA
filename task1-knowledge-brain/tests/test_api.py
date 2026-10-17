@@ -18,6 +18,7 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClie
     monkeypatch.setattr(api.settings, "api_key", "secret")
     api.app.state.searcher = Searcher(FakeEmbedder())
     monkeypatch.setattr(api.settings, "refresh_enabled", False)
+    monkeypatch.setattr(api.settings, "bootstrap_crawl", False)  # never crawl from tests
     api.app.state.answerer = None
     api.app.state.refresher = Refresher(api.settings, FakeEmbedder(), None)
     with TestClient(api.app) as c:

@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 from kb.answer import escalations as esc
 from kb.answer.llm import Answerer, ClaudeAnswerer
 from kb.answer.service import answer_question
+from kb.bootstrap import article_count, seed_database
 from kb.config import settings
 from kb.db import connect, init_db
 from kb.ingestion.vision import ClaudeImageDescriber
@@ -31,6 +32,7 @@ UI_FILE = Path(__file__).parent / "ui" / "index.html"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    app.state.seed = await seed_database(settings.db_path, settings.seed_path, settings.seed_url)
     await init_db(settings.db_path)
     if not hasattr(app.state, "searcher"):  # tests inject a searcher with a fake embedder
         app.state.searcher = Searcher(
@@ -57,6 +59,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         if settings.refresh_enabled
         else None
     )
+    # Nothing to start from: crawl the help center in the background. The API is
+    # usable (and reports progress on /ingestion/status) while it runs.
+    if settings.bootstrap_crawl and article_count(settings.db_path) == 0:
+        app.state.bootstrap_task = asyncio.create_task(app.state.refresher.run(trigger="bootstrap"))
     yield
     if scheduler is not None:
         scheduler.cancel()
@@ -100,6 +106,7 @@ class IngestionStatus(BaseModel):
     answering_enabled: bool
     refresh_running: bool
     last_refresh: dict[str, Any] | None
+    seeded_from: str
     next_scheduled_refresh: str | None
 
 
@@ -170,6 +177,7 @@ async def ingestion_status(request: Request) -> IngestionStatus:
         refresh_running=refresher.running,
         last_refresh=asdict(refresher.last) if refresher.last else None,
         next_scheduled_refresh=next_run,
+        seeded_from=getattr(request.app.state, "seed", "unknown"),
     )
 
 

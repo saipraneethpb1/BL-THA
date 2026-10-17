@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     refresh_enabled: bool = True
     refresh_hour_utc: int = 2
 
+    # First start (see kb/bootstrap.py): snapshot file, snapshot URL, else crawl.
+    seed_path: Path | None = None
+    seed_url: str | None = None
+    bootstrap_crawl: bool = True
+
     # Shared secret for callers (Tasks 2 and 3). None = no auth, for local development only.
     api_key: str | None = None
 

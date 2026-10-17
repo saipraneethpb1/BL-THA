@@ -1,21 +1,65 @@
-# One command runs everything:  docker compose up --build
-# Tasks 2 and 3 only start once the Knowledge Brain reports healthy.
+# One command runs everything:   docker compose up --build
+#
+#   http://localhost:8001  Knowledge Brain (Task 1)   chat, expert queue, status, API docs at /docs
+#   http://localhost:8002  Inbox Agent (Task 2)        inbox review and autonomy
+#   http://localhost:8003  Scope Builder (Task 3)      transcripts to scope, estimate, proposal
+#
+# Settings come from .env (copy .env.example). Without ANTHROPIC_API_KEY every service
+# still starts; answering, drafting and building show as switched off.
+
+x-env: &env
+  env_file:
+    - path: .env
+      required: false
+
 services:
   knowledge-brain:
     build: ./task1-knowledge-brain
-    env_file: .env
+    <<: *env
     environment:
-      KB_DB_PATH: /data/knowledge.db
+      KB_API_KEY: ${KB_API_KEY:-change-me}
+      # First start: use a local snapshot if present, else KB_SEED_URL, else crawl.
+      KB_SEED_PATH: /seed/knowledge.db
+      KB_SEED_URL: ${KB_SEED_URL:-}
     volumes:
       - kb-data:/data
+      # Snapshot made with: cd task1-knowledge-brain && uv run python -m kb.snapshot
+      - ./task1-knowledge-brain/data/snapshot:/seed:ro
     ports:
       - "8001:8001"
     restart: unless-stopped
 
-  # inbox-agent (Task 2, TypeScript) and scope-builder (Task 3, Python) are added
-  # here as they are built, each with:
-  #   depends_on: { knowledge-brain: { condition: service_healthy } }
-  #   environment: { KB_URL: http://knowledge-brain:8001 }
+  inbox-agent:
+    build: ./task2-inbox-agent
+    <<: *env
+    environment:
+      KB_URL: http://knowledge-brain:8001
+      KB_API_KEY: ${KB_API_KEY:-change-me}
+    volumes:
+      - inbox-data:/data
+    ports:
+      - "8002:8002"
+    depends_on:
+      knowledge-brain:
+        condition: service_healthy
+    restart: unless-stopped
+
+  scope-builder:
+    build: ./task3-meeting-to-scope
+    <<: *env
+    environment:
+      SCOPE_KB_URL: http://knowledge-brain:8001
+      SCOPE_KB_API_KEY: ${KB_API_KEY:-change-me}
+    volumes:
+      - scope-data:/data
+    ports:
+      - "8003:8003"
+    depends_on:
+      knowledge-brain:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   kb-data:
+  inbox-data:
+  scope-data:
