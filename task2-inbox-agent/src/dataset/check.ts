@@ -12,6 +12,8 @@ export interface CheckReport {
   emails: EmailCase[];
   errors: string[];
   shortfalls: string[];
+  /** AI-drafted emails a human has not reviewed yet. */
+  pendingReview: string[];
 }
 
 export function loadAndCheck(dir: string): CheckReport {
@@ -59,5 +61,9 @@ export function loadAndCheck(dir: string): CheckReport {
   const critical = emails.filter((e) => e.labels.urgency === "critical").length;
   if (critical < MIN_CRITICAL) shortfalls.push(`critical urgency: ${critical}/${MIN_CRITICAL}`);
 
-  return { emails, errors, shortfalls };
+  const pendingReview = emails
+    .filter((e) => e.provenance === "ai_drafted_pending_review")
+    .map((e) => e.id);
+
+  return { emails, errors, shortfalls, pendingReview };
 }

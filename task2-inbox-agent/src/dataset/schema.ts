@@ -45,8 +45,11 @@ export const EmailCase = z
       mustNotInclude: z.array(z.string()).default([]),
       traits: z.array(z.enum(TRAITS)).default([]),
     }),
-    /** Who wrote it and how, so the dataset is honest about its origin. */
-    provenance: z.enum(["handwritten", "ai_drafted_human_edited"]),
+    /**
+     * Who wrote it, so the dataset is honest about its origin. AI drafts start as
+     * "ai_drafted_pending_review"; the checker fails until a human has reviewed them.
+     */
+    provenance: z.enum(["handwritten", "ai_drafted_human_edited", "ai_drafted_pending_review"]),
   })
   .strict();
 

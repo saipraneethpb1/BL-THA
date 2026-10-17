@@ -39,6 +39,11 @@ describe("dataset check", () => {
     expect(r.errors).toContain("duplicate id E001");
   });
 
+  it("lists AI drafts that still need human review", () => {
+    const draft = { ...valid, provenance: "ai_drafted_pending_review" };
+    expect(loadAndCheck(dirWith([draft])).pendingReview).toEqual(["E001"]);
+  });
+
   it("requires a thread when an email needs history", () => {
     const e = { ...valid, labels: { ...valid.labels, traits: ["needs_history"] } };
     expect(loadAndCheck(dirWith([e])).errors).toContain(

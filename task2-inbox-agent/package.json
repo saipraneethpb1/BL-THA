@@ -10,7 +10,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "dataset:check": "tsx src/dataset/check-cli.ts"
+    "dataset:check": "tsx src/dataset/check-cli.ts",
+    "dataset:print": "tsx src/dataset/print-cli.ts"
   },
   "dependencies": {
     "zod": "^4.6.7"
