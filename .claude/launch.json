@@ -25,6 +25,20 @@
         "start"
       ],
       "port": 8002
+    },
+    {
+      "name": "scope-builder",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": [
+        "run",
+        "--directory",
+        "task3-meeting-to-scope",
+        "uvicorn",
+        "scope.api:app",
+        "--port",
+        "8003"
+      ],
+      "port": 8003
     }
   ]
 }

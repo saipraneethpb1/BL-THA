@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scope Builder</title>
+<style>
+  :root {
+    --bg: #f7f7f5; --panel: #fff; --text: #1d1d1b; --muted: #6b6b66; --line: #e4e3df;
+    --accent: #2f5bd3; --accent-ink: #fff; --sel: #eef2fd;
+    --ok-bg: #e5f4ea; --ok: #1d6b3a; --warn-bg: #fdf1dc; --warn: #8a5a00;
+    --info-bg: #e8eefc; --info: #2a4aa8; --err-bg: #fde8e6; --err: #a8261b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #151514; --panel: #1f1f1d; --text: #ecebe7; --muted: #a09f98; --line: #34332f;
+      --accent: #7b9cff; --accent-ink: #10131c; --sel: #232b40;
+      --ok-bg: #173323; --ok: #8fd8a8; --warn-bg: #3a2c10; --warn: #f0c46b;
+      --info-bg: #1b2645; --info: #a9bdff; --err-bg: #3d1915; --err: #ff9d92;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { background: var(--panel); border-bottom: 1px solid var(--line); }
+  .bar { max-width: 1280px; margin: 0 auto; padding: 0 16px; height: 54px; display: flex; align-items: center; gap: 16px; }
+  .brand { font-weight: 650; }
+  .layout { display: grid; grid-template-columns: 280px 1fr; gap: 16px; max-width: 1280px; margin: 16px auto; padding: 0 16px; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  h2 { font-size: 17px; margin: 0 0 8px; } h3 { font-size: 13px; margin: 16px 0 6px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .meta { color: var(--muted); font-size: 13px; }
+  .item { padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+  .item:hover, .item.sel { background: var(--sel); }
+  input, textarea { width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-top: 6px; }
+  textarea { min-height: 140px; resize: vertical; font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+  .btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer; }
+  .btn.secondary { background: var(--bg); color: var(--text); border: 1px solid var(--line); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--bg); color: var(--muted); margin-right: 4px; white-space: nowrap; }
+  .b-approved, .b-confirmed, .b-existing_configuration, .b-added-ok { background: var(--ok-bg); color: var(--ok); }
+  .b-draft, .b-unclear, .b-existing_with_limitation, .b-modified, .b-warn { background: var(--warn-bg); color: var(--warn); }
+  .b-failed, .b-disputed, .b-block, .b-removed { background: var(--err-bg); color: var(--err); }
+  .b-building, .b-custom_development, .b-added { background: var(--info-bg); color: var(--info); }
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin: 12px 0; }
+  .tabs button { background: none; border: 0; padding: 8px 12px; font: inherit; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; }
+  .tabs button[aria-selected="true"] { color: var(--text); border-color: var(--accent); font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; } th, td { text-align: left; vertical-align: top; padding: 8px; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .quote { border-left: 3px solid var(--line); padding-left: 8px; margin: 4px 0; color: var(--muted); font-size: 13px; }
+  .issue { padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; }
+  .issue.block { background: var(--err-bg); color: var(--err); } .issue.warn { background: var(--warn-bg); color: var(--warn); }
+  .doc { max-width: 760px; } .doc h1 { font-size: 22px; } .doc h2 { font-size: 18px; margin-top: 22px; } .doc h3 { text-transform: none; font-size: 15px; color: var(--text); letter-spacing: 0; }
+  .doc blockquote { margin: 0; padding: 8px 12px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; }
+  .doc a { color: var(--accent); }
+  .banner { padding: 10px 14px; border-radius: 8px; max-width: 1248px; margin: 12px auto 0; }
+  .banner.err { background: var(--err-bg); color: var(--err); } .banner.info { background: var(--info-bg); color: var(--info); }
+  .empty { color: var(--muted); padding: 20px; text-align: center; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header><div class="bar"><div class="brand">Scope Builder</div><span class="meta">Meeting transcripts to scope of work, estimate and proposal</span></div></header>
+<div id="banner" class="banner err" hidden></div>
+<div class="layout">
+  <aside>
+    <div class="panel">
+      <h2>Projects</h2>
+      <div id="projects"></div>
+      <h3>New project</h3>
+      <input id="p-name" placeholder="Project name">
+      <input id="p-client" placeholder="Client">
+      <div class="row"><button class="btn" id="p-create">Create</button></div>
+    </div>
+  </aside>
+  <main id="main"><div class="panel empty">Create or pick a project.</div></main>
+</div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const VERDICT = { existing_configuration: "Built-in setting", existing_with_limitation: "Built-in, with limits", custom_development: "Custom work", needs_clarification: "Needs clarification" };
+let state = { pid: null, version: null, tab: "requirements", building: true };
+let poll = null;
+
+async function api(path, options = {}) {
+  const headers = options.body ? { "content-type": "application/json" } : {};
+  let res;
+  try { res = await fetch(path, { ...options, headers }); } catch { banner("Scope Builder is not reachable."); throw new Error("offline"); }
+  const isText = (res.headers.get("content-type") || "").startsWith("text/plain");
+  const body = isText ? await res.text() : await res.json().catch(() => ({}));
+  if (!res.ok) { const d = body.detail; throw new Error(typeof d === "string" ? d : Array.isArray(d) ? d.map((x) => `${x.loc.at(-1)}: ${x.msg}`).join("; ") : `Error ${res.status}`); }
+  $("#banner").hidden = true;
+  return body;
+}
+function banner(msg, kind = "err") { const b = $("#banner"); b.className = `banner ${kind}`; b.textContent = msg; b.hidden = false; }
+function actor() { try { return localStorage.getItem("actor") || ""; } catch { return ""; } }
+function saveActor(v) { try { localStorage.setItem("actor", v); } catch {} }
+
+async function loadProjects() {
+  const ps = await api("/api/projects").catch(() => []);
+  $("#projects").innerHTML = ps.length ? ps.map((p) => `<div class="item ${p.id === state.pid ? "sel" : ""}" data-id="${p.id}"><b>${esc(p.name)}</b><div class="meta">${esc(p.client)} · ${p.meetings} meeting(s)${p.latest_version ? ` · v${p.latest_version}` : ""}</div></div>`).join("") : `<div class="meta">No projects yet.</div>`;
+  document.querySelectorAll("#projects .item").forEach((el) => el.onclick = () => openProject(Number(el.dataset.id)));
+}
+$("#p-create").onclick = async () => {
+  try { const r = await api("/api/projects", { method: "POST", body: JSON.stringify({ name: $("#p-name").value, client: $("#p-client").value }) }); $("#p-name").value = $("#p-client").value = ""; await loadProjects(); openProject(r.id); }
+  catch (e) { banner(e.message); }
+};
+
+async function openProject(pid, version = null) {
+  state.pid = pid; clearInterval(poll);
+  await loadProjects();
+  const p = await api(`/api/projects/${pid}`);
+  const latest = p.versions[0];
+  state.version = version ?? latest?.number ?? null;
+  const main = $("#main");
+  main.innerHTML = `
+    <div class="panel">
+      <h2>${esc(p.project.name)}</h2><div class="meta">Client: ${esc(p.project.client)}</div>
+      <h3>Meetings</h3>
+      ${p.meetings.length ? p.meetings.map((m) => `<div>${esc(m.date)} · ${esc(m.title)} <span class="meta">(${esc(m.id)})</span></div>`).join("") : `<div class="meta">No meetings yet. Paste or upload a transcript below.</div>`}
+      <details style="margin-top:10px" ${p.meetings.length ? "" : "open"}><summary class="meta" style="cursor:pointer">Add a meeting transcript</summary>
+        <div class="row"><input id="m-title" placeholder="Meeting title, e.g. Kickoff call" style="flex:2"><input id="m-date" type="date" style="flex:1"></div>
+        <textarea id="m-text" placeholder="[00:00:05] Sam: Thanks for joining...&#10;[00:00:12] Priya: The search is bad..."></textarea>
+        <div class="row"><input type="file" id="m-file" accept=".txt,.vtt,.md" style="flex:1"><button class="btn secondary" id="m-add">Add meeting</button><span class="meta" id="m-note"></span></div>
+      </details>
+      <div class="row">
+        <button class="btn" id="build" ${state.building && p.meetings.length ? "" : "disabled"}>${p.versions.some((v) => v.status === "approved") ? "Update scope from new meetings" : "Build scope"}</button>
+        <span class="meta">${state.building ? "Each build creates a new draft version. Nothing reaches the client until a person approves it." : "Building is off until the Claude API key is set."}</span>
+      </div>
+      ${p.versions.length ? `<h3>Versions</h3><div class="row">${p.versions.map((v) => `<button class="btn secondary" data-v="${v.number}" style="${v.number === state.version ? "outline:2px solid var(--accent)" : ""}">v${v.number} <span class="badge b-${esc(v.status)}">${esc(v.status)}</span>${v.baseline_version ? `<span class="meta">from v${v.baseline_version}</span>` : ""}</button>`).join("")}</div>` : ""}
+    </div>
+    <div id="version"></div>
+    <div class="panel"><h3 style="margin-top:0">Audit trail</h3>${p.audit.map((a) => `<div class="meta">${esc(a.created_at)} · ${a.version_number ? `v${a.version_number} · ` : ""}${esc(a.action)} · ${esc(a.actor)}${a.detail ? ` · ${esc(a.detail)}` : ""}</div>`).join("")}</div>`;
+  $("#m-file").onchange = async (e) => { const f = e.target.files[0]; if (f) { $("#m-text").value = await f.text(); if (!$("#m-title").value) $("#m-title").value = f.name.replace(/\.[^.]+$/, ""); } };
+  $("#m-add").onclick = async () => {
+    try { const r = await api(`/api/projects/${pid}/meetings`, { method: "POST", body: JSON.stringify({ title: $("#m-title").value, date: $("#m-date").value, transcript: $("#m-text").value }) }); banner(`Added ${r.id}: ${r.turns} turns from ${r.speakers.join(", ")}.`, "info"); openProject(pid); }
+    catch (e) { $("#m-note").textContent = e.message; }
+  };
+  $("#build").onclick = async () => {
+    try { const r = await api(`/api/projects/${pid}/build`, { method: "POST" }); openProject(pid, r.version); }
+    catch (e) { banner(e.message); }
+  };
+  document.querySelectorAll("[data-v]").forEach((b) => b.onclick = () => openProject(pid, Number(b.dataset.v)));
+  if (state.version) loadVersion();
+}
+
+async function loadVersion() {
+  const v = await api(`/api/projects/${state.pid}/versions/${state.version}`);
+  const box = $("#version");
+  if (v.status === "building") {
+    box.innerHTML = `<div class="panel"><span class="badge b-building">building</span> Reading the transcripts and running the agents. This takes a minute or two for a long meeting.</div>`;
+    clearInterval(poll); poll = setInterval(async () => { const x = await api(`/api/projects/${state.pid}/versions/${state.version}`); if (x.status !== "building") { clearInterval(poll); openProject(state.pid, state.version); } }, 3000);
+    return;
+  }
+  if (v.status === "failed") { box.innerHTML = `<div class="panel"><span class="badge b-failed">failed</span> ${esc(v.error)}</div>`; return; }
+  const d = v.data;
+  const tabs = [["requirements", `Requirements (${d.analysis.requirements.length})`], ["feasibility", "Product check"], ["scope", "Scope"], ["estimate", "Estimate"], ...(d.diff ? [["changes", "Changes"]] : []), ["proposal", "Proposal"], ["approve", v.status === "approved" ? "Approved" : "Review & approve"]];
+  if (!tabs.some(([k]) => k === state.tab)) state.tab = "requirements";
+  box.innerHTML = `<div class="panel"><div class="row" style="margin:0"><h2 style="margin:0">Version ${v.number}</h2><span class="badge b-${esc(v.status)}">${esc(v.status)}</span><span class="meta">${esc(v.created_at)} · ${v.usage.calls ?? 0} model calls · $${(v.usage.cost_usd ?? 0).toFixed(3)}</span></div>
+    <div class="tabs">${tabs.map(([k, label]) => `<button data-tab="${k}" aria-selected="${k === state.tab}">${esc(label)}</button>`).join("")}</div><div id="tab"></div></div>`;
+  box.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => { state.tab = b.dataset.tab; loadVersion(); });
+  $("#tab").innerHTML = render[state.tab](v, d);
+  if (state.tab === "approve") wireApprove(v);
+}
+
+const evidence = (ev) => ev.map((e) => `<div class="quote">"${esc(e.quote)}" <span>${esc(e.speaker)}${e.timestamp ? ` @ ${esc(e.timestamp)}` : ""} · ${esc(e.meeting_id)}${e.verified ? "" : ` · <span class="badge b-warn">quote not found in transcript</span>`}</span></div>`).join("");
+const notes = (title, items) => items.length ? `<h3>${title}</h3>${items.map((n) => `<div>${esc(n.statement)}${evidence(n.evidence)}</div>`).join("")}` : "";
+const list = (title, items) => items.length ? `<h3>${title}</h3><ul>${items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>` : "";
+
+const render = {
+  requirements: (v, d) => `<table><thead><tr><th>ID</th><th>Requirement and what the client said</th><th>Status</th><th>Priority</th></tr></thead><tbody>${d.analysis.requirements.map((r) => `<tr><td>${esc(r.id)}</td><td>${esc(r.description)}${r.origin === "inferred" ? ` <span class="badge">inferred</span>` : ""}${evidence(r.evidence)}</td><td><span class="badge b-${esc(r.status)}">${esc(r.status)}</span></td><td>${esc(r.priority)}</td></tr>`).join("")}</tbody></table>${notes("Decisions", d.analysis.decisions)}${notes("Constraints", d.analysis.constraints)}${notes("Open questions", d.analysis.open_questions)}${notes("Commitments", d.analysis.commitments)}`,
+  feasibility: (v, d) => { const reqs = Object.fromEntries(d.analysis.requirements.map((r) => [r.id, r])); return `<p class="meta">Each requirement was checked against the product's help center through the Knowledge Brain. Built-in settings cost the client far less than custom code.</p><table><thead><tr><th>Requirement</th><th>Verdict</th><th>Details</th></tr></thead><tbody>${d.feasibility.map((f) => `<tr><td>${esc(f.requirement_id)} ${esc(reqs[f.requirement_id]?.description)}</td><td><span class="badge b-${esc(f.verdict)}">${esc(VERDICT[f.verdict])}</span></td><td>${esc(f.explanation)}${f.how_to ? `<div><b>How:</b> ${esc(f.how_to)}</div>` : ""}${f.limitation ? `<div><b>Limit:</b> ${esc(f.limitation)}</div>` : ""}${f.clarifying_question ? `<div><b>Ask:</b> ${esc(f.clarifying_question)}</div>` : ""}<div class="meta">${f.kb_sources.map((s) => s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>` : esc(s.title)).join(" · ") || `knowledge base: ${esc(f.kb_status)}`}</div></td></tr>`).join("")}</tbody></table>`; },
+  scope: (v, d) => d.scope.deliverables.map((x) => `<h3>${esc(x.id)} ${esc(x.title)} <span class="badge">${esc(x.approach)}</span></h3><div>${esc(x.description)}</div><div class="meta">Covers ${x.requirement_ids.map(esc).join(", ")}</div><ul>${x.acceptance_criteria.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>`).join("") + list("Left out on purpose", d.scope.excluded.map((e) => `${e.requirement_id}: ${e.reason}`)) + list("Not included", d.scope.exclusions) + list("Assumptions", d.scope.assumptions) + list("Dependencies", d.scope.dependencies) + list("Client responsibilities", d.scope.client_responsibilities) + list("Open questions", d.scope.open_questions),
+  estimate: (v, d) => { const e = d.estimate; return `<table><thead><tr><th>Deliverable</th><th>Task</th><th>Low</th><th>Likely</th><th>High</th><th>Confidence</th></tr></thead><tbody>${e.tasks.map((t) => `<tr><td>${esc(t.deliverable_id)}</td><td>${esc(t.name)}<div class="meta">${esc(t.assumptions)}</div></td><td>${t.low_hours}</td><td>${t.likely_hours}</td><td>${t.high_hours}</td><td><span class="badge ${t.confidence === "low" ? "b-warn" : ""}">${esc(t.confidence)}</span></td></tr>`).join("")}<tr><td></td><td><b>Total</b></td><td><b>${e.low_hours}</b></td><td><b>${e.likely_hours}</b></td><td><b>${e.high_hours}</b></td><td></td></tr></tbody></table><p><b>Expected ${e.expected_hours} h</b> (PERT). Price range <b>${esc(e.currency)} ${e.price_low.toLocaleString()} to ${e.price_high.toLocaleString()}</b> at ${esc(e.currency)} ${e.hourly_rate}/h with ${e.contingency_pct}% contingency. Calculated in code from the task hours, not by the model.</p>${list("Risks", e.risks)}`; },
+  changes: (v, d) => { const x = d.diff; const shown = x.changes.filter((c) => c.change !== "unchanged"); return `<p class="meta">Compared with approved version ${x.baseline_version}, not with the last draft. Anything added or changed after approval is flagged to be quoted separately.</p><table><thead><tr><th>Change</th><th>Requirement</th><th>Before → after</th></tr></thead><tbody>${shown.map((c) => `<tr><td><span class="badge b-${esc(c.change)}">${esc(c.change)}</span>${c.out_of_scope ? `<div><span class="badge b-warn">outside approved scope</span></div>` : ""}</td><td>${esc(c.requirement_id)}<div>${esc(c.summary)}</div>${evidence(c.evidence)}</td><td>${c.before ? `<div class="meta">Before: ${esc(c.before)}</div>` : ""}${c.after ? `<div>After: ${esc(c.after)}</div>` : ""}</td></tr>`).join("") || `<tr><td colspan="3" class="meta">No requirement changes.</td></tr>`}</tbody></table>${list("Constraint changes", x.constraint_changes)}<p>Effect on the estimate: <b>${x.hours_delta_expected >= 0 ? "+" : ""}${x.hours_delta_expected} expected hours</b>, ${esc(d.estimate.currency)} ${x.price_delta_low.toLocaleString()} to ${x.price_delta_high.toLocaleString()}. ${x.changes.filter((c) => c.change === "unchanged").length} requirement(s) unchanged.</p>`; },
+  proposal: (v, d) => `<div class="doc">${markdown(d.proposal_md)}</div>`,
+  approve: (v) => `${v.issues.length ? v.issues.map((i) => `<div class="issue ${i.severity}">${i.severity === "block" ? "Must fix" : "Check"}: ${esc(i.message)}</div>`).join("") : `<div class="meta">No issues found by the automatic review.</div>`}
+    ${v.status === "approved" ? `<p><span class="badge b-approved">approved</span> by ${esc(v.approved_by)} at ${esc(v.approved_at)}${v.approval_note ? ` · note: ${esc(v.approval_note)}` : ""}</p><div class="row"><button class="btn" id="export">Download proposal for the client</button></div>`
+      : v.status === "draft" ? `<h3>Approve</h3><p class="meta">Approving makes this the baseline that later meetings are compared against, and allows sending the proposal.</p><input id="a-name" placeholder="Your name" value="${esc(actor())}"><input id="a-note" placeholder="Note (required if there are blocking issues)"><div class="row"><button class="btn" id="approve">Approve version ${v.number}</button><span class="meta" id="a-msg"></span></div>`
+      : `<p class="meta">This version is ${esc(v.status)} and can no longer be approved.</p>`}`,
+};
+
+function wireApprove(v) {
+  const a = $("#approve");
+  if (a) a.onclick = async () => {
+    const name = $("#a-name").value.trim(); saveActor(name);
+    try { await api(`/api/projects/${state.pid}/versions/${v.number}/approve`, { method: "POST", body: JSON.stringify({ actor: name, ...($("#a-note").value.trim() ? { note: $("#a-note").value.trim() } : {}) }) }); openProject(state.pid, v.number); }
+    catch (e) { $("#a-msg").textContent = e.message; }
+  };
+  const x = $("#export");
+  if (x) x.onclick = async () => {
+    try {
+      const md = await api(`/api/projects/${state.pid}/versions/${v.number}/export?actor=${encodeURIComponent(actor() || "user")}`);
+      const url = URL.createObjectURL(new Blob([md], { type: "text/markdown" }));
+      const link = Object.assign(document.createElement("a"), { href: url, download: `proposal-v${v.number}.md` });
+      link.click(); URL.revokeObjectURL(url);
+    } catch (e) { banner(e.message); }
+  };
+}
+
+function inline(s) {
+  return esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\*(.+?)\*/g, "<i>$1</i>")
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+}
+function markdown(md) {
+  const out = []; let list = null, table = null;
+  const flush = () => { if (list) { out.push(`<ul>${list.join("")}</ul>`); list = null; } if (table) { out.push(`<table>${table.join("")}</table>`); table = null; } };
+  for (const line of md.split("\n")) {
+    if (/^\|/.test(line)) { if (/^\|[-| ]+\|$/.test(line)) continue; table ??= []; const cells = line.split("|").slice(1, -1).map((c) => `<td>${inline(c.trim())}</td>`); table.push(`<tr>${cells.join("")}</tr>`); continue; }
+    if (/^- /.test(line)) { list ??= []; list.push(`<li>${line.startsWith("- [ ] ") ? "☐ " + inline(line.slice(6)) : inline(line.slice(2))}</li>`); continue; }
+    flush();
+    const h = line.match(/^(#{1,3}) (.*)$/);
+    if (h) out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`);
+    else if (line.startsWith("> ")) out.push(`<blockquote>${inline(line.slice(2))}</blockquote>`);
+    else if (line.trim()) out.push(`<p>${inline(line)}</p>`);
+  }
+  flush();
+  return out.join("");
+}
+
+(async () => {
+  const h = await api("/health").catch(() => null);
+  state.building = Boolean(h?.building_enabled);
+  if (h && !state.building) banner("Building is off until ANTHROPIC_API_KEY is set. You can still create projects, add transcripts and review versions.", "info");
+  loadProjects();
+})();
+</script>
+</body>
+</html>

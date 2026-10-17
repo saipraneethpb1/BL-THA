@@ -146,3 +146,147 @@ class FeasibilityResult(BaseModel):
     clarifying_question: str | None
     kb_status: Literal["answered", "partial", "insufficient_evidence", "unavailable"]
     kb_sources: list[KnowledgeSource]
+
+
+# ---------- Scope ----------
+
+
+class Deliverable(BaseModel):
+    id: str = Field(description="D-01, D-02, ...")
+    title: str
+    description: str
+    requirement_ids: list[str]
+    approach: Literal["configuration", "custom", "mixed"]
+    acceptance_criteria: list[str] = Field(
+        description="Testable statements the client can check, e.g. 'Visitors can filter results by city'"
+    )
+
+
+class ExcludedRequirement(BaseModel):
+    requirement_id: str
+    reason: str
+
+
+class ScopeOfWork(BaseModel):
+    deliverables: list[Deliverable]
+    excluded: list[ExcludedRequirement] = Field(
+        description="Requirements deliberately left out of this scope, with the reason"
+    )
+    exclusions: list[str] = Field(description="Other things explicitly not included")
+    assumptions: list[str]
+    dependencies: list[str]
+    client_responsibilities: list[str]
+    open_questions: list[str] = Field(
+        description="Questions the client must answer before work starts"
+    )
+
+
+# ---------- Estimate ----------
+
+
+class EstimateTask(BaseModel):
+    deliverable_id: str
+    name: str
+    low_hours: float
+    likely_hours: float
+    high_hours: float
+    assumptions: str
+    confidence: Literal["high", "medium", "low"]
+
+
+class EstimateDraft(BaseModel):
+    """What the model returns. All totals and prices are computed in code from this."""
+
+    tasks: list[EstimateTask]
+    risks: list[str]
+
+
+class DeliverableTotal(BaseModel):
+    deliverable_id: str
+    low_hours: float
+    likely_hours: float
+    high_hours: float
+    expected_hours: float
+
+
+class Estimate(BaseModel):
+    tasks: list[EstimateTask]
+    risks: list[str]
+    per_deliverable: list[DeliverableTotal]
+    low_hours: float
+    likely_hours: float
+    high_hours: float
+    expected_hours: float = Field(description="PERT: (low + 4*likely + high) / 6")
+    contingency_pct: float
+    hourly_rate: float
+    currency: str
+    price_low: float
+    price_high: float
+
+
+# ---------- Proposal ----------
+
+
+class ProposalText(BaseModel):
+    """Prose only. Tables, hours and prices are rendered by code from the Estimate."""
+
+    title: str
+    executive_summary: str
+    client_problem: str
+    proposed_solution: str
+    timeline: str = Field(
+        description="Milestones in order; no calendar dates unless the client set them"
+    )
+    next_steps: str
+
+
+class ReviewIssue(BaseModel):
+    severity: Literal["block", "warn"]
+    message: str
+
+
+# ---------- Follow-up meetings ----------
+
+ChangeType = Literal["unchanged", "modified", "added", "removed"]
+
+
+class ChangeLink(BaseModel):
+    """Model output: how one item from the new meeting relates to the approved baseline."""
+
+    new_item_id: str | None = Field(description="Id of the new-meeting requirement, if any")
+    baseline_id: str | None = Field(description="REQ-xxx from the baseline, if it relates to one")
+    change: Literal["same", "modified", "added", "removed"]
+    summary: str = Field(description="What changed, in one sentence")
+    revised_statement: str | None = Field(
+        default=None,
+        description="For 'modified': the complete requirement after the change, keeping every "
+        "part of the approved one that still applies",
+    )
+
+
+class ChangeDetection(BaseModel):
+    links: list[ChangeLink]
+    constraint_changes: list[str] = Field(
+        description="Changes to budget, deadline, launch date or other constraints"
+    )
+
+
+class RequirementChange(BaseModel):
+    change: ChangeType
+    requirement_id: str
+    before: str | None
+    after: str | None
+    summary: str
+    out_of_scope: bool = Field(
+        description="Added or expanded after the baseline was approved: quote separately"
+    )
+    evidence: list[Evidence]
+
+
+class ScopeDiff(BaseModel):
+    baseline_version: int
+    changes: list[RequirementChange]
+    constraint_changes: list[str]
+    hours_delta_expected: float
+    price_delta_low: float
+    price_delta_high: float
