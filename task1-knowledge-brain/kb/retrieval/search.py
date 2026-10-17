@@ -81,13 +81,35 @@ class VectorIndex:
         return [(int(self.ids[i]), float(scores[i])) for i in best]
 
 
+CHANGELOG_TITLE = re.compile(r"^\s*changelog\b|software updates?\s*$", re.IGNORECASE)
+
+
+def is_changelog(title: str) -> bool:
+    """632 of 1,537 articles are release notes. They mention every feature in passing,
+    so they crowd out the article that actually explains it."""
+    return bool(CHANGELOG_TITLE.search(title))
+
+
 class Searcher:
-    def __init__(self, embedder: Embedder, keyword_weight: float = 0.3) -> None:
+    def __init__(
+        self,
+        embedder: Embedder,
+        keyword_weight: float = 0.3,
+        # Tuned on the 42-question retrieval eval: x0.5 cut changelog passages in the
+        # model's context from 6% to 2% with no recall loss; x0.25 broke questions that
+        # really are about release notes.
+        changelog_weight: float = 0.5,
+        max_per_article: int | None = 2,
+    ) -> None:
         self.embedder = embedder
         self.vectors = VectorIndex()
         # Keyword hits count less than meaning hits in the merge: the retrieval eval
         # showed plain OR-matching drags in noise for conversational questions.
         self.keyword_weight = keyword_weight
+        # Release notes are still searchable ("what changed in March?") but rank lower.
+        self.changelog_weight = changelog_weight
+        # Cap passages per article so a few slots aren't spent on one article's chunks.
+        self.max_per_article = max_per_article
 
     async def search(
         self, db: aiosqlite.Connection, question: str, k: int = 8, mode: Mode = "hybrid"
@@ -107,16 +129,25 @@ class Searcher:
         for weight, ranking in ranked:
             for rank, cid in enumerate(ranking):
                 fused[cid] = fused.get(cid, 0.0) + weight / (RRF_K + rank + 1)
-        best = sorted(fused, key=lambda cid: fused[cid], reverse=True)[:k]
-        hits_by_id = await self._load(db, best)
-        out = []
-        for cid in best:
-            if cid in hits_by_id:
-                hit = hits_by_id[cid]
-                # Report cosine similarity when we have it: it is interpretable (0..1),
-                # unlike an RRF score, and the answer step uses it to judge evidence strength.
-                hit.score = vector_scores.get(cid, 0.0) if mode != "keyword" else fused[cid]
-                out.append(hit)
+        hits_by_id = await self._load(db, list(fused))
+        for cid, loaded in hits_by_id.items():
+            if loaded.source == "article" and is_changelog(loaded.title):
+                fused[cid] *= self.changelog_weight
+        out: list[SearchHit] = []
+        per_article: dict[str, int] = {}
+        for cid in sorted(fused, key=lambda c: fused[c], reverse=True):
+            hit = hits_by_id.get(cid)
+            if hit is None:
+                continue
+            if self.max_per_article and per_article.get(hit.article_id, 0) >= self.max_per_article:
+                continue
+            per_article[hit.article_id] = per_article.get(hit.article_id, 0) + 1
+            # Report cosine similarity when we have it: it is interpretable (0..1),
+            # unlike an RRF score, and the answer step uses it to judge evidence strength.
+            hit.score = vector_scores.get(cid, 0.0) if mode != "keyword" else fused[cid]
+            out.append(hit)
+            if len(out) == k:
+                break
         return out
 
     async def _keyword(self, db: aiosqlite.Connection, question: str) -> list[int]:

@@ -1,0 +1,1893 @@
+{
+  "cases": 42,
+  "summary": {
+    "keyword": {
+      "hit@1": 0.40476190476190477,
+      "hit@5": 0.7142857142857143,
+      "mrr@10": 0.5363756613756614,
+      "in_context@6": 0.7142857142857143,
+      "in_context@6_fresh": 0.725,
+      "p50_ms": 4.116349991818424,
+      "p95_ms": 7.358000002568588,
+      "misses@5": [
+        "R01",
+        "R06",
+        "R10",
+        "R16",
+        "R19",
+        "R22",
+        "R24",
+        "R29",
+        "R30",
+        "R33",
+        "R37",
+        "R41"
+      ]
+    },
+    "vector": {
+      "hit@1": 0.5476190476190477,
+      "hit@5": 0.8333333333333334,
+      "mrr@10": 0.6582010582010582,
+      "in_context@6": 0.8571428571428571,
+      "in_context@6_fresh": 0.875,
+      "p50_ms": 7.179000000178348,
+      "p95_ms": 8.534000007784925,
+      "misses@5": [
+        "R02",
+        "R06",
+        "R17",
+        "R23",
+        "R33",
+        "R37",
+        "R41"
+      ]
+    },
+    "hybrid w=0.3 (before tuning)": {
+      "hit@1": 0.5476190476190477,
+      "hit@5": 0.8571428571428571,
+      "mrr@10": 0.6642857142857143,
+      "in_context@6": 0.8571428571428571,
+      "in_context@6_fresh": 0.875,
+      "p50_ms": 12.411099996825214,
+      "p95_ms": 16.578099995967932,
+      "misses@5": [
+        "R01",
+        "R06",
+        "R17",
+        "R33",
+        "R37",
+        "R41"
+      ]
+    },
+    "+ changelogs x0.5": {
+      "hit@1": 0.5476190476190477,
+      "hit@5": 0.8809523809523809,
+      "mrr@10": 0.665079365079365,
+      "in_context@6": 0.8571428571428571,
+      "in_context@6_fresh": 0.875,
+      "p50_ms": 13.506550007150508,
+      "p95_ms": 17.24570000078529,
+      "misses@5": [
+        "R01",
+        "R06",
+        "R33",
+        "R37",
+        "R41"
+      ]
+    },
+    "+ changelogs x0.25": {
+      "hit@1": 0.5476190476190477,
+      "hit@5": 0.8809523809523809,
+      "mrr@10": 0.6680555555555555,
+      "in_context@6": 0.8571428571428571,
+      "in_context@6_fresh": 0.875,
+      "p50_ms": 12.713450007140636,
+      "p95_ms": 18.06370000122115,
+      "misses@5": [
+        "R01",
+        "R06",
+        "R33",
+        "R37",
+        "R41"
+      ]
+    },
+    "+ changelogs x0.5, max 2/article": {
+      "hit@1": 0.5476190476190477,
+      "hit@5": 0.8809523809523809,
+      "mrr@10": 0.665079365079365,
+      "in_context@6": 0.8571428571428571,
+      "in_context@6_fresh": 0.875,
+      "p50_ms": 12.90780000272207,
+      "p95_ms": 17.88749999832362,
+      "misses@5": [
+        "R01",
+        "R06",
+        "R33",
+        "R37",
+        "R41"
+      ]
+    },
+    "+ changelogs x0.25, max 2/article": {
+      "hit@1": 0.5476190476190477,
+      "hit@5": 0.8809523809523809,
+      "mrr@10": 0.6680555555555555,
+      "in_context@6": 0.8571428571428571,
+      "in_context@6_fresh": 0.875,
+      "p50_ms": 12.495700000727084,
+      "p95_ms": 18.002500000875443,
+      "misses@5": [
+        "R01",
+        "R06",
+        "R33",
+        "R37",
+        "R41"
+      ]
+    }
+  },
+  "per_case": [
+    {
+      "mode": "keyword",
+      "id": "R01",
+      "rank": null,
+      "top": "Easy Coupon Codes"
+    },
+    {
+      "mode": "keyword",
+      "id": "R02",
+      "rank": 3,
+      "top": "How to Cancel a Brilliant Directories Subscription"
+    },
+    {
+      "mode": "keyword",
+      "id": "R03",
+      "rank": 2,
+      "top": "Finance \u00bb Payment Settings - Setting Up A Payment Gateway"
+    },
+    {
+      "mode": "keyword",
+      "id": "R04",
+      "rank": 1,
+      "top": "Getting Stripe Credentials - Existing Account"
+    },
+    {
+      "mode": "keyword",
+      "id": "R05",
+      "rank": 1,
+      "top": "Recommended Image Sizes (Homepage Background Image, Profile Image, Logo Image)"
+    },
+    {
+      "mode": "keyword",
+      "id": "R06",
+      "rank": null,
+      "top": "Front-End Optimization: Lazyload iFrame Embeds"
+    },
+    {
+      "mode": "keyword",
+      "id": "R07",
+      "rank": 3,
+      "top": "Developer Hub - Webhooks"
+    },
+    {
+      "mode": "keyword",
+      "id": "R08",
+      "rank": 2,
+      "top": "Finance \u00bb Membership Plans - Profile Page"
+    },
+    {
+      "mode": "keyword",
+      "id": "R09",
+      "rank": 1,
+      "top": "What Happens When a Member Accepts or Purchases a Lead?"
+    },
+    {
+      "mode": "keyword",
+      "id": "R10",
+      "rank": null,
+      "top": "Email Limit Boost"
+    },
+    {
+      "mode": "keyword",
+      "id": "R11",
+      "rank": 3,
+      "top": "How To Import Members Via CSV File"
+    },
+    {
+      "mode": "keyword",
+      "id": "R12",
+      "rank": 1,
+      "top": "Easy Coupon Codes"
+    },
+    {
+      "mode": "keyword",
+      "id": "R13",
+      "rank": 3,
+      "top": "Settings \u00bb Domain Manager \u00bb Emails and Sender Authentication"
+    },
+    {
+      "mode": "keyword",
+      "id": "R14",
+      "rank": 2,
+      "top": "How To Send Emails Through A Gmail Account"
+    },
+    {
+      "mode": "keyword",
+      "id": "R15",
+      "rank": 1,
+      "top": "Installing Google Analytics Tracking Code (easy method)"
+    },
+    {
+      "mode": "keyword",
+      "id": "R16",
+      "rank": null,
+      "top": "How To Edit The SEO Settings Of  Dynamic (Search Results) Pages"
+    },
+    {
+      "mode": "keyword",
+      "id": "R17",
+      "rank": 3,
+      "top": "Too Many Redirects  - Unable to Log in to the Admin SSL Browser Setting"
+    },
+    {
+      "mode": "keyword",
+      "id": "R18",
+      "rank": 1,
+      "top": "How to Connect a Domain to a Brilliant Directories Website"
+    },
+    {
+      "mode": "keyword",
+      "id": "R19",
+      "rank": 13,
+      "top": "Encrypt Member Passwords - Dashboard Installer"
+    },
+    {
+      "mode": "keyword",
+      "id": "R20",
+      "rank": 3,
+      "top": "How to Structure and Maximize Value Across 3 Member Tiers"
+    },
+    {
+      "mode": "keyword",
+      "id": "R21",
+      "rank": 1,
+      "top": "How To Call a Widget On a Custom Page"
+    },
+    {
+      "mode": "keyword",
+      "id": "R22",
+      "rank": 6,
+      "top": "Developer Hub - Webhooks"
+    },
+    {
+      "mode": "keyword",
+      "id": "R23",
+      "rank": 2,
+      "top": "Remap API Permissions to new v2 slugs - Dashboard Installer"
+    },
+    {
+      "mode": "keyword",
+      "id": "R24",
+      "rank": 6,
+      "top": "How to Verify a Listing"
+    },
+    {
+      "mode": "keyword",
+      "id": "R25",
+      "rank": 1,
+      "top": "How to Change Search Results Sorting Options"
+    },
+    {
+      "mode": "keyword",
+      "id": "R26",
+      "rank": 1,
+      "top": "Developer Hub \u00bb Generate and Manage API Keys"
+    },
+    {
+      "mode": "keyword",
+      "id": "R27",
+      "rank": 1,
+      "top": "Downloadable PDF Invoices Add-On"
+    },
+    {
+      "mode": "keyword",
+      "id": "R28",
+      "rank": 1,
+      "top": "Tax and VAT Manager"
+    },
+    {
+      "mode": "keyword",
+      "id": "R29",
+      "rank": null,
+      "top": "Add Support For Spanish Text Labels - Dashboard Installer"
+    },
+    {
+      "mode": "keyword",
+      "id": "R30",
+      "rank": null,
+      "top": "How to Turn Posts and Post Categories Search Results Pages into Static Pages"
+    },
+    {
+      "mode": "keyword",
+      "id": "R31",
+      "rank": 1,
+      "top": "Insta-Load Search Results"
+    },
+    {
+      "mode": "keyword",
+      "id": "R32",
+      "rank": 1,
+      "top": "AdBlock Detector"
+    },
+    {
+      "mode": "keyword",
+      "id": "R33",
+      "rank": 9,
+      "top": "Settings \u00bb Advanced Settings"
+    },
+    {
+      "mode": "keyword",
+      "id": "R34",
+      "rank": 1,
+      "top": "Developer Hub \u00bb HTACCESS File"
+    },
+    {
+      "mode": "keyword",
+      "id": "R35",
+      "rank": 1,
+      "top": "Free Trial Payment Intents - Stripe"
+    },
+    {
+      "mode": "keyword",
+      "id": "R36",
+      "rank": 4,
+      "top": "Google Maps: Removing All Maps"
+    },
+    {
+      "mode": "keyword",
+      "id": "R37",
+      "rank": null,
+      "top": "Changelog - July 2019"
+    },
+    {
+      "mode": "keyword",
+      "id": "R38",
+      "rank": 3,
+      "top": "API Reference - Webhooks"
+    },
+    {
+      "mode": "keyword",
+      "id": "R39",
+      "rank": 2,
+      "top": "How To Edit Login Page Button"
+    },
+    {
+      "mode": "keyword",
+      "id": "R40",
+      "rank": 1,
+      "top": "How to Turn The Brilliant Directories Directory Website into a Mobile Application for Apple & Android"
+    },
+    {
+      "mode": "keyword",
+      "id": "R41",
+      "rank": null,
+      "top": "Settings \u00bb Advanced Settings"
+    },
+    {
+      "mode": "keyword",
+      "id": "R42",
+      "rank": 1,
+      "top": "How Refunds work"
+    },
+    {
+      "mode": "vector",
+      "id": "R01",
+      "rank": 5,
+      "top": "Finance \u00bb Transaction History"
+    },
+    {
+      "mode": "vector",
+      "id": "R02",
+      "rank": 9,
+      "top": "How To Manually Bill A Member / Create A Subscription For A Member"
+    },
+    {
+      "mode": "vector",
+      "id": "R03",
+      "rank": 1,
+      "top": "Stripe or PayPal Express/Standard?"
+    },
+    {
+      "mode": "vector",
+      "id": "R04",
+      "rank": 1,
+      "top": "Getting Stripe Credentials - Existing Account"
+    },
+    {
+      "mode": "vector",
+      "id": "R05",
+      "rank": 1,
+      "top": "Recommended Image Sizes (Homepage Background Image, Profile Image, Logo Image)"
+    },
+    {
+      "mode": "vector",
+      "id": "R06",
+      "rank": null,
+      "top": "Adding Custom Information to your Member Search Results"
+    },
+    {
+      "mode": "vector",
+      "id": "R07",
+      "rank": 1,
+      "top": "How to Prevent and Minimize Unwanted (spam) Sign Ups to Free Membership Plans"
+    },
+    {
+      "mode": "vector",
+      "id": "R08",
+      "rank": 1,
+      "top": "Approving Member Reviews from the Admin"
+    },
+    {
+      "mode": "vector",
+      "id": "R09",
+      "rank": 1,
+      "top": "What Happens When a Member Accepts or Purchases a Lead?"
+    },
+    {
+      "mode": "vector",
+      "id": "R10",
+      "rank": 4,
+      "top": "Bulk Delete Or Move All Members From A Specific Membership Plan"
+    },
+    {
+      "mode": "vector",
+      "id": "R11",
+      "rank": 1,
+      "top": "Importing Tricks - Importing CSV Files With Special Characters"
+    },
+    {
+      "mode": "vector",
+      "id": "R12",
+      "rank": 1,
+      "top": "Quick Create Wizard - Create Coupon Code"
+    },
+    {
+      "mode": "vector",
+      "id": "R13",
+      "rank": 3,
+      "top": "Settings \u00bb Domain Manager \u00bb Mailboxes and Email Routing"
+    },
+    {
+      "mode": "vector",
+      "id": "R14",
+      "rank": 2,
+      "top": "How To Send Emails Through A Gmail Account"
+    },
+    {
+      "mode": "vector",
+      "id": "R15",
+      "rank": 1,
+      "top": "Installing Google Analytics Tracking Code"
+    },
+    {
+      "mode": "vector",
+      "id": "R16",
+      "rank": 3,
+      "top": "API Reference - Tag Groups"
+    },
+    {
+      "mode": "vector",
+      "id": "R17",
+      "rank": 6,
+      "top": "Too Many Redirects  - Unable to Log in to the Admin SSL Browser Setting"
+    },
+    {
+      "mode": "vector",
+      "id": "R18",
+      "rank": 1,
+      "top": "How to Connect a Domain to a Brilliant Directories Website"
+    },
+    {
+      "mode": "vector",
+      "id": "R19",
+      "rank": 1,
+      "top": "Changing a Members Password"
+    },
+    {
+      "mode": "vector",
+      "id": "R20",
+      "rank": 3,
+      "top": "Bulk Delete Or Move All Members From A Specific Membership Plan"
+    },
+    {
+      "mode": "vector",
+      "id": "R21",
+      "rank": 4,
+      "top": "How To Create A Modal - Pop Up Box"
+    },
+    {
+      "mode": "vector",
+      "id": "R22",
+      "rank": 1,
+      "top": "How to Edit the Top Header Menu"
+    },
+    {
+      "mode": "vector",
+      "id": "R23",
+      "rank": 6,
+      "top": "URL Forwarding or Redirects using Cloudflare Rules"
+    },
+    {
+      "mode": "vector",
+      "id": "R24",
+      "rank": 3,
+      "top": "Quick Edit Module For Members"
+    },
+    {
+      "mode": "vector",
+      "id": "R25",
+      "rank": 1,
+      "top": "How to Change Search Results Sorting Options"
+    },
+    {
+      "mode": "vector",
+      "id": "R26",
+      "rank": 1,
+      "top": "Developer Hub \u00bb Generate and Manage API Keys"
+    },
+    {
+      "mode": "vector",
+      "id": "R27",
+      "rank": 3,
+      "top": "Billing Reminder Email Settings"
+    },
+    {
+      "mode": "vector",
+      "id": "R28",
+      "rank": 1,
+      "top": "Tax and VAT Manager"
+    },
+    {
+      "mode": "vector",
+      "id": "R29",
+      "rank": 1,
+      "top": "How To Edit/Change Default Language of Websites"
+    },
+    {
+      "mode": "vector",
+      "id": "R30",
+      "rank": 1,
+      "top": "Workaround: Members Selecting Multiple Top Level Categories"
+    },
+    {
+      "mode": "vector",
+      "id": "R31",
+      "rank": 1,
+      "top": "Insta-Load Search Results"
+    },
+    {
+      "mode": "vector",
+      "id": "R32",
+      "rank": 1,
+      "top": "AdBlock Detector"
+    },
+    {
+      "mode": "vector",
+      "id": "R33",
+      "rank": null,
+      "top": "06/09/2023 - Software Updates"
+    },
+    {
+      "mode": "vector",
+      "id": "R34",
+      "rank": 1,
+      "top": "Developer Hub \u00bb HTACCESS File"
+    },
+    {
+      "mode": "vector",
+      "id": "R35",
+      "rank": 1,
+      "top": "Free Trial Payment Intents - Stripe"
+    },
+    {
+      "mode": "vector",
+      "id": "R36",
+      "rank": 2,
+      "top": "Interactions \u00bb Member Reviews"
+    },
+    {
+      "mode": "vector",
+      "id": "R37",
+      "rank": null,
+      "top": "Changelog - October 2019"
+    },
+    {
+      "mode": "vector",
+      "id": "R38",
+      "rank": 2,
+      "top": "01/26/2024 - Software Updates"
+    },
+    {
+      "mode": "vector",
+      "id": "R39",
+      "rank": 3,
+      "top": "How To Edit Login Page Button"
+    },
+    {
+      "mode": "vector",
+      "id": "R40",
+      "rank": 1,
+      "top": "How to Turn The Brilliant Directories Directory Website into a Mobile Application for Apple & Android"
+    },
+    {
+      "mode": "vector",
+      "id": "R41",
+      "rank": null,
+      "top": "API Reference - Users Activity Log"
+    },
+    {
+      "mode": "vector",
+      "id": "R42",
+      "rank": 1,
+      "top": "How Refunds work"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R01",
+      "rank": 6,
+      "top": "Finance \u00bb Transaction History"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R02",
+      "rank": 4,
+      "top": "How To Manually Bill A Member / Create A Subscription For A Member"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R03",
+      "rank": 1,
+      "top": "Stripe or PayPal Express/Standard?"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R04",
+      "rank": 1,
+      "top": "Getting Stripe Credentials - Existing Account"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R05",
+      "rank": 1,
+      "top": "Recommended Image Sizes (Homepage Background Image, Profile Image, Logo Image)"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R06",
+      "rank": null,
+      "top": "Adding Custom Information to your Member Search Results"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R07",
+      "rank": 1,
+      "top": "How to Prevent and Minimize Unwanted (spam) Sign Ups to Free Membership Plans"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R08",
+      "rank": 2,
+      "top": "Finance \u00bb Membership Plans - Profile Page"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R09",
+      "rank": 1,
+      "top": "What Happens When a Member Accepts or Purchases a Lead?"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R10",
+      "rank": 5,
+      "top": "Bulk Delete Or Move All Members From A Specific Membership Plan"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R11",
+      "rank": 1,
+      "top": "Importing Tricks - Importing CSV Files With Special Characters"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R12",
+      "rank": 1,
+      "top": "Quick Create Wizard - Create Coupon Code"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R13",
+      "rank": 3,
+      "top": "Emails \u00bb Email Accounts"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R14",
+      "rank": 2,
+      "top": "How To Send Emails Through A Gmail Account"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R15",
+      "rank": 1,
+      "top": "Installing Google Analytics Tracking Code"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R16",
+      "rank": 5,
+      "top": "Google Maps: Verify Domain"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R17",
+      "rank": 6,
+      "top": "Too Many Redirects  - Unable to Log in to the Admin SSL Browser Setting"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R18",
+      "rank": 1,
+      "top": "How to Connect a Domain to a Brilliant Directories Website"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R19",
+      "rank": 1,
+      "top": "Changing a Members Password"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R20",
+      "rank": 2,
+      "top": "Bulk Delete Or Move All Members From A Specific Membership Plan"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R21",
+      "rank": 1,
+      "top": "How To Call a Widget On a Custom Page"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R22",
+      "rank": 1,
+      "top": "How to Edit the Top Header Menu"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R23",
+      "rank": 3,
+      "top": "Bulk Actions For Search Members Section"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R24",
+      "rank": 4,
+      "top": "How to Verify a Listing"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R25",
+      "rank": 1,
+      "top": "How to Change Search Results Sorting Options"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R26",
+      "rank": 1,
+      "top": "Developer Hub \u00bb Generate and Manage API Keys"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R27",
+      "rank": 3,
+      "top": "Billing Reminder Email Settings"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R28",
+      "rank": 1,
+      "top": "Tax and VAT Manager"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R29",
+      "rank": 2,
+      "top": "Add Support For Spanish Text Labels - Dashboard Installer"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R30",
+      "rank": 1,
+      "top": "Workaround: Members Selecting Multiple Top Level Categories"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R31",
+      "rank": 1,
+      "top": "Insta-Load Search Results"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R32",
+      "rank": 1,
+      "top": "AdBlock Detector"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R33",
+      "rank": null,
+      "top": "FROALA Text Editor: Versions and their Upload Functionalities"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R34",
+      "rank": 1,
+      "top": "Developer Hub \u00bb HTACCESS File"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R35",
+      "rank": 1,
+      "top": "Free Trial Payment Intents - Stripe"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R36",
+      "rank": 3,
+      "top": "Interactions \u00bb Member Reviews"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R37",
+      "rank": null,
+      "top": "Changelog - July 2019"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R38",
+      "rank": 1,
+      "top": "How to Use Zapier Triggers with the API"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R39",
+      "rank": 3,
+      "top": "How To Edit Login Page Button"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R40",
+      "rank": 1,
+      "top": "How to Turn The Brilliant Directories Directory Website into a Mobile Application for Apple & Android"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R41",
+      "rank": null,
+      "top": "10/02/2026 - Software Updates"
+    },
+    {
+      "mode": "hybrid w=0.3 (before tuning)",
+      "id": "R42",
+      "rank": 1,
+      "top": "How Refunds work"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R01",
+      "rank": 6,
+      "top": "Finance \u00bb Transaction History"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R02",
+      "rank": 4,
+      "top": "How To Manually Bill A Member / Create A Subscription For A Member"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R03",
+      "rank": 1,
+      "top": "Stripe or PayPal Express/Standard?"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R04",
+      "rank": 1,
+      "top": "Getting Stripe Credentials - Existing Account"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R05",
+      "rank": 1,
+      "top": "Recommended Image Sizes (Homepage Background Image, Profile Image, Logo Image)"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R06",
+      "rank": null,
+      "top": "Adding Custom Information to your Member Search Results"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R07",
+      "rank": 1,
+      "top": "How to Prevent and Minimize Unwanted (spam) Sign Ups to Free Membership Plans"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R08",
+      "rank": 2,
+      "top": "Finance \u00bb Membership Plans - Profile Page"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R09",
+      "rank": 1,
+      "top": "What Happens When a Member Accepts or Purchases a Lead?"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R10",
+      "rank": 5,
+      "top": "Bulk Delete Or Move All Members From A Specific Membership Plan"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R11",
+      "rank": 1,
+      "top": "Importing Tricks - Importing CSV Files With Special Characters"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R12",
+      "rank": 1,
+      "top": "Quick Create Wizard - Create Coupon Code"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R13",
+      "rank": 3,
+      "top": "Emails \u00bb Email Accounts"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R14",
+      "rank": 2,
+      "top": "How To Send Emails Through A Gmail Account"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R15",
+      "rank": 1,
+      "top": "Installing Google Analytics Tracking Code"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R16",
+      "rank": 5,
+      "top": "Google Maps: Verify Domain"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R17",
+      "rank": 5,
+      "top": "Too Many Redirects  - Unable to Log in to the Admin SSL Browser Setting"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R18",
+      "rank": 1,
+      "top": "How to Connect a Domain to a Brilliant Directories Website"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R19",
+      "rank": 1,
+      "top": "Changing a Members Password"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R20",
+      "rank": 2,
+      "top": "Bulk Delete Or Move All Members From A Specific Membership Plan"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R21",
+      "rank": 1,
+      "top": "How To Call a Widget On a Custom Page"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R22",
+      "rank": 1,
+      "top": "How to Edit the Top Header Menu"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R23",
+      "rank": 3,
+      "top": "Bulk Actions For Search Members Section"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R24",
+      "rank": 4,
+      "top": "How to Verify a Listing"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R25",
+      "rank": 1,
+      "top": "How to Change Search Results Sorting Options"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R26",
+      "rank": 1,
+      "top": "Developer Hub \u00bb Generate and Manage API Keys"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R27",
+      "rank": 3,
+      "top": "Billing Reminder Email Settings"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R28",
+      "rank": 1,
+      "top": "Tax and VAT Manager"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R29",
+      "rank": 2,
+      "top": "Add Support For Spanish Text Labels - Dashboard Installer"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R30",
+      "rank": 1,
+      "top": "Workaround: Members Selecting Multiple Top Level Categories"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R31",
+      "rank": 1,
+      "top": "Insta-Load Search Results"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R32",
+      "rank": 1,
+      "top": "AdBlock Detector"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R33",
+      "rank": null,
+      "top": "FROALA Text Editor: Versions and their Upload Functionalities"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R34",
+      "rank": 1,
+      "top": "Developer Hub \u00bb HTACCESS File"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R35",
+      "rank": 1,
+      "top": "Free Trial Payment Intents - Stripe"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R36",
+      "rank": 3,
+      "top": "Interactions \u00bb Member Reviews"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R37",
+      "rank": null,
+      "top": "Member Signups - Errors and Notifications"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R38",
+      "rank": 1,
+      "top": "How to Use Zapier Triggers with the API"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R39",
+      "rank": 3,
+      "top": "How To Edit Login Page Button"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R40",
+      "rank": 1,
+      "top": "How to Turn The Brilliant Directories Directory Website into a Mobile Application for Apple & Android"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R41",
+      "rank": 15,
+      "top": "API Reference - Users Activity Log"
+    },
+    {
+      "mode": "+ changelogs x0.5",
+      "id": "R42",
+      "rank": 1,
+      "top": "How Refunds work"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R01",
+      "rank": 6,
+      "top": "Finance \u00bb Transaction History"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R02",
+      "rank": 4,
+      "top": "How To Manually Bill A Member / Create A Subscription For A Member"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R03",
+      "rank": 1,
+      "top": "Stripe or PayPal Express/Standard?"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R04",
+      "rank": 1,
+      "top": "Getting Stripe Credentials - Existing Account"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R05",
+      "rank": 1,
+      "top": "Recommended Image Sizes (Homepage Background Image, Profile Image, Logo Image)"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R06",
+      "rank": null,
+      "top": "Adding Custom Information to your Member Search Results"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R07",
+      "rank": 1,
+      "top": "How to Prevent and Minimize Unwanted (spam) Sign Ups to Free Membership Plans"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R08",
+      "rank": 2,
+      "top": "Finance \u00bb Membership Plans - Profile Page"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R09",
+      "rank": 1,
+      "top": "What Happens When a Member Accepts or Purchases a Lead?"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R10",
+      "rank": 5,
+      "top": "Bulk Delete Or Move All Members From A Specific Membership Plan"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R11",
+      "rank": 1,
+      "top": "Importing Tricks - Importing CSV Files With Special Characters"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R12",
+      "rank": 1,
+      "top": "Quick Create Wizard - Create Coupon Code"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R13",
+      "rank": 3,
+      "top": "Emails \u00bb Email Accounts"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R14",
+      "rank": 2,
+      "top": "How To Send Emails Through A Gmail Account"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R15",
+      "rank": 1,
+      "top": "Installing Google Analytics Tracking Code"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R16",
+      "rank": 5,
+      "top": "Google Maps: Verify Domain"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R17",
+      "rank": 5,
+      "top": "Too Many Redirects  - Unable to Log in to the Admin SSL Browser Setting"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R18",
+      "rank": 1,
+      "top": "How to Connect a Domain to a Brilliant Directories Website"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R19",
+      "rank": 1,
+      "top": "Changing a Members Password"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R20",
+      "rank": 2,
+      "top": "Bulk Delete Or Move All Members From A Specific Membership Plan"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R21",
+      "rank": 1,
+      "top": "How To Call a Widget On a Custom Page"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R22",
+      "rank": 1,
+      "top": "How to Edit the Top Header Menu"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R23",
+      "rank": 3,
+      "top": "Bulk Actions For Search Members Section"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R24",
+      "rank": 4,
+      "top": "How to Verify a Listing"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R25",
+      "rank": 1,
+      "top": "How to Change Search Results Sorting Options"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R26",
+      "rank": 1,
+      "top": "Developer Hub \u00bb Generate and Manage API Keys"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R27",
+      "rank": 3,
+      "top": "Billing Reminder Email Settings"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R28",
+      "rank": 1,
+      "top": "Tax and VAT Manager"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R29",
+      "rank": 2,
+      "top": "Add Support For Spanish Text Labels - Dashboard Installer"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R30",
+      "rank": 1,
+      "top": "Workaround: Members Selecting Multiple Top Level Categories"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R31",
+      "rank": 1,
+      "top": "Insta-Load Search Results"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R32",
+      "rank": 1,
+      "top": "AdBlock Detector"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R33",
+      "rank": 8,
+      "top": "FROALA Text Editor: Versions and their Upload Functionalities"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R34",
+      "rank": 1,
+      "top": "Developer Hub \u00bb HTACCESS File"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R35",
+      "rank": 1,
+      "top": "Free Trial Payment Intents - Stripe"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R36",
+      "rank": 3,
+      "top": "Interactions \u00bb Member Reviews"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R37",
+      "rank": null,
+      "top": "Member Signups - Errors and Notifications"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R38",
+      "rank": 1,
+      "top": "How to Use Zapier Triggers with the API"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R39",
+      "rank": 3,
+      "top": "How To Edit Login Page Button"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R40",
+      "rank": 1,
+      "top": "How to Turn The Brilliant Directories Directory Website into a Mobile Application for Apple & Android"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R41",
+      "rank": 15,
+      "top": "API Reference - Users Activity Log"
+    },
+    {
+      "mode": "+ changelogs x0.25",
+      "id": "R42",
+      "rank": 1,
+      "top": "How Refunds work"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R01",
+      "rank": 6,
+      "top": "Finance \u00bb Transaction History"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R02",
+      "rank": 4,
+      "top": "How To Manually Bill A Member / Create A Subscription For A Member"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R03",
+      "rank": 1,
+      "top": "Stripe or PayPal Express/Standard?"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R04",
+      "rank": 1,
+      "top": "Getting Stripe Credentials - Existing Account"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R05",
+      "rank": 1,
+      "top": "Recommended Image Sizes (Homepage Background Image, Profile Image, Logo Image)"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R06",
+      "rank": null,
+      "top": "Adding Custom Information to your Member Search Results"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R07",
+      "rank": 1,
+      "top": "How to Prevent and Minimize Unwanted (spam) Sign Ups to Free Membership Plans"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R08",
+      "rank": 2,
+      "top": "Finance \u00bb Membership Plans - Profile Page"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R09",
+      "rank": 1,
+      "top": "What Happens When a Member Accepts or Purchases a Lead?"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R10",
+      "rank": 5,
+      "top": "Bulk Delete Or Move All Members From A Specific Membership Plan"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R11",
+      "rank": 1,
+      "top": "Importing Tricks - Importing CSV Files With Special Characters"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R12",
+      "rank": 1,
+      "top": "Quick Create Wizard - Create Coupon Code"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R13",
+      "rank": 3,
+      "top": "Emails \u00bb Email Accounts"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R14",
+      "rank": 2,
+      "top": "How To Send Emails Through A Gmail Account"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R15",
+      "rank": 1,
+      "top": "Installing Google Analytics Tracking Code"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R16",
+      "rank": 5,
+      "top": "Google Maps: Verify Domain"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R17",
+      "rank": 5,
+      "top": "Too Many Redirects  - Unable to Log in to the Admin SSL Browser Setting"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R18",
+      "rank": 1,
+      "top": "How to Connect a Domain to a Brilliant Directories Website"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R19",
+      "rank": 1,
+      "top": "Changing a Members Password"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R20",
+      "rank": 2,
+      "top": "Bulk Delete Or Move All Members From A Specific Membership Plan"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R21",
+      "rank": 1,
+      "top": "How To Call a Widget On a Custom Page"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R22",
+      "rank": 1,
+      "top": "How to Edit the Top Header Menu"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R23",
+      "rank": 3,
+      "top": "Bulk Actions For Search Members Section"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R24",
+      "rank": 4,
+      "top": "How to Verify a Listing"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R25",
+      "rank": 1,
+      "top": "How to Change Search Results Sorting Options"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R26",
+      "rank": 1,
+      "top": "Developer Hub \u00bb Generate and Manage API Keys"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R27",
+      "rank": 3,
+      "top": "Billing Reminder Email Settings"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R28",
+      "rank": 1,
+      "top": "Tax and VAT Manager"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R29",
+      "rank": 2,
+      "top": "Add Support For Spanish Text Labels - Dashboard Installer"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R30",
+      "rank": 1,
+      "top": "Workaround: Members Selecting Multiple Top Level Categories"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R31",
+      "rank": 1,
+      "top": "Insta-Load Search Results"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R32",
+      "rank": 1,
+      "top": "AdBlock Detector"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R33",
+      "rank": null,
+      "top": "FROALA Text Editor: Versions and their Upload Functionalities"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R34",
+      "rank": 1,
+      "top": "Developer Hub \u00bb HTACCESS File"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R35",
+      "rank": 1,
+      "top": "Free Trial Payment Intents - Stripe"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R36",
+      "rank": 3,
+      "top": "Interactions \u00bb Member Reviews"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R37",
+      "rank": null,
+      "top": "Member Signups - Errors and Notifications"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R38",
+      "rank": 1,
+      "top": "How to Use Zapier Triggers with the API"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R39",
+      "rank": 3,
+      "top": "How To Edit Login Page Button"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R40",
+      "rank": 1,
+      "top": "How to Turn The Brilliant Directories Directory Website into a Mobile Application for Apple & Android"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R41",
+      "rank": 15,
+      "top": "API Reference - Users Activity Log"
+    },
+    {
+      "mode": "+ changelogs x0.5, max 2/article",
+      "id": "R42",
+      "rank": 1,
+      "top": "How Refunds work"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R01",
+      "rank": 6,
+      "top": "Finance \u00bb Transaction History"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R02",
+      "rank": 4,
+      "top": "How To Manually Bill A Member / Create A Subscription For A Member"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R03",
+      "rank": 1,
+      "top": "Stripe or PayPal Express/Standard?"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R04",
+      "rank": 1,
+      "top": "Getting Stripe Credentials - Existing Account"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R05",
+      "rank": 1,
+      "top": "Recommended Image Sizes (Homepage Background Image, Profile Image, Logo Image)"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R06",
+      "rank": null,
+      "top": "Adding Custom Information to your Member Search Results"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R07",
+      "rank": 1,
+      "top": "How to Prevent and Minimize Unwanted (spam) Sign Ups to Free Membership Plans"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R08",
+      "rank": 2,
+      "top": "Finance \u00bb Membership Plans - Profile Page"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R09",
+      "rank": 1,
+      "top": "What Happens When a Member Accepts or Purchases a Lead?"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R10",
+      "rank": 5,
+      "top": "Bulk Delete Or Move All Members From A Specific Membership Plan"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R11",
+      "rank": 1,
+      "top": "Importing Tricks - Importing CSV Files With Special Characters"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R12",
+      "rank": 1,
+      "top": "Quick Create Wizard - Create Coupon Code"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R13",
+      "rank": 3,
+      "top": "Emails \u00bb Email Accounts"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R14",
+      "rank": 2,
+      "top": "How To Send Emails Through A Gmail Account"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R15",
+      "rank": 1,
+      "top": "Installing Google Analytics Tracking Code"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R16",
+      "rank": 5,
+      "top": "Google Maps: Verify Domain"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R17",
+      "rank": 5,
+      "top": "Too Many Redirects  - Unable to Log in to the Admin SSL Browser Setting"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R18",
+      "rank": 1,
+      "top": "How to Connect a Domain to a Brilliant Directories Website"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R19",
+      "rank": 1,
+      "top": "Changing a Members Password"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R20",
+      "rank": 2,
+      "top": "Bulk Delete Or Move All Members From A Specific Membership Plan"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R21",
+      "rank": 1,
+      "top": "How To Call a Widget On a Custom Page"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R22",
+      "rank": 1,
+      "top": "How to Edit the Top Header Menu"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R23",
+      "rank": 3,
+      "top": "Bulk Actions For Search Members Section"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R24",
+      "rank": 4,
+      "top": "How to Verify a Listing"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R25",
+      "rank": 1,
+      "top": "How to Change Search Results Sorting Options"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R26",
+      "rank": 1,
+      "top": "Developer Hub \u00bb Generate and Manage API Keys"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R27",
+      "rank": 3,
+      "top": "Billing Reminder Email Settings"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R28",
+      "rank": 1,
+      "top": "Tax and VAT Manager"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R29",
+      "rank": 2,
+      "top": "Add Support For Spanish Text Labels - Dashboard Installer"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R30",
+      "rank": 1,
+      "top": "Workaround: Members Selecting Multiple Top Level Categories"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R31",
+      "rank": 1,
+      "top": "Insta-Load Search Results"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R32",
+      "rank": 1,
+      "top": "AdBlock Detector"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R33",
+      "rank": 8,
+      "top": "FROALA Text Editor: Versions and their Upload Functionalities"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R34",
+      "rank": 1,
+      "top": "Developer Hub \u00bb HTACCESS File"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R35",
+      "rank": 1,
+      "top": "Free Trial Payment Intents - Stripe"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R36",
+      "rank": 3,
+      "top": "Interactions \u00bb Member Reviews"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R37",
+      "rank": null,
+      "top": "Member Signups - Errors and Notifications"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R38",
+      "rank": 1,
+      "top": "How to Use Zapier Triggers with the API"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R39",
+      "rank": 3,
+      "top": "How To Edit Login Page Button"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R40",
+      "rank": 1,
+      "top": "How to Turn The Brilliant Directories Directory Website into a Mobile Application for Apple & Android"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R41",
+      "rank": 15,
+      "top": "API Reference - Users Activity Log"
+    },
+    {
+      "mode": "+ changelogs x0.25, max 2/article",
+      "id": "R42",
+      "rank": 1,
+      "top": "How Refunds work"
+    }
+  ]
+}

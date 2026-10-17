@@ -22,14 +22,17 @@ from kb.retrieval.embedder import FastEmbedder
 from kb.retrieval.search import Mode, Searcher
 
 HERE = Path(__file__).parent
-# (label, mode, keyword weight used in hybrid)
-CONFIGS: list[tuple[str, Mode, float]] = [
-    ("keyword", "keyword", 1.0),
-    ("vector", "vector", 1.0),
-    ("hybrid w=1.0", "hybrid", 1.0),
-    ("hybrid w=0.5", "hybrid", 0.5),
-    ("hybrid w=0.3", "hybrid", 0.3),
+# (label, mode, keyword weight, changelog weight, max passages per article)
+CONFIGS: list[tuple[str, Mode, float, float, int | None]] = [
+    ("keyword", "keyword", 1.0, 1.0, None),
+    ("vector", "vector", 1.0, 1.0, None),
+    ("hybrid w=0.3 (before tuning)", "hybrid", 0.3, 1.0, None),
+    ("+ changelogs x0.5", "hybrid", 0.3, 0.5, None),
+    ("+ changelogs x0.25", "hybrid", 0.3, 0.25, None),
+    ("+ changelogs x0.5, max 2/article", "hybrid", 0.3, 0.5, 2),
+    ("+ changelogs x0.25, max 2/article", "hybrid", 0.3, 0.25, 2),
 ]
+CONTEXT_K = 6  # passages the answer model actually sees per question
 
 
 def first_gold_rank(article_ids: list[str], gold: set[str]) -> int | None:
@@ -50,9 +53,12 @@ async def main() -> None:
     per_case: list[dict[str, object]] = []
     async with connect(settings.db_path) as db:
         await searcher.vectors.refresh(db)  # load once, outside the timings
-        for label, mode, weight in CONFIGS:
+        for label, mode, weight, changelog, cap in CONFIGS:
             searcher.keyword_weight = weight
+            searcher.changelog_weight = changelog
+            searcher.max_per_article = cap
             ranks: list[int | None] = []
+            in_context: list[bool] = []
             latencies: list[float] = []
             for case in cases:
                 t = time.perf_counter()
@@ -60,6 +66,8 @@ async def main() -> None:
                 latencies.append((time.perf_counter() - t) * 1000)
                 rank = first_gold_rank([h.article_id for h in hits], set(case["gold"]))
                 ranks.append(rank)
+                ctx = await searcher.search(db, case["question"], k=CONTEXT_K, mode=mode)
+                in_context.append(any(h.article_id in case["gold"] for h in ctx))
                 per_case.append(
                     {
                         "mode": label,
@@ -74,6 +82,13 @@ async def main() -> None:
                 "hit@1": sum(r == 1 for r in ranks) / n,
                 "hit@5": sum(r is not None and r <= 5 for r in ranks) / n,
                 "mrr@10": sum(1 / r for r in ranks if r is not None and r <= 10) / n,
+                "in_context@6": sum(in_context) / n,
+                "in_context@6_fresh": sum(
+                    ok
+                    for c, ok in zip(cases, in_context, strict=True)
+                    if c.get("added") != "after_diagnosis"
+                )
+                / max(sum(c.get("added") != "after_diagnosis" for c in cases), 1),
                 "p50_ms": statistics.median(latencies),
                 "p95_ms": latencies[int(0.95 * (n - 1))],
                 "misses@5": [
@@ -88,11 +103,13 @@ async def main() -> None:
         json.dumps({"cases": len(cases), "summary": results, "per_case": per_case}, indent=2)
     )
     print(
-        "| mode | hit@1 | hit@5 | MRR@10 | p50 ms | p95 ms | misses@5 |\n|---|---|---|---|---|---|---|"
+        "| config | hit@1 | hit@5 | MRR@10 | in context @6 | same, excl. diagnosed cases | p50 ms | p95 ms | misses@5 |"
     )
+    print("|---|---|---|---|---|---|---|---|---|")
     for mode, r in results.items():
         print(
             f"| {mode} | {r['hit@1']:.0%} | {r['hit@5']:.0%} | {r['mrr@10']:.2f} | "
+            f"{r['in_context@6']:.0%} | {r['in_context@6_fresh']:.0%} | "
             f"{r['p50_ms']:.0f} | {r['p95_ms']:.0f} | {', '.join(r['misses@5']) or '-'} |"
         )  # type: ignore[arg-type]
 

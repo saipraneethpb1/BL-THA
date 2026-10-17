@@ -92,3 +92,35 @@ def test_fts_query_is_safe_and_drops_stopwords() -> None:
     assert fts_query('How do I "refund" a member?') == '"refund" OR "member"'
     assert fts_query("how do I") is None
     assert fts_query('x" OR 1=1 --') == '"x" OR "1"'
+
+
+def test_changelog_titles_are_recognised() -> None:
+    from kb.retrieval.search import is_changelog
+
+    assert is_changelog("Changelog - October 2019")
+    assert is_changelog("07/10/20 - Software Updates")
+    assert not is_changelog("Google Map Search Results")
+    assert not is_changelog("How to read the software updates page")  # only as a suffix
+
+
+async def test_changelogs_rank_lower_and_articles_are_capped(db: aiosqlite.Connection) -> None:
+    emb = FakeEmbedder()
+    await add_article(db, "9", "Changelog - March 2026", "Refund a member: new refund button.")
+    long_body = "\n\n".join(
+        f"### Part {i}\n\nRefund member step {i} " + "word " * 300 for i in range(4)
+    )
+    await add_article(db, "8", "Refund guide", long_body)
+    await sync_index(db, emb)
+    hits = await Searcher(emb, changelog_weight=0.5, max_per_article=2).search(
+        db, "refund a member", k=6
+    )
+    per_article = {}
+    for h in hits:
+        per_article[h.article_id] = per_article.get(h.article_id, 0) + 1
+    assert max(per_article.values()) <= 2
+    ranks = [h.article_id for h in hits]
+    assert ranks.index("1") < ranks.index("9")  # the real article beats the release note
+    uncapped = await Searcher(emb, changelog_weight=1.0, max_per_article=None).search(
+        db, "refund a member", k=6
+    )
+    assert sum(h.article_id == "8" for h in uncapped) > 2

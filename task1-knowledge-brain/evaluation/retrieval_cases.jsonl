@@ -33,3 +33,10 @@
 {"id": "R33", "question": "Froala strips out my HTML when I save", "gold": ["12000050711"]}
 {"id": "R34", "question": "can I edit the .htaccess file", "gold": ["12000047896"]}
 {"id": "R35", "question": "Stripe payment intents for free trial plans", "gold": ["12000072584"]}
+{"id": "R36", "question": "map on search results", "gold": ["12000052778"], "added": "after_diagnosis"}
+{"id": "R37", "question": "Members can't pay, Stripe shows an error at checkout", "gold": ["12000080237", "12000083229", "12000078856", "12000043160", "12000072584"], "added": "after_diagnosis"}
+{"id": "R38", "question": "How do I hook my directory up to Zapier?", "gold": ["12000082977", "12000097594", "12000088716"], "added": "fresh"}
+{"id": "R39", "question": "Where do I change the color of the buttons on my site?", "gold": ["12000046630", "12000044726", "12000019747"], "added": "fresh"}
+{"id": "R40", "question": "Can I turn my directory into a phone app?", "gold": ["12000008202"], "added": "fresh"}
+{"id": "R41", "question": "I want admins to need a code from their phone when logging in", "gold": ["12000100753", "12000109947"], "added": "fresh"}
+{"id": "R42", "question": "Why did my payment gateway reject a refund?", "gold": ["5000674165"], "added": "fresh"}
