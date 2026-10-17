@@ -1,0 +1,24 @@
+{
+  "name": "inbox-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Inbox Agent (Task 2): drafts customer email replies grounded in the Knowledge Brain, learns from human edits.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "dataset:check": "tsx src/dataset/check-cli.ts"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
