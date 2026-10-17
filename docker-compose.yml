@@ -1,0 +1,21 @@
+# One command runs everything:  docker compose up --build
+# Tasks 2 and 3 only start once the Knowledge Brain reports healthy.
+services:
+  knowledge-brain:
+    build: ./task1-knowledge-brain
+    env_file: .env
+    environment:
+      KB_DB_PATH: /data/knowledge.db
+    volumes:
+      - kb-data:/data
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+
+  # inbox-agent (Task 2, TypeScript) and scope-builder (Task 3, Python) are added
+  # here as they are built, each with:
+  #   depends_on: { knowledge-brain: { condition: service_healthy } }
+  #   environment: { KB_URL: http://knowledge-brain:8001 }
+
+volumes:
+  kb-data:

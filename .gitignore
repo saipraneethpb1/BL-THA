@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+node_modules/
+.next/
+dist/
+
+# Crawled data is rebuilt by the crawler or downloaded as a seed snapshot.
+task1-knowledge-brain/data/
