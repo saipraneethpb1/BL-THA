@@ -1,0 +1,592 @@
+{
+  "cases": 30,
+  "summary": {
+    "keyword": {
+      "hit@1": 0.36666666666666664,
+      "hit@5": 0.7,
+      "mrr@10": 0.5111111111111112,
+      "p50_ms": 7.066999998642132,
+      "p95_ms": 12.655099999392405,
+      "misses@5": [
+        "R01",
+        "R06",
+        "R10",
+        "R16",
+        "R19",
+        "R22",
+        "R24",
+        "R29",
+        "R30"
+      ]
+    },
+    "vector": {
+      "hit@1": 0.5666666666666667,
+      "hit@5": 0.8666666666666667,
+      "mrr@10": 0.677037037037037,
+      "p50_ms": 10.505950001970632,
+      "p95_ms": 12.461300000722986,
+      "misses@5": [
+        "R02",
+        "R06",
+        "R17",
+        "R23"
+      ]
+    },
+    "hybrid": {
+      "hit@1": 0.5333333333333333,
+      "hit@5": 0.8333333333333334,
+      "mrr@10": 0.6630952380952381,
+      "p50_ms": 16.744649998145178,
+      "p95_ms": 24.181000000680797,
+      "misses@5": [
+        "R01",
+        "R06",
+        "R16",
+        "R17",
+        "R24"
+      ]
+    }
+  },
+  "per_case": [
+    {
+      "mode": "keyword",
+      "id": "R01",
+      "rank": null,
+      "top": "Easy Coupon Codes"
+    },
+    {
+      "mode": "keyword",
+      "id": "R02",
+      "rank": 3,
+      "top": "How to Cancel a Brilliant Directories Subscription"
+    },
+    {
+      "mode": "keyword",
+      "id": "R03",
+      "rank": 2,
+      "top": "Finance \u00bb Payment Settings - Setting Up A Payment Gateway"
+    },
+    {
+      "mode": "keyword",
+      "id": "R04",
+      "rank": 1,
+      "top": "Getting Stripe Credentials - Existing Account"
+    },
+    {
+      "mode": "keyword",
+      "id": "R05",
+      "rank": 1,
+      "top": "Recommended Image Sizes (Homepage Background Image, Profile Image, Logo Image)"
+    },
+    {
+      "mode": "keyword",
+      "id": "R06",
+      "rank": null,
+      "top": "Front-End Optimization: Lazyload iFrame Embeds"
+    },
+    {
+      "mode": "keyword",
+      "id": "R07",
+      "rank": 3,
+      "top": "Developer Hub - Webhooks"
+    },
+    {
+      "mode": "keyword",
+      "id": "R08",
+      "rank": 2,
+      "top": "Finance \u00bb Membership Plans - Profile Page"
+    },
+    {
+      "mode": "keyword",
+      "id": "R09",
+      "rank": 1,
+      "top": "What Happens When a Member Accepts or Purchases a Lead?"
+    },
+    {
+      "mode": "keyword",
+      "id": "R10",
+      "rank": null,
+      "top": "Email Limit Boost"
+    },
+    {
+      "mode": "keyword",
+      "id": "R11",
+      "rank": 3,
+      "top": "How To Import Members Via CSV File"
+    },
+    {
+      "mode": "keyword",
+      "id": "R12",
+      "rank": 1,
+      "top": "Easy Coupon Codes"
+    },
+    {
+      "mode": "keyword",
+      "id": "R13",
+      "rank": 3,
+      "top": "Settings \u00bb Domain Manager \u00bb Emails and Sender Authentication"
+    },
+    {
+      "mode": "keyword",
+      "id": "R14",
+      "rank": 2,
+      "top": "How To Send Emails Through A Gmail Account"
+    },
+    {
+      "mode": "keyword",
+      "id": "R15",
+      "rank": 1,
+      "top": "Installing Google Analytics Tracking Code (easy method)"
+    },
+    {
+      "mode": "keyword",
+      "id": "R16",
+      "rank": null,
+      "top": "How To Edit The SEO Settings Of  Dynamic (Search Results) Pages"
+    },
+    {
+      "mode": "keyword",
+      "id": "R17",
+      "rank": 3,
+      "top": "Too Many Redirects  - Unable to Log in to the Admin SSL Browser Setting"
+    },
+    {
+      "mode": "keyword",
+      "id": "R18",
+      "rank": 1,
+      "top": "How to Connect a Domain to a Brilliant Directories Website"
+    },
+    {
+      "mode": "keyword",
+      "id": "R19",
+      "rank": 13,
+      "top": "Encrypt Member Passwords - Dashboard Installer"
+    },
+    {
+      "mode": "keyword",
+      "id": "R20",
+      "rank": 3,
+      "top": "How to Structure and Maximize Value Across 3 Member Tiers"
+    },
+    {
+      "mode": "keyword",
+      "id": "R21",
+      "rank": 1,
+      "top": "How To Call a Widget On a Custom Page"
+    },
+    {
+      "mode": "keyword",
+      "id": "R22",
+      "rank": 6,
+      "top": "Developer Hub - Webhooks"
+    },
+    {
+      "mode": "keyword",
+      "id": "R23",
+      "rank": 2,
+      "top": "Remap API Permissions to new v2 slugs - Dashboard Installer"
+    },
+    {
+      "mode": "keyword",
+      "id": "R24",
+      "rank": 6,
+      "top": "How to Verify a Listing"
+    },
+    {
+      "mode": "keyword",
+      "id": "R25",
+      "rank": 1,
+      "top": "How to Change Search Results Sorting Options"
+    },
+    {
+      "mode": "keyword",
+      "id": "R26",
+      "rank": 1,
+      "top": "Developer Hub \u00bb Generate and Manage API Keys"
+    },
+    {
+      "mode": "keyword",
+      "id": "R27",
+      "rank": 1,
+      "top": "Downloadable PDF Invoices Add-On"
+    },
+    {
+      "mode": "keyword",
+      "id": "R28",
+      "rank": 1,
+      "top": "Tax and VAT Manager"
+    },
+    {
+      "mode": "keyword",
+      "id": "R29",
+      "rank": null,
+      "top": "Add Support For Spanish Text Labels - Dashboard Installer"
+    },
+    {
+      "mode": "keyword",
+      "id": "R30",
+      "rank": null,
+      "top": "How to Turn Posts and Post Categories Search Results Pages into Static Pages"
+    },
+    {
+      "mode": "vector",
+      "id": "R01",
+      "rank": 5,
+      "top": "Finance \u00bb Transaction History"
+    },
+    {
+      "mode": "vector",
+      "id": "R02",
+      "rank": 9,
+      "top": "How To Manually Bill A Member / Create A Subscription For A Member"
+    },
+    {
+      "mode": "vector",
+      "id": "R03",
+      "rank": 1,
+      "top": "Stripe or PayPal Express/Standard?"
+    },
+    {
+      "mode": "vector",
+      "id": "R04",
+      "rank": 1,
+      "top": "Getting Stripe Credentials - Existing Account"
+    },
+    {
+      "mode": "vector",
+      "id": "R05",
+      "rank": 1,
+      "top": "Recommended Image Sizes (Homepage Background Image, Profile Image, Logo Image)"
+    },
+    {
+      "mode": "vector",
+      "id": "R06",
+      "rank": null,
+      "top": "Adding Custom Information to your Member Search Results"
+    },
+    {
+      "mode": "vector",
+      "id": "R07",
+      "rank": 1,
+      "top": "How to Prevent and Minimize Unwanted (spam) Sign Ups to Free Membership Plans"
+    },
+    {
+      "mode": "vector",
+      "id": "R08",
+      "rank": 1,
+      "top": "Approving Member Reviews from the Admin"
+    },
+    {
+      "mode": "vector",
+      "id": "R09",
+      "rank": 1,
+      "top": "What Happens When a Member Accepts or Purchases a Lead?"
+    },
+    {
+      "mode": "vector",
+      "id": "R10",
+      "rank": 4,
+      "top": "Bulk Delete Or Move All Members From A Specific Membership Plan"
+    },
+    {
+      "mode": "vector",
+      "id": "R11",
+      "rank": 1,
+      "top": "Importing Tricks - Importing CSV Files With Special Characters"
+    },
+    {
+      "mode": "vector",
+      "id": "R12",
+      "rank": 1,
+      "top": "Quick Create Wizard - Create Coupon Code"
+    },
+    {
+      "mode": "vector",
+      "id": "R13",
+      "rank": 3,
+      "top": "Settings \u00bb Domain Manager \u00bb Mailboxes and Email Routing"
+    },
+    {
+      "mode": "vector",
+      "id": "R14",
+      "rank": 2,
+      "top": "How To Send Emails Through A Gmail Account"
+    },
+    {
+      "mode": "vector",
+      "id": "R15",
+      "rank": 1,
+      "top": "Installing Google Analytics Tracking Code"
+    },
+    {
+      "mode": "vector",
+      "id": "R16",
+      "rank": 3,
+      "top": "API Reference - Tag Groups"
+    },
+    {
+      "mode": "vector",
+      "id": "R17",
+      "rank": 6,
+      "top": "Too Many Redirects  - Unable to Log in to the Admin SSL Browser Setting"
+    },
+    {
+      "mode": "vector",
+      "id": "R18",
+      "rank": 1,
+      "top": "How to Connect a Domain to a Brilliant Directories Website"
+    },
+    {
+      "mode": "vector",
+      "id": "R19",
+      "rank": 1,
+      "top": "Changing a Members Password"
+    },
+    {
+      "mode": "vector",
+      "id": "R20",
+      "rank": 3,
+      "top": "Bulk Delete Or Move All Members From A Specific Membership Plan"
+    },
+    {
+      "mode": "vector",
+      "id": "R21",
+      "rank": 4,
+      "top": "How To Create A Modal - Pop Up Box"
+    },
+    {
+      "mode": "vector",
+      "id": "R22",
+      "rank": 1,
+      "top": "How to Edit the Top Header Menu"
+    },
+    {
+      "mode": "vector",
+      "id": "R23",
+      "rank": 6,
+      "top": "URL Forwarding or Redirects using Cloudflare Rules"
+    },
+    {
+      "mode": "vector",
+      "id": "R24",
+      "rank": 3,
+      "top": "Quick Edit Module For Members"
+    },
+    {
+      "mode": "vector",
+      "id": "R25",
+      "rank": 1,
+      "top": "How to Change Search Results Sorting Options"
+    },
+    {
+      "mode": "vector",
+      "id": "R26",
+      "rank": 1,
+      "top": "Developer Hub \u00bb Generate and Manage API Keys"
+    },
+    {
+      "mode": "vector",
+      "id": "R27",
+      "rank": 3,
+      "top": "Billing Reminder Email Settings"
+    },
+    {
+      "mode": "vector",
+      "id": "R28",
+      "rank": 1,
+      "top": "Tax and VAT Manager"
+    },
+    {
+      "mode": "vector",
+      "id": "R29",
+      "rank": 1,
+      "top": "How To Edit/Change Default Language of Websites"
+    },
+    {
+      "mode": "vector",
+      "id": "R30",
+      "rank": 1,
+      "top": "Workaround: Members Selecting Multiple Top Level Categories"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R01",
+      "rank": 11,
+      "top": "Finance \u00bb Transaction History"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R02",
+      "rank": 3,
+      "top": "How To Manually Bill A Member / Create A Subscription For A Member"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R03",
+      "rank": 1,
+      "top": "Stripe or PayPal Express/Standard?"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R04",
+      "rank": 1,
+      "top": "Getting Stripe Credentials - Existing Account"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R05",
+      "rank": 1,
+      "top": "Recommended Image Sizes (Homepage Background Image, Profile Image, Logo Image)"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R06",
+      "rank": null,
+      "top": "Adding Custom Information to your Member Search Results"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R07",
+      "rank": 1,
+      "top": "How to Prevent and Minimize Unwanted (spam) Sign Ups to Free Membership Plans"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R08",
+      "rank": 2,
+      "top": "Finance \u00bb Membership Plans - Profile Page"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R09",
+      "rank": 1,
+      "top": "What Happens When a Member Accepts or Purchases a Lead?"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R10",
+      "rank": 4,
+      "top": "Instant Business Data"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R11",
+      "rank": 2,
+      "top": "How To Import Members Via CSV File"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R12",
+      "rank": 1,
+      "top": "Quick Create Wizard - Create Coupon Code"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R13",
+      "rank": 1,
+      "top": "How To Access Webmail Through the Admin Area"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R14",
+      "rank": 2,
+      "top": "How To Send Emails Through A Gmail Account"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R15",
+      "rank": 1,
+      "top": "Installing Google Analytics Tracking Code"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R16",
+      "rank": 6,
+      "top": "Google Maps: Verify Domain"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R17",
+      "rank": 6,
+      "top": "Too Many Redirects  - Unable to Log in to the Admin SSL Browser Setting"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R18",
+      "rank": 1,
+      "top": "How to Connect a Domain to a Brilliant Directories Website"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R19",
+      "rank": 4,
+      "top": "Encrypt Member Passwords - Dashboard Installer"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R20",
+      "rank": 1,
+      "top": "Upgrades/Downgrades From Members Perspective"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R21",
+      "rank": 1,
+      "top": "How To Call a Widget On a Custom Page"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R22",
+      "rank": 1,
+      "top": "How to Edit the Top Header Menu"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R23",
+      "rank": 2,
+      "top": "Bulk Actions For Search Members Section"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R24",
+      "rank": 7,
+      "top": "How to Verify a Listing"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R25",
+      "rank": 1,
+      "top": "How to Change Search Results Sorting Options"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R26",
+      "rank": 1,
+      "top": "Developer Hub \u00bb Generate and Manage API Keys"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R27",
+      "rank": 3,
+      "top": "How to Cancel a Brilliant Directories Subscription"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R28",
+      "rank": 1,
+      "top": "Tax and VAT Manager"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R29",
+      "rank": 4,
+      "top": "Add Support For Spanish Text Labels - Dashboard Installer"
+    },
+    {
+      "mode": "hybrid",
+      "id": "R30",
+      "rank": 1,
+      "top": "Workaround: Members Selecting Multiple Top Level Categories"
+    }
+  ]
+}

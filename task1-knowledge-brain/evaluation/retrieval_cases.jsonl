@@ -1,0 +1,35 @@
+{"id": "R01", "question": "A member paid by mistake, how do I give them their money back?", "gold": ["5000674165"]}
+{"id": "R02", "question": "One of my members wants to stop being charged every month. What do I do as the site owner?", "gold": ["12000078317", "5000567728"]}
+{"id": "R03", "question": "Should I use Stripe or PayPal for taking payments?", "gold": ["12000043160"]}
+{"id": "R04", "question": "Where do I find the secret and publishable keys for my existing Stripe account?", "gold": ["12000080237"]}
+{"id": "R05", "question": "What size should my homepage background picture be?", "gold": ["12000000238"]}
+{"id": "R06", "question": "Can I see the site exactly the way a specific member sees it?", "gold": ["12000036189"]}
+{"id": "R07", "question": "We are getting lots of fake sign ups on the free plan", "gold": ["12000065513", "12000046616"]}
+{"id": "R08", "question": "I want to approve reviews before they appear on profiles", "gold": ["12000014153", "5000682630"]}
+{"id": "R09", "question": "What happens after a member accepts a lead?", "gold": ["12000007988"]}
+{"id": "R10", "question": "I have a spreadsheet of 500 businesses, how do I bulk upload them as members?", "gold": ["5000558475"]}
+{"id": "R11", "question": "My import file has accented letters that turn into garbage characters", "gold": ["12000001776"]}
+{"id": "R12", "question": "How do I create a discount code customers can enter at checkout?", "gold": ["12000032881", "12000105772"]}
+{"id": "R13", "question": "How can I read the emails for my domain mailbox from the admin panel?", "gold": ["5000559800"]}
+{"id": "R14", "question": "Forward info@ mails to my gmail", "gold": ["5000558373"]}
+{"id": "R15", "question": "How do I add my GA4 tracking to the website?", "gold": ["5000682660", "12000108611", "12000093352"]}
+{"id": "R16", "question": "I need to paste a verification meta tag on every page", "gold": ["5000682658"]}
+{"id": "R17", "question": "My site shows not secure in the browser", "gold": ["12000050089", "5000665570", "12000090590"]}
+{"id": "R18", "question": "I bought a domain at GoDaddy, how do I point it to my directory?", "gold": ["12000019271"]}
+{"id": "R19", "question": "A member forgot their password and I want to set a new one for them", "gold": ["12000049987"]}
+{"id": "R20", "question": "Let members move from the basic plan to the premium plan", "gold": ["12000008978", "5000673912", "12000048891"]}
+{"id": "R21", "question": "How do I make a reusable block of HTML and show it on a custom page?", "gold": ["12000078432", "12000051582", "12000025507"]}
+{"id": "R22", "question": "Change the links in the top navigation bar", "gold": ["12000033106", "12000034716"]}
+{"id": "R23", "question": "I renamed a page and old links are broken, how do I send visitors to the new URL?", "gold": ["5000682632", "12000088694"]}
+{"id": "R24", "question": "Show a verified badge on certain member profiles", "gold": ["12000055542"]}
+{"id": "R25", "question": "Change the order members appear in search results", "gold": ["12000024824", "5000662041"]}
+{"id": "R26", "question": "Where do I generate a key to use the Brilliant Directories API?", "gold": ["12000088768", "12000108131"]}
+{"id": "R27", "question": "Customer needs a PDF copy of their invoice", "gold": ["5000674169", "12000047892"]}
+{"id": "R28", "question": "I need to charge VAT to European customers", "gold": ["12000076725"]}
+{"id": "R29", "question": "Translate the website into Spanish", "gold": ["5000682670"]}
+{"id": "R30", "question": "Members should be able to pick more than one main category", "gold": ["12000057947"]}
+{"id": "R31", "question": "What does Insta-Load do?", "gold": ["12000035436"]}
+{"id": "R32", "question": "AdBlock Detector setup", "gold": ["12000045583"]}
+{"id": "R33", "question": "Froala strips out my HTML when I save", "gold": ["12000050711"]}
+{"id": "R34", "question": "can I edit the .htaccess file", "gold": ["12000047896"]}
+{"id": "R35", "question": "Stripe payment intents for free trial plans", "gold": ["12000072584"]}

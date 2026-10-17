@@ -39,6 +39,75 @@ CREATE TABLE IF NOT EXISTS articles (
     ingested_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Retrievable pieces of articles (and, later, of approved expert answers).
+CREATE TABLE IF NOT EXISTS chunks (
+    chunk_id   INTEGER PRIMARY KEY AUTOINCREMENT,
+    article_id TEXT NOT NULL,
+    source     TEXT NOT NULL DEFAULT 'article',  -- article | expert
+    position   INTEGER NOT NULL,
+    section    TEXT,
+    text       TEXT NOT NULL,
+    image_ids  TEXT NOT NULL DEFAULT '[]',       -- JSON list
+    embedding  BLOB                              -- float32 vector, L2-normalised
+);
+CREATE INDEX IF NOT EXISTS idx_chunks_article ON chunks(article_id);
+
+-- Keyword index (BM25) kept in sync with chunks by triggers.
+CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
+    text, content='chunks', content_rowid='chunk_id', tokenize='porter unicode61'
+);
+CREATE TRIGGER IF NOT EXISTS chunks_ai AFTER INSERT ON chunks BEGIN
+    INSERT INTO chunks_fts(rowid, text) VALUES (new.chunk_id, new.text);
+END;
+CREATE TRIGGER IF NOT EXISTS chunks_ad AFTER DELETE ON chunks BEGIN
+    INSERT INTO chunks_fts(chunks_fts, rowid, text) VALUES ('delete', old.chunk_id, old.text);
+END;
+
+-- Questions the brain could not answer, waiting for a human expert.
+CREATE TABLE IF NOT EXISTS escalations (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    question    TEXT NOT NULL,
+    normalized  TEXT NOT NULL,                 -- for de-duplicating repeat questions
+    status      TEXT NOT NULL DEFAULT 'open',  -- open | resolved | dismissed
+    reason      TEXT NOT NULL,
+    evidence    TEXT NOT NULL DEFAULT '[]',    -- JSON: passages we had, for the expert
+    caller      TEXT,                          -- chat | inbox-agent | scope-builder | ...
+    times_asked INTEGER NOT NULL DEFAULT 1,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    resolved_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_escalations_open ON escalations(status, normalized);
+
+-- Expert answers are versioned knowledge records. Retracting one deactivates it and
+-- removes its chunk, so a bad expert answer can be undone without touching anything else.
+CREATE TABLE IF NOT EXISTS expert_answers (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    escalation_id INTEGER REFERENCES escalations(id),
+    question      TEXT NOT NULL,
+    answer        TEXT NOT NULL,
+    author        TEXT NOT NULL,
+    version       INTEGER NOT NULL DEFAULT 1,
+    active        INTEGER NOT NULL DEFAULT 1,
+    created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Every answer we give, for audits and for measuring quality over time.
+CREATE TABLE IF NOT EXISTS query_log (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    question      TEXT NOT NULL,
+    status        TEXT NOT NULL,
+    model         TEXT,
+    prompt_version TEXT,
+    top_score     REAL,
+    cited         TEXT NOT NULL DEFAULT '[]',
+    input_tokens  INTEGER NOT NULL DEFAULT 0,
+    output_tokens INTEGER NOT NULL DEFAULT 0,
+    cost_usd      REAL NOT NULL DEFAULT 0,
+    latency_ms    REAL,
+    caller        TEXT,
+    created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- One row per ingestion run, for the status endpoint and the daily job's audit trail.
 CREATE TABLE IF NOT EXISTS ingestion_runs (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
