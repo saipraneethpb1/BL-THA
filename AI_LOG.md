@@ -34,7 +34,7 @@ Some of my messages were picked from reply buttons Claude Code suggested; the on
 
 **TODO (Sai):** Confirm this is the one you want, and write it in your own words.
 
-Candidate: **deployment.** Claude recommended treating cloud deployment as optional ("local Docker only is a perfectly fine submission") because the brief lists it only as "good to have" and time was short. I disagreed: ✍ *"they are saying that it is good to have, so miss out on chances the make me much more eligible for the role"* (I meant: don't miss the chance). I created an AWS account that day, and the code was built deployment-ready from then on: Docker images with health checks, environment-only secrets, seed snapshots.
+Candidate: **deployment.** Claude recommended treating cloud deployment as optional ("local Docker only is a perfectly fine submission") because the brief lists it only as "good to have" and time was short. I disagreed: ✍ *"they are saying that it is good to have, so miss out on chances the make me much more eligible for the role"* (I meant: don't miss the chance). I created an AWS account that day, and the code was built deployment-ready from then on: Docker images with health checks, environment-only secrets, seed snapshots. It went live on AWS (EC2 t3.small in Mumbai) on 2026-10-18, behind Caddy with HTTPS and a login on every page.
 
 **What I learned:** **TODO (Sai):** for example, that the AI optimises for the stated requirements and the deadline, while I was also optimising for the role's "good to have" skills, which the brief alone doesn't tell it to weigh.
 

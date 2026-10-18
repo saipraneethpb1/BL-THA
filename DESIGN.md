@@ -113,7 +113,7 @@ Five agents, each with one job and a typed output:
 | LangChain or other agent frameworks | Every step is plain code I can explain line by line in the live review. |
 | Transcribing audio in the app | Recording tools already export text. I accept pasted or uploaded text in three common formats. |
 | PDF proposals | Markdown is easy to review and diff; turning it into a PDF is a solved problem. |
-| Login for the Task 2 and 3 screens | The Knowledge Brain API has a shared key. The UIs are meant to sit behind a reverse proxy with basic auth when deployed. |
+| User accounts in the apps | One shared login at the proxy is enough for a small team. The live deployment puts every page behind Caddy's basic auth, and the Knowledge Brain API also has its own key. Per-person accounts and SSO would come with multi-tenancy. |
 | Fine-tuning | Versioned lessons are cheaper, measurable and can be rolled back. |
 
 ## 6. Model choices
@@ -146,7 +146,8 @@ Embeddings are local: bge-small, 384 dimensions. Claude has no embedding model, 
 - **Hidden test cases** may contain kinds of email or meetings my 60 emails and 3 meetings don't cover. On my own held-out test set:
   - the agent over-cautiously sent 6 answerable emails to a human, because the Knowledge Brain called its answer "partial";
   - one draft for a quote request described a billing arrangement nobody had agreed;
-  - the cancellation policy check fires on negations ("Nothing has been cancelled").
+  - the cancellation policy check fired on negations ("Nothing has been cancelled"). This is now fixed and tested.
+- **The live deployment is one small VM.** It's a t3.small with no backups or failover. Its address comes from the VM's public IP, so it changes if the VM is stopped and started; an Elastic IP and a real domain would fix that.
 - **TODO (Sai):** describe the failure shown in the demo video.
 
 ## 8. What I'd build next
@@ -157,4 +158,4 @@ Embeddings are local: bge-small, 384 dimensions. Claude has no embedding model, 
 4. Real Gmail and IMAP integration, with the same review screen.
 5. Compare estimates with actual hours, so the estimator learns per task type.
 6. Multi-tenant Postgres with pgvector, per-tenant keys, and SSO for the screens.
-7. A proper deployment: one small VM, Caddy for HTTPS and basic auth, nightly snapshot backups.
+7. Harden the deployment: an Elastic IP and a real domain, nightly database backups to S3, and alerts on `/health`.
