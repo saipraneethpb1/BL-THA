@@ -1,0 +1,539 @@
+{
+  "results": [
+    {
+      "model": "claude-sonnet-5-5",
+      "meeting": "ami_ES2002c",
+      "build_seconds": 119.35950839999896,
+      "cost_usd": 0.350438,
+      "requirements": {
+        "gold": 9,
+        "found": 9,
+        "missed": [],
+        "extracted": 30,
+        "unmatched_extracted": 17,
+        "quotes_verified": 1.0
+      },
+      "followup": {
+        "meeting": "ami_ES2002d",
+        "build_seconds": 102.42583420000119,
+        "cost_usd": 0.348713,
+        "requirements": {
+          "gold": 8,
+          "found": 8,
+          "missed": [],
+          "extracted": 43,
+          "unmatched_extracted": 34,
+          "quotes_verified": 1.0
+        },
+        "changes": {
+          "expected": 5,
+          "detected": 4,
+          "cases": [
+            {
+              "change": [
+                "removed",
+                "modified"
+              ],
+              "keywords": [
+                [
+                  "kinetic",
+                  "batter"
+                ]
+              ],
+              "detected": true
+            },
+            {
+              "change": [
+                "modified",
+                "added"
+              ],
+              "keywords": [
+                [
+                  "button"
+                ],
+                [
+                  "push",
+                  "square"
+                ]
+              ],
+              "detected": true
+            },
+            {
+              "change": [
+                "modified",
+                "added"
+              ],
+              "keywords": [
+                [
+                  "curv",
+                  "case",
+                  "shape"
+                ]
+              ],
+              "detected": true
+            },
+            {
+              "change": [
+                "added",
+                "modified"
+              ],
+              "keywords": [
+                [
+                  "chip"
+                ]
+              ],
+              "detected": false
+            },
+            {
+              "change": [
+                "added",
+                "modified"
+              ],
+              "keywords": [
+                [
+                  "tv",
+                  "television"
+                ],
+                [
+                  "display",
+                  "screen"
+                ]
+              ],
+              "detected": true
+            }
+          ],
+          "flagged_out_of_scope": [
+            "REQ-007",
+            "REQ-009",
+            "REQ-013",
+            "REQ-017",
+            "REQ-021",
+            "REQ-022",
+            "REQ-028",
+            "REQ-029",
+            "REQ-031",
+            "REQ-032",
+            "REQ-033",
+            "REQ-034",
+            "REQ-035",
+            "REQ-036",
+            "REQ-037",
+            "REQ-038",
+            "REQ-039",
+            "REQ-040",
+            "REQ-041",
+            "REQ-042",
+            "REQ-043",
+            "REQ-044"
+          ]
+        },
+        "baseline_requirements": [
+          "Incorporate the corporate colour and slogan in the design; ignore teletext and everything except TV control.",
+          "The remote must look and feel stylish/fancy (top consumer priority), not merely functional.",
+          "The design must be innovative with cutting-edge technology, without adding unnecessary functional features; innovation should contribute to look and feel (e.g. lighting up when picked up).",
+          "The remote must be easy to use and user friendly throughout while still having technology.",
+          "Use soft, spongy, ergonomic, friendly-to-handle materials to capitalise on this year's trend.",
+          "Use a unifying theme (marketing identity, e.g. lemon/lime fruit series tied to the yellow company colour) across shape, materials and series.",
+          "Lighting feature: buttons that light up (backlit, possibly in different colours) when touched or picked up, usable in the dark, adding a high-tech feel.",
+          "Consider interchangeable covers for the control.",
+          "The standby button should be red.",
+          "Buttons should be large, easy and comfortable to press.",
+          "Volume up and down buttons must be clearly distinguishable from each other.",
+          "If the corporate colour scheme allows, use a very bright colour so the control is easy to find, avoiding tackiness.",
+          "Avoid the big square block look; the control should be comfortable to hold, small and slim but not too small to use.",
+          "Extra features beyond the basics should be hidden and only reachable with special effort, e.g. opening a cover.",
+          "If voice activation is included, a button alternative must always be provided.",
+          "Consider voice control that talks back to confirm user actions.",
+          "Power the remote with a hybrid system: a battery combined with a secondary source (kinetic as main idea, battery as backup).",
+          "Use as few and as simple components as possible to reduce cost, time to market and development complexity.",
+          "Include a really good battery so users do not have to charge the remote every few days.",
+          "Consider a kinetic mechanism, like an automatic watch, to power or trigger the light when the remote is picked up.",
+          "Very curvy shape with fruit-like texture and colour, but not literally a fruit shape.",
+          "Use a mix of plastic and rubber with curved shapes for a warmer, more comfortable feel, instead of boxy materials like wood or titanium; consider textured soft-feel plastic.",
+          "The remote should fold up to reveal a third group of controls inside, with volume controls on the body.",
+          "Colour scheme must include yellow somewhere, e.g. yellow background with bold-coloured buttons.",
+          "Use a slightly transparent yellow-tinted case with one or two subtle low-power lights so it glows softly in the dark.",
+          "Include a way to skip many channels at once (number buttons), since a jog dial is slow for about fifty channels.",
+          "Include the company slogan on the remote design (suggested on the side of the casing).",
+          "Add a jog dial positioned to fit the shape of the remote.",
+          "Incorporate a logo into the design.",
+          "Explore a flat, spun jog dial rather than a protruding one."
+        ],
+        "baseline_decisions": [
+          "Target user group is 15 to 35 year olds (decided in the previous meeting).",
+          "The remote will use non-rechargeable batteries (decided in the previous meeting).",
+          "Presentations go in order (Andrew, Craig, David), with discussion at the end and decisions afterward.",
+          "Only basic functions are visible on the remote; the rest are hidden (advanced functions go inside the folding section, basic on the front).",
+          "The remote will have a snowman shape: larger body in the hand and a smaller bubble at the top for other functions.",
+          "No LCD display and no talk-back (speaker output) feature in the remote.",
+          "The design will use rubber buttons.",
+          "The team agreed to incorporate a jog dial, with no one opposing.",
+          "Jog dial design details are left to the designers to discuss among themselves.",
+          "Materials are plastic and rubber, as previously discussed.",
+          "This meeting must end with a decision on the product concepts; time is limited (about fifteen minutes, later about five minutes remaining).",
+          "The corporate colour appears to be yellow (from website and bottom band); not confirmed.",
+          "Design trade-offs are driven by cost, complexity and device size; more physical components mean higher cost and power use.",
+          "The case can be flat or curved; available materials are probably not combinable, but this is unconfirmed with the supplier.",
+          "Material limits: rubber case restricts power options (solar panel); titanium cannot be curved and must be square; wood cannot be curved; plastic has no restrictions.",
+          "Complex UI features such as an LCD panel and scroll wheel require more complicated logic chips; standard buttons do not.",
+          "Solar power is a poor fit for Europe or countries with seasons, so it cannot be the only power source.",
+          "The next meeting takes place in thirty minutes."
+        ],
+        "diff": [
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-001",
+            "before": "Incorporate the corporate colour and slogan in the design; ignore teletext and everything except TV control.",
+            "after": "Incorporate the corporate colour and slogan in the design; ignore teletext and everything except TV control.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-002",
+            "before": "The remote must look and feel stylish/fancy (top consumer priority), not merely functional.",
+            "after": "The remote must look and feel stylish/fancy (top consumer priority), not merely functional.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-003",
+            "before": "The design must be innovative with cutting-edge technology, without adding unnecessary functional features; innovation should contribute to look and feel (e.g. lighting up when picked up).",
+            "after": "The design must be innovative with cutting-edge technology, without adding unnecessary functional features; innovation should contribute to look and feel (e.g. lighting up when picked up).",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-004",
+            "before": "The remote must be easy to use and user friendly throughout while still having technology.",
+            "after": "The remote must be easy to use and user friendly throughout while still having technology.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-005",
+            "before": "Use soft, spongy, ergonomic, friendly-to-handle materials to capitalise on this year's trend.",
+            "after": "Use soft, spongy, ergonomic, friendly-to-handle materials to capitalise on this year's trend.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-006",
+            "before": "Use a unifying theme (marketing identity, e.g. lemon/lime fruit series tied to the yellow company colour) across shape, materials and series.",
+            "after": "Use a unifying theme (marketing identity, e.g. lemon/lime fruit series tied to the yellow company colour) across shape, materials and series.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-007",
+            "before": "Lighting feature: buttons that light up (backlit, possibly in different colours) when touched or picked up, usable in the dark, adding a high-tech feel.",
+            "after": "Buttons light up (backlit by internal LEDs) when touched or pushed, usable in the dark, adding a high-tech feel; buttons are normal coloured, with no special colour differentiation.",
+            "summary": "Buttons keep the light-up when pushed, but the special foggy yellow button colour was dropped for normal coloured buttons to cut cost.",
+            "out_of_scope": true
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-008",
+            "before": "Consider interchangeable covers for the control.",
+            "after": "Consider interchangeable covers for the control.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-009",
+            "before": "The standby button should be red.",
+            "after": "The standby button should be red; holding it for about two seconds sends a standby signal.",
+            "summary": "Red button acts as power button, holding about two seconds sends standby.",
+            "out_of_scope": true
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-010",
+            "before": "Buttons should be large, easy and comfortable to press.",
+            "after": "Buttons should be large, easy and comfortable to press.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-011",
+            "before": "Volume up and down buttons must be clearly distinguishable from each other.",
+            "after": "Volume up and down buttons must be clearly distinguishable from each other.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-012",
+            "before": "If the corporate colour scheme allows, use a very bright colour so the control is easy to find, avoiding tackiness.",
+            "after": "If the corporate colour scheme allows, use a very bright colour so the control is easy to find, avoiding tackiness.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-013",
+            "before": "Avoid the big square block look; the control should be comfortable to hold, small and slim but not too small to use.",
+            "after": "Avoid the big square block look; the control should be comfortable to hold, small and slim but not too small to use, and deep enough to hold comfortably rather than wide and flat.",
+            "summary": "Adds that the remote should be deep enough to be comfortable rather than wide and flat.",
+            "out_of_scope": true
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-014",
+            "before": "Extra features beyond the basics should be hidden and only reachable with special effort, e.g. opening a cover.",
+            "after": "Extra features beyond the basics should be hidden and only reachable with special effort, e.g. opening a cover.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-015",
+            "before": "If voice activation is included, a button alternative must always be provided.",
+            "after": "If voice activation is included, a button alternative must always be provided.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-016",
+            "before": "Consider voice control that talks back to confirm user actions.",
+            "after": "Consider voice control that talks back to confirm user actions.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-017",
+            "before": "Power the remote with a hybrid system: a battery combined with a secondary source (kinetic as main idea, battery as backup).",
+            "after": "Power the remote with a battery only; no kinetic or secondary power source.",
+            "summary": "Kinetic power dropped; power is battery only.",
+            "out_of_scope": true
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-018",
+            "before": "Use as few and as simple components as possible to reduce cost, time to market and development complexity.",
+            "after": "Use as few and as simple components as possible to reduce cost, time to market and development complexity.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-019",
+            "before": "Include a really good battery so users do not have to charge the remote every few days.",
+            "after": "Include a really good battery so users do not have to charge the remote every few days.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "removed",
+            "requirement_id": "REQ-020",
+            "before": "Consider a kinetic mechanism, like an automatic watch, to power or trigger the light when the remote is picked up.",
+            "after": null,
+            "summary": "Kinetic power was ruled out, so the kinetic mechanism for powering or triggering the light is dropped.",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-021",
+            "before": "Very curvy shape with fruit-like texture and colour, but not literally a fruit shape.",
+            "after": "Very curvy, double-curved plastic case in one special colour, with fruit-like texture and colour but not literally a fruit shape; the snowman shape mentioned in the recap is not settled.",
+            "summary": "Shape moves from a very curvy fruit-like shape to a double-curved plastic case in one special colour (snowman shape recalled but not settled).",
+            "out_of_scope": true
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-022",
+            "before": "Use a mix of plastic and rubber with curved shapes for a warmer, more comfortable feel, instead of boxy materials like wood or titanium; consider textured soft-feel plastic.",
+            "after": "Use plastic only (no rubber) with curved shapes for a warmer, more comfortable feel, instead of boxy materials like wood or titanium; consider textured soft-feel plastic and flush rather than protruding buttons.",
+            "summary": "Rubber dropped; everything is plastic, buttons possibly backlit by internal LEDs.",
+            "out_of_scope": true
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-023",
+            "before": "The remote should fold up to reveal a third group of controls inside, with volume controls on the body.",
+            "after": "The remote should fold up to reveal a third group of controls inside, with volume controls on the body.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-024",
+            "before": "Colour scheme must include yellow somewhere, e.g. yellow background with bold-coloured buttons.",
+            "after": "Colour scheme must include yellow somewhere, e.g. yellow background with bold-coloured buttons.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-025",
+            "before": "Use a slightly transparent yellow-tinted case with one or two subtle low-power lights so it glows softly in the dark.",
+            "after": "Use a slightly transparent yellow-tinted case with one or two subtle low-power lights so it glows softly in the dark.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-026",
+            "before": "Include a way to skip many channels at once (number buttons), since a jog dial is slow for about fifty channels.",
+            "after": "Include a way to skip many channels at once (number buttons), since a jog dial is slow for about fifty channels.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-027",
+            "before": "Include the company slogan on the remote design (suggested on the side of the casing).",
+            "after": "Include the company slogan on the remote design (suggested on the side of the casing).",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-028",
+            "before": "Add a jog dial positioned to fit the shape of the remote.",
+            "after": "Add a jog dial positioned to fit the shape of the remote, controlling volume and advanced functions (brightness, contrast, channel tuning, etc.) as user-definable settings.",
+            "summary": "Jog dial/scroll wheel controls advanced user-definable functions and volume.",
+            "out_of_scope": true
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-029",
+            "before": "Incorporate a logo into the design.",
+            "after": "Incorporate a logo into the design, embossed on the side of the remote.",
+            "summary": "Logo is to be embossed on the side at no extra cost.",
+            "out_of_scope": true
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-030",
+            "before": "Explore a flat, spun jog dial rather than a protruding one.",
+            "after": "Explore a flat, spun jog dial rather than a protruding one.",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-031",
+            "before": null,
+            "after": "Small LCD on the remote showing the user's advanced-function actions (brightness, contrast), later removed in favour of on-screen TV feedback.",
+            "summary": "Small LCD discussed but later removed; no approved requirement covers it.",
+            "out_of_scope": true
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-032",
+            "before": null,
+            "after": "Remote dimensions: height about 10 cm, width/depth figures vary (5 cm, 3.5 cm, 3 cm with 2.5 cm height); length not settled.",
+            "summary": "Specific dimensions (about 10 cm height, about 3 cm width, 2.5 cm thickness) are new.",
+            "out_of_scope": true
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-033",
+            "before": null,
+            "after": "Audio controls: bass, mid-range, high range, left-right balance, and possibly user-defined sound modes.",
+            "summary": "Audio controls such as bass, mid, high, balance and user-defined sound modes are new.",
+            "out_of_scope": true
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-034",
+            "before": null,
+            "after": "TV must respond to scroll and button input from the remote and show on-screen feedback, replacing the LCD.",
+            "summary": "TV must respond to remote input with on-screen feedback, replacing the LCD.",
+            "out_of_scope": true
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-035",
+            "before": null,
+            "after": "Meetings should be structured like brainstorming sessions, with ideas tossed around, reviewed and revisited.",
+            "summary": "Meetings structured like brainstorming sessions.",
+            "out_of_scope": true
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-036",
+            "before": null,
+            "after": "Meeting room and process should work as a cumulative centre of creativity where ideas stay in discussion between meetings.",
+            "summary": "Meeting room should be a cumulative centre of creativity.",
+            "out_of_scope": true
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-037",
+            "before": null,
+            "after": "Process should allow individuals more creative freedom rather than being structured to one task.",
+            "summary": "Process should allow more individual creative freedom.",
+            "out_of_scope": true
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-038",
+            "before": null,
+            "after": "Provide a way to communicate outside formal meetings, such as a messenger, since the share folder and email were too slow.",
+            "summary": "Need a quick communication channel such as a messenger outside meetings.",
+            "out_of_scope": true
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-039",
+            "before": null,
+            "after": "Tool set should support team collaboration rather than only individual work.",
+            "summary": "Tool set should support team collaboration.",
+            "out_of_scope": true
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-040",
+            "before": null,
+            "after": "Keep ideas and work between meetings on the whiteboard rather than in text.",
+            "summary": "Keep between-meeting work on a whiteboard rather than in text.",
+            "out_of_scope": true
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-041",
+            "before": null,
+            "after": "Combine whiteboard and PowerPoint in the centre of the room, focusing on the whiteboard.",
+            "summary": "Combine whiteboard and PowerPoint in the centre of the room.",
+            "out_of_scope": true
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-042",
+            "before": null,
+            "after": "Reduce PowerPoint presentations in meetings; present verbally where possible.",
+            "summary": "Reduce PowerPoint use in meetings.",
+            "out_of_scope": true
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-043",
+            "before": null,
+            "after": "Improve digital pens, especially the tick-box needed before switching pages.",
+            "summary": "Improve digital pens and the tick-box before switching pages.",
+            "out_of_scope": true
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-044",
+            "before": null,
+            "after": "For future projects, hold short regular check-in meetings (e.g. hourly) with written milestone summaries, team in one room.",
+            "summary": "Short regular check-in meetings with written milestone summaries for future projects.",
+            "out_of_scope": true
+          }
+        ]
+      }
+    }
+  ]
+}

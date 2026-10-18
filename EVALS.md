@@ -107,8 +107,17 @@ This replaces the role-plays (see DESIGN.md §5). The meetings are ES2002b, ES20
   - Found: the case shape and "display on the TV".
   - Missed: the kinetic battery being dropped, rubber → push buttons, the regular chip.
   - On the other side, 15 items were flagged as new out-of-scope work.
-  - **Hypothesis, not yet verified:** the change detector compares only *requirements* between versions. A design team states many things as *decisions* ("the remote will have a kinetic battery"), so a changed decision is invisible to it.
-  - The harness now saves the full baseline and diff, so one re-run (about $0.70) can confirm this before any fix.
+  - **Re-run with full detail saved** (identical inputs and code): 4/5 changes detected, and 8/8 decisions found in ES2002d. The diagnosis:
+    1. **Requirement vs decision is a coin flip between runs, and only requirements are compared.** This time the kinetic battery was recorded as a requirement, so its removal was caught. "Rubber buttons" and the logic chip were recorded as decisions, so their changes were invisible. This explains 2/5 vs 4/5.
+    2. **One "detection" was luck.** The button case matched an unrelated change (backlit buttons "when touched or pushed"). The real rubber → push change was missed, so the honest score is about **3/5**. The keyword grader needs tightening.
+    3. **One false addition:** "a small LCD on the remote". The team discussed it and rejected it (AMI: no LCD), but the analyst kept it as a requirement.
+    4. **Over-flagging:** 22 changes were marked "outside the approved scope", because every modification is flagged, even ones that reduce work.
+  - **Proposed fix, not yet applied:**
+    - The analyst records anything the product will or won't have as a *requirement*.
+    - The change detector also receives the baseline's decisions and constraints.
+    - An option discussed and then rejected is recorded as excluded.
+    - Only changes that *add* work are flagged.
+    - Tighter keyword checks in the grader.
 - **TODO:** Haiku as analyst, for the model comparison (about $1 for 3 builds).
 
 ## Reliability and safety
