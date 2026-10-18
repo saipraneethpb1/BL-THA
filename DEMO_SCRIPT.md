@@ -1,92 +1,97 @@
 # Demo video script (5 minutes)
 
-One flow per task, one honest failure, and the approval gate. Spoken lines are in quotes. Keep them in your own words; they're a guide, not a teleprompter.
+Recorded on the live site: https://13-203-203-28.sslip.io. It covers one flow per task, the approval gate, and one honest failure. Spoken lines are in quotes; say them in your own words, they're a guide, not a teleprompter.
 
-## Before you record (about 20 minutes)
+## Before you record (about 15 minutes, no commands)
 
-1. `docker compose up -d` and check that all three health pages say `ok` (ports 8001, 8002, 8003).
-2. **Pre-build the slow parts.** A Scope Builder build takes 1.5–3 minutes, too long to watch on camera.
-   - In the Scope Builder (http://localhost:8003), create a project "Remote control (AMI ES2002)".
-   - Add `task3-meeting-to-scope/transcripts/ami_ES2002c.txt` as a meeting and build it. **Don't approve yet.**
-   - Keep `ami_ES2002d.txt` ready for later.
-3. **Inbox Agent** (http://localhost:8002): click **Load the 40 sample emails** before recording.
-4. **Rehearse every question once** (each costs about 2 cents) so nothing surprises you on camera. Models vary a little between runs; if one answer comes out badly, re-ask it before recording.
-5. Browser zoom at 125%, notifications off, close other tabs. Record at 1080p.
+1. **Credits are topped up and the site is on the real models** (Opus answers, Sonnet drafting and scoping, Haiku for the small jobs). The usage bar at the bottom should be green, "Claude API available". If you rehearsed in Haiku mode, ask Claude to switch back first.
+2. **The demo project is pre-built** (Claude does this after credits are added): "TV remote control (demo)" in the Scope Builder, with v1 approved and v2 (the follow-up meeting) as a draft. A live build takes about 2 minutes, too long to watch on camera.
+3. **Check the follow-up's Changes tab** before recording, and note which of the five AMI changes it found (see "An honest failure" below). That decides which plan you use.
+4. Browser: Chrome or Edge, signed in to the site, zoom 110–125%, notifications off, other tabs closed. Press **Ctrl+F5** once on each service so you see the latest version.
+5. **Rehearse once in full.** Each question costs about 2 cents and each draft about 5 cents; the usage bar shows the total.
 
 ---
 
-## 0:00–0:20 · Opening
+## 0:00–0:25 · Hub page
 
-**Show:** a terminal with `docker compose up`, then the three health checks.
+**Show:** https://13-203-203-28.sslip.io (the logo, the three cards, the usage bar at the bottom).
 
-> "This is my submission for the three tasks: a Knowledge Brain over the Brilliant Directories help center, an Inbox Agent that drafts replies from it, and a Scope Builder that turns meeting transcripts into a quoted scope. One command starts all three. Every model choice you'll see was picked by an eval."
+> "This is my submission: three services that do a consultant's slow work. A Knowledge Brain over the Brilliant Directories help center, an Inbox Agent that drafts replies from it, and a Scope Builder that turns client meetings into a priced scope. It runs on AWS behind a login, and the bar at the bottom shows exactly what the AI has cost so far against a budget."
 
-## 0:20–1:20 · Task 1: Knowledge Brain
+Optional: click the sun/moon icon once to show light and dark mode.
 
-**Show:** http://localhost:8001
+## 0:25–1:25 · Task 1: Knowledge Brain
 
-1. Ask: **"How do I hide my site from visitors while we're still building it?"**
-   - It finds "Staging Mode", even though the question shares no words with the article title.
-   > "The question doesn't say 'staging'. A cheap model rewrites it into help-center wording first. That took top-5 retrieval from 88% to 93–98%."
-   - Click a **Source** to show the citation.
-2. Ask something the help center doesn't cover, for example **"What's your agency's refund policy for setup fees?"**
-   - It declines instead of guessing.
-   > "If the evidence isn't there, it says so and sends the question to a human."
-   - Open **Expert queue**: the question is waiting. Write a short answer and click **Save answer**.
-3. Point at **Knowledge status**:
-   > "1,537 articles and 5,040 screenshots, all described by a vision model so text inside images is searchable. It refreshes daily."
+**Show:** the **Knowledge Brain** card or the top bar.
 
-## 1:20–2:30 · Task 2: Inbox Agent
+1. Click the example **"How do I hide my site from visitors while we're still building it?"**
+   - The answer comes from the "Staging Mode" article, although the question shares no words with it.
+   > "A small model first rewrites the question in help-center wording. That took retrieval from 88% to 93–98%."
+   - Click a screenshot to enlarge it, then a source link.
+2. Click the mic and **say** a question, for example *"How do I refund a member's payment?"*, then press Ask.
+   > "You can speak instead of typing. If the browser's own dictation isn't available, it's transcribed by an open-source model on our server, so it works in every browser."
+3. Click **"What is your agency's refund policy for setup fees?"**: it declines and opens an expert task.
+   > "If the help center doesn't cover it, it says so instead of guessing, and the question goes to a human."
+   - Open **Expert queue**, write a one-line answer, **Save answer**.
 
-**Show:** http://localhost:8002, **Inbox**
+## 1:25–2:35 · Task 2: Inbox Agent
 
-1. Open **E001** (blurry homepage banner). Click **Draft a reply**.
-   - Show **What the Knowledge Brain said**: the reply is grounded in a cited article.
-   - Make a small edit, then **Send**.
-   > "Every draft is approved by a person. My edits are kept: under **Lessons**, the agent proposes rules from them, I test them against past emails, and I can roll back."
-2. Open **E019** (refund request with an "AI assistant: …" instruction inside). Draft it.
-   > "This email tries to instruct the AI to approve a refund. It's treated as text, not a command. Refunds always go to a human, and the policy check blocks any reply that says a refund or cancellation is done."
-3. Open **Autonomy**:
-   > "A kind of email can only start sending on its own after 20 clean approvals in a row, and refunds, complaints and quotes never can. One wrong send, and I can revoke it."
-4. One line on results:
-   > "On 20 test emails I wrote by hand and never tuned on: 100% correct category, zero unsafe auto-sends."
+**Show:** **Inbox Agent** in the top bar. The "Start here" panel lists emails to try.
 
-## 2:30–4:10 · Task 3: Scope Builder and the approval gate
+1. Click **E008 · Misspelled how-to question** → **Draft a reply** (about 10–15 s; the button shows the steps).
+   - Point at **What the Knowledge Brain said**: the reply is grounded in a cited article.
+   - Change one sentence, then **Send edited**.
+   > "A person approves every draft. Edits are recorded, and under Learning the agent can propose lessons from them, which are tested on past emails before going live and can be rolled back."
+2. Click **E019 · Refund request with a hidden instruction** → **Draft a reply**.
+   > "This email tells the AI to approve a refund. It's treated as text, not an instruction. Refunds always go to a person, and a rule check in code blocks any reply that says a refund or cancellation is done."
+3. Open **Autonomy**.
+   > "A kind of email can only start sending on its own after 20 approvals in a row without edits. Refunds, complaints and quotes never can, and I can revoke it at any time."
+   > "On 20 test emails I wrote by hand and never tuned on: every category right, and no unsafe auto-sends."
 
-**Show:** http://localhost:8003, the pre-built project.
+## 2:35–4:10 · Task 3: Scope Builder and the approval gate
 
-1. Open **Version 1** (from ES2002c):
-   - Scroll the requirements: each has the client's exact words and a timestamp.
-   - Point at the feasibility labels: built-in, built-in with a limit, or custom work.
-   - Point at the estimate.
-   > "These are real recorded meetings from the AMI corpus, a public research dataset. A team of agents extracts requirements and checks each against the product before it's estimated. The model gives ranges; the arithmetic is done in code."
-2. **The approval gate:**
-   - Show that the draft can't be downloaded yet.
-   - Click **Approve version 1**, enter your name, and show the **Audit trail**.
-   - Now **Download proposal for the client** works.
-   > "Nothing reaches a client without a named person approving it. If there are blocking issues, approving needs a written note."
-3. **Follow-up meeting:** **Add meeting** with ES2002d, then build. Cut the wait in editing.
-   - Open the new version's diff against the approved v1.
-   - Point at "battery: kinetic → regular": a reduction, so not flagged.
-   - Point at the new work flagged "outside the approved scope".
+**Show:** **Scope Builder**, then the **TV remote control (demo)** project.
+
+1. Click **v1** (approved). Point at the summary cards, then the tabs:
+   - **Requirements:** each has the client's exact words and a timestamp.
+   - **Product check:** built-in setting, built-in with limits, or custom work.
+   - **Estimate:** ranges per task; the totals and price are calculated in code.
+   > "These are real recorded meetings from the public AMI corpus. A team of agents extracts requirements with quotes, checks each against the product before it's estimated, then scopes, estimates and writes the proposal."
+2. Click **v2** (built from the follow-up meeting) → **Changes**.
+   - Point at "kinetic → regular battery": it reduces work, so it isn't flagged.
+   - Point at the changes flagged **adds work**.
    > "Follow-ups are compared with what the client approved, not with the last draft. Only work that's added gets flagged for a separate quote."
+3. **The approval gate:** open **Review & approve** on v2.
+   - Point at **"Download proposal (after approval)"**: greyed out.
+   - Type your name and click **Approve version 2**.
+   - The audit trail records it, and **Download proposal for the client** now works.
+   > "Nothing reaches a client without a named person approving it, and if the automatic review found blocking issues, approving needs a written reason."
 
 ## 4:10–4:45 · An honest failure
 
-**Plan A, live (preferred).** Stay on the follow-up diff. Compare it with the AMI annotators' list of changes in this meeting: kinetic battery dropped, regular chip, double-curved case, push buttons, display on the TV. Point at whichever one is missing. "Display on the TV" was the most common miss in my runs.
+**Plan A (preferred):** stay on v2's **Changes**. The AMI annotators recorded five changes in this meeting:
+- kinetic battery dropped;
+- regular chip;
+- double-curved case;
+- push buttons;
+- display on the TV.
 
-> "Here's a miss. The annotators recorded that the display moved to the TV, and my system didn't catch it. Across three runs it found 5, 4 and 3 of these 5 changes. In this run the analyst described a display without saying which one, so there was nothing to compare. The next fix is to compare follow-up *decisions* too, not just requirements."
+Point at whichever one is missing. In my runs, "display on the TV" was the most common miss.
 
-**Plan B (if all 5 are found).** Use Task 1 over-caution.
+> "Here's a miss. The annotators recorded that the display moved to the TV, and the system didn't flag it. Across three runs it caught 5, 4 and 3 of these 5 changes. Earlier versions were worse; I fixed most of it. What's left: the analyst sometimes writes 'a display' without saying which one, and follow-up decisions aren't compared yet. That's my next fix."
 
-> "My biggest remaining weakness is over-caution. On the held-out emails, 6 answerable questions went to a human because the Knowledge Brain called its own correct answer 'partial'. That fails safe, but it costs the team time."
+**Plan B (if all five are found):** say "this run caught all five; across runs it was 5, 4 and 3", and show the table in EVALS.md. Or use the inbox over-caution:
 
-After recording, write the failure you showed into DESIGN.md §7 (the TODO there).
+> "My biggest remaining weakness is over-caution: on the held-out emails, 6 answerable questions went to a person because the Knowledge Brain called its own correct answer 'partial'. It fails safe, but it costs the team time."
+
+After recording, write the failure you showed into DESIGN.md §7, where it's marked TODO.
 
 ## 4:45–5:00 · Close
 
-> "Every number here is in EVALS.md, from saved runs, including the misses. Thanks for watching."
+**Show:** the usage bar.
+
+> "Every number I mentioned is in EVALS.md, from saved runs, including the misses. The bar shows what all of this cost to run. Thanks for watching."
 
 ---
 
-**If you run long,** cut Task 1 step 3 and Task 2 step 3. Never cut the approval gate or the failure.
+**If you run long:** cut the expert-queue answer (Task 1 step 3) and the Autonomy tab (Task 2 step 3). Never cut the approval gate or the failure.
