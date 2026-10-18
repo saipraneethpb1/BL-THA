@@ -84,7 +84,7 @@ Point at whichever one is missing. In my runs, "display on the TV" was the most 
 
 > "My biggest remaining weakness is over-caution: on the held-out emails, 6 answerable questions went to a person because the Knowledge Brain called its own correct answer 'partial'. It fails safe, but it costs the team time."
 
-After recording, write the failure you showed into DESIGN.md §7, where it's marked TODO.
+DESIGN.md §7 already describes Plan A's failure as "the failure shown in the demo video". If you use Plan B instead, change that line to match.
 
 ## 4:45–5:00 · Close
 

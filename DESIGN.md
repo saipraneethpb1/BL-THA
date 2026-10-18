@@ -1,17 +1,14 @@
 # Design: AI Tech Consultant
 
-> **TODO (Sai):** This is a draft. Rewrite the "Problem" section in your own words, check every claim against the code, and fill every TODO with real numbers from EVALS.md. Delete this note before submitting.
-
 ## 1. The problem
 
-A small agency that builds websites used to charge $2,000 for a change. Now it can charge about $200, because AI writes most of the code. To pay the same salaries it has to handle 10 to 20 times more clients.
+When AI writes most of the code, a website change that used to be a $2,000 job becomes a $200 one. An agency that wants to keep paying the same people then has to serve ten to twenty times as many clients. The code is no longer what slows it down. Three other jobs are:
 
-Writing code is no longer the slow part. The slow part is everything around it:
-- **Knowing the product.** The Brilliant Directories help center has 1,537 articles and 5,040 screenshots. It changes weekly, and some answers exist only inside screenshots.
-- **Answering the inbox.** Every email means reading it, finding the facts, writing a reply in the company's voice, and remembering to follow up.
-- **Turning meetings into quotes.** Clients speak loosely ("make search better"). Someone has to turn that into exact tasks and hours, check whether the product already does it, and catch scope creep in the next meeting.
+- **Knowing the product inside out.** Brilliant Directories documents itself in 1,537 help articles and 5,040 screenshots. They change every week, and some answers exist only as a label in a screenshot. Nobody can hold that in their head, and a wrong answer to a client costs trust.
+- **Keeping up with the inbox.** Each email has to be read, matched to the right facts, answered in the agency's voice and followed up. Some must never be answered by a machine at all: refunds, complaints, quotes.
+- **Turning loose conversations into firm quotes.** Clients say things like "make search better". Someone has to turn that into concrete tasks and hours, check first whether the product already does it, and notice when the next meeting quietly changes what was agreed.
 
-So I built one shared **Knowledge Brain**, with two products on top of it.
+My answer is one shared **Knowledge Brain**, so product facts come from a single place, with two services built on top of it. Each one keeps a person in charge of what reaches a client.
 
 ## 2. How the three parts connect
 
@@ -148,7 +145,11 @@ Embeddings are local: bge-small, 384 dimensions. Claude has no embedding model, 
   - one draft for a quote request described a billing arrangement nobody had agreed;
   - the cancellation policy check fired on negations ("Nothing has been cancelled"). This is now fixed and tested.
 - **The live deployment is one small VM.** It's a t3.small with no backups or failover. Its address comes from the VM's public IP, so it changes if the VM is stopped and started; an Elastic IP and a real domain would fix that.
-- **TODO (Sai):** describe the failure shown in the demo video.
+- **Follow-up change detection still misses changes.** This is the failure shown in the demo video. Across three runs on the real AMI follow-up meeting, it found 5, 4 and 3 of the 5 annotated changes. The misses come from the analyst, not the comparison:
+  - it sometimes writes a vague statement ("a display") that can't be matched to the earlier one ("display on the TV");
+  - a change recorded as a *decision* in the follow-up isn't compared at all.
+
+  Comparing follow-up decisions too is the next fix (see §8). Until then, the consultant should read the Changes tab before approving. Nothing reaches the client without that named approval.
 
 ## 8. What I'd build next
 

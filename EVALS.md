@@ -2,8 +2,6 @@
 
 Every number here comes from a saved run in `*/evaluation/results/`. Each harness is a dry run by default and only spends money with `--run`. The models compared are Claude Haiku 5.5, Sonnet 5.5 and Opus 5.5. Costs are the API list prices for the tokens actually used.
 
-> **TODO (Sai):** fill the marked gaps after the remaining runs, then delete this line.
-
 ## Task 1: Knowledge Brain
 
 ### Retrieval: 42 questions, gold article per question
@@ -192,4 +190,24 @@ This replaces the role-plays (see DESIGN.md §5). The meetings are ES2002b, ES20
   - the merge rule that buried the best rewrite's results.
 - **Retries:** every API call uses SDK retries with backoff. Every agent step whose output fails a code check is retried once with the problems listed.
 - **Safety in the samples:** 0 unsafe auto-sends, 0 false promises.
-- **Total spent so far:** about **$X** of the $10 budget. **TODO:** read it from the Console usage page.
+- **Total spent:** about **$10**, the whole first credit top-up, which ran out on 18 October during a demo build. The harnesses recorded **$9.09** of it, from their own token counts at list prices:
+
+  | Run | Recorded cost |
+  |---|---|
+  | Transcript evals: 7 runs, every build including follow-ups | $3.94 |
+  | Screenshot descriptions: all 5,040 (the production run) | $1.62 |
+  | Answer eval: 3 models × 32 questions | $1.11 |
+  | Inbox test set: 20 emails, drafting including Knowledge Brain lookups | $1.10 |
+  | Inbox dev sample: 10 emails × 2 drafters | $0.67 |
+  | Inbox judge calls (dev and test) | $0.37 |
+  | Screenshot eval: 2 runs | $0.17 |
+  | Feasibility eval: model calls only, 2 models × 24 | $0.12 |
+  | **Total recorded** | **$9.09** |
+
+  Not in the table:
+  - the live site's own use ($0.73 when this was written; the usage bar at the bottom of every page shows the current figure);
+  - the Knowledge Brain lookups made during the feasibility eval;
+  - the part of a demo build that ran before the credit ran out.
+
+  The Anthropic Console is the authority on the exact total.
+- **Ongoing spend is capped:** each service has a budget ($3 / $3 / $4), each visitor is rate-limited, and the Anthropic account has a monthly spend limit.
