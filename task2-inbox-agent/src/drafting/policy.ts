@@ -36,6 +36,18 @@ const DEADLINE =
 const ACCOUNT_CHANGED =
   /\b(?:we(?:'ve| have)? (?:changed|updated|reset|transferred)|your new password is|logged you in)\b/i;
 
+// "Nothing has been cancelled yet" must not count as a confirmation: ignore a match
+// that a negation word sits directly in front of, in the same clause. A comma ends the
+// clause, so "No problem, your refund has been approved" is still caught.
+const NEGATION = /(?:\b(?:no|not|nothing|never|none)\b|n't)[^.!?\n,;:]{0,15}$/i;
+function affirms(re: RegExp, body: string): boolean {
+  const g = new RegExp(re.source, re.flags.includes("g") ? re.flags : `${re.flags}g`);
+  for (const m of body.matchAll(g)) {
+    if (!NEGATION.test(body.slice(Math.max(0, m.index - 30), m.index))) return true;
+  }
+  return false;
+}
+
 const has = (cats: readonly CategoryId[], ...ids: CategoryId[]) => ids.some((id) => cats.includes(id));
 
 export function checkDraft(body: string, ctx: PolicyContext): Violation[] {
@@ -47,10 +59,10 @@ export function checkDraft(body: string, ctx: PolicyContext): Violation[] {
       v.push({ code: "secret_echoed", severity: "block", message: `Reply repeats the customer's ${s.kind.replace("_", " ")}.` });
     }
   }
-  if (REFUND_DONE.test(body)) {
+  if (affirms(REFUND_DONE, body)) {
     v.push({ code: "refund_promised", severity: "block", message: "Reply promises or confirms a refund." });
   }
-  if (CANCEL_DONE.test(body) && has(cats, "refund_cancellation")) {
+  if (affirms(CANCEL_DONE, body) && has(cats, "refund_cancellation")) {
     v.push({ code: "cancellation_confirmed", severity: "block", message: "Reply says a cancellation is done." });
   }
   if (has(cats, "quote_request", "project_request", "billing_question", "refund_cancellation") && MONEY.test(body)) {

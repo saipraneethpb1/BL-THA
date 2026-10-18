@@ -40,6 +40,6 @@ Candidate: **deployment.** Claude recommended treating cloud deployment as optio
 
 ## Times the AI was wrong and the work caught it
 
-- **Hybrid search:** the plan assumed hybrid would beat vector search; the eval said no (83% vs 86%) until the keyword weight was lowered to 0.3 (89%).
+- **Hybrid search:** the plan assumed hybrid would beat vector search. The first eval said no: on 30 questions, hybrid had 83% top-5 vs vector's 87%. Hybrid only pulled ahead once the keyword weight was lowered to 0.3: 89% vs 86% on 35 questions. The final 42-question numbers are in EVALS.md.
 - **Feasibility case:** "native app" was planned as custom work, but the help center documents a WebView-app route.
 - **Seeding bug:** copying a live database as a seed silently failed (WAL files on a read-only mount). The Docker run caught it; it was fixed with `VACUUM INTO`.

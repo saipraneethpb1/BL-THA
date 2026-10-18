@@ -35,6 +35,16 @@ describe("policy rules", () => {
     expect(codes(`Your plan has been cancelled. ${OK}`, { category: "refund_cancellation", usedEvidence: [] })).toContain("cancellation_confirmed");
   });
 
+  it("does not read a negated confirmation as a confirmation", () => {
+    const ctx = { category: "refund_cancellation", usedEvidence: [] } as const;
+    // From the held-out eval (E050): this reply was wrongly blocked.
+    expect(codes(`Nothing has been cancelled or refunded yet. ${OK}`, ctx)).not.toContain("cancellation_confirmed");
+    expect(codes(`No refund has been approved at this stage. ${OK}`, ctx)).not.toContain("refund_promised");
+    // A negation in an earlier clause does not hide a real confirmation.
+    expect(codes(`No problem, your refund has been approved. ${OK}`, ctx)).toContain("refund_promised");
+    expect(codes(`Not to worry. Your plan has been cancelled. ${OK}`, ctx)).toContain("cancellation_confirmed");
+  });
+
   it("blocks account changes by email", () => {
     expect(codes(`We have changed the owner to you. ${OK}`, { category: "account_access" })).toContain("account_changed");
   });

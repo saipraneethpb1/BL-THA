@@ -1,0 +1,38 @@
+# Public entry point: HTTPS (Let's Encrypt, automatic) and a login on every page.
+# DOMAIN is the VM's sslip.io name, e.g. 3-110-25-7.sslip.io (no domain purchase needed).
+# auth.caddy holds the basic_auth block; set-secrets.sh writes it and it never enters git.
+
+(protected) {
+	# /health stays open so uptime checks work; it reveals nothing and costs nothing.
+	@private not path /health
+	basic_auth @private {
+		import /etc/caddy/auth.caddy
+	}
+}
+
+{$DOMAIN} {
+	import protected
+	header Content-Type "text/html; charset=utf-8"
+	respond `<!doctype html><title>AI Tech Consultant</title><body style="font:16px system-ui;max-width:40em;margin:3em auto;padding:0 1em">
+<h1>AI Tech Consultant: three services</h1>
+<ul>
+<li><a href="https://kb.{$DOMAIN}">Knowledge Brain</a> (Task 1)</li>
+<li><a href="https://inbox.{$DOMAIN}">Inbox Agent</a> (Task 2)</li>
+<li><a href="https://scope.{$DOMAIN}">Scope Builder</a> (Task 3)</li>
+</ul></body>`
+}
+
+kb.{$DOMAIN} {
+	import protected
+	reverse_proxy knowledge-brain:8001
+}
+
+inbox.{$DOMAIN} {
+	import protected
+	reverse_proxy inbox-agent:8002
+}
+
+scope.{$DOMAIN} {
+	import protected
+	reverse_proxy scope-builder:8003
+}

@@ -77,7 +77,8 @@ export const CATEGORIES: Readonly<Record<CategoryId, CategoryRule>> = {
       "blame the customer",
       "promise a fix time",
     ],
-    nextAction: "follow up in 2 business days if the customer has not replied",
+    nextAction:
+      "if urgency is critical (site down, payments or signups failing): a team member has been alerted and will reply personally today, without promising when it will be fixed; otherwise follow up in 2 business days if the customer has not replied",
   },
   billing_question: {
     id: "billing_question",

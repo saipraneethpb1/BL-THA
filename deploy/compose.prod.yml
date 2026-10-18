@@ -1,0 +1,32 @@
+# Cloud overlay: the same three services, reachable only through Caddy (HTTPS + login).
+#   docker compose -f docker-compose.yml -f deploy/compose.prod.yml up -d --build
+
+services:
+  knowledge-brain:
+    ports: !reset []
+  inbox-agent:
+    ports: !reset []
+  scope-builder:
+    ports: !reset []
+
+  caddy:
+    image: caddy:2.8.4-alpine
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env, e.g. 3-110-25-7.sslip.io}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./deploy/auth.caddy:/etc/caddy/auth.caddy:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - knowledge-brain
+      - inbox-agent
+      - scope-builder
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:
