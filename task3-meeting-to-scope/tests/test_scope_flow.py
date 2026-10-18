@@ -159,6 +159,46 @@ def test_changes_are_applied_against_the_baseline_and_unlinked_items_count_as_ad
     assert (by_id["REQ-004"].change, by_id["REQ-004"].out_of_scope) == ("added", True)
 
 
+def test_changed_decisions_are_caught_and_only_added_work_is_flagged() -> None:
+    baseline = [req("REQ-001", "Kinetic battery"), req("REQ-002", "Logo")]
+    followup = MeetingAnalysis(
+        meeting_ids=["m2"],
+        requirements=[req("X", "Regular batteries"), req("Y", "Square push buttons")],
+        decisions=[],
+        constraints=[],
+        open_questions=[],
+        commitments=[],
+    )
+    detection = ChangeDetection(
+        links=[
+            ChangeLink(
+                new_item_id="NEW-01",
+                baseline_id="REQ-001",
+                change="modified",
+                summary="cheaper battery",
+                revised_statement="Regular batteries",
+                adds_work=False,
+            ),
+            ChangeLink(
+                new_item_id="NEW-02",
+                baseline_id="DEC-002",
+                change="modified",
+                summary="rubber to push buttons",
+            ),
+            ChangeLink(new_item_id=None, baseline_id="DEC-001", change="removed", summary="no LCD"),
+        ],
+        constraint_changes=[],
+    )
+    notes = ["Small LCD on the remote", "Rubber buttons"]
+    revised, changes = apply_changes(baseline, followup, detection, notes)
+    assert [r.description for r in revised] == ["Regular batteries", "Logo", "Square push buttons"]
+    by_id = {c.requirement_id: c for c in changes}
+    assert (by_id["REQ-001"].change, by_id["REQ-001"].out_of_scope) == ("modified", False)
+    assert (by_id["REQ-003"].change, by_id["REQ-003"].before) == ("modified", "Rubber buttons")
+    assert by_id["REQ-003"].out_of_scope
+    assert (by_id["DEC-001"].change, by_id["DEC-001"].out_of_scope) == ("removed", False)
+
+
 # ---------- end to end with a scripted team ----------
 
 

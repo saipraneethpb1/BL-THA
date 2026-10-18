@@ -117,8 +117,9 @@
             "button"
           ],
           [
-            "push",
-            "square"
+            "push button",
+            "square",
+            "rubber"
           ]
         ]
       },

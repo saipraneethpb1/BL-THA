@@ -99,11 +99,12 @@ This replaces the role-plays (see DESIGN.md §5). The meetings are ES2002b, ES20
 |---|---|---|---|---|---|---|---|
 | Sonnet 5.5 | ES2002b | 8/8 | 7 | 100% | – | $0.28 | 99 s |
 | Sonnet 5.5 | ES2002c | 9/9 | 18 | 100% | – | $0.36 | 124 s |
-| Sonnet 5.5 | ES2002d (follow-up) | 7/8 | 28 | 100% | **2/5** | $0.32 | 92 s |
+| Sonnet 5.5 | ES2002d (follow-up), before fix | 7/8 | 28 | 100% | **2/5** | $0.32 | 92 s |
+| Sonnet 5.5 | ES2002d, after fix (2 runs) | 8/8, 7/8 | 41, 31 | 100% | **5/5, 4/5** | $0.34 | 97–104 s |
 
 - **Extraction is strong:** 24 of 25 annotated decisions found, and 100% of quotes located in the transcript.
 - **"Extracted, not in key" is not all noise.** AMI's summaries list only the headline decisions; the analyst also records details the team discussed.
-- **Change detection is weak, 2 of 5.**
+- **Change detection was weak before the fix: 2 of 5.**
   - Found: the case shape and "display on the TV".
   - Missed: the kinetic battery being dropped, rubber → push buttons, the regular chip.
   - On the other side, 15 items were flagged as new out-of-scope work.
@@ -112,12 +113,26 @@ This replaces the role-plays (see DESIGN.md §5). The meetings are ES2002b, ES20
     2. **One "detection" was luck.** The button case matched an unrelated change (backlit buttons "when touched or pushed"). The real rubber → push change was missed, so the honest score is about **3/5**. The keyword grader needs tightening.
     3. **One false addition:** "a small LCD on the remote". The team discussed it and rejected it (AMI: no LCD), but the analyst kept it as a requirement.
     4. **Over-flagging:** 22 changes were marked "outside the approved scope", because every modification is flagged, even ones that reduce work.
-  - **Proposed fix, not yet applied:**
+  - **Fix applied** (analyst prompts v2, change prompt v2, `adds_work` in the schema):
     - The analyst records anything the product will or won't have as a *requirement*.
-    - The change detector also receives the baseline's decisions and constraints.
+    - The change detector also receives the baseline's decisions and constraints (as `DEC-xxx`), so a product fact filed as a decision can still be linked.
     - An option discussed and then rejected is recorded as excluded.
     - Only changes that *add* work are flagged.
-    - Tighter keyword checks in the grader.
+    - **Grader change, disclosed:** the button case now needs "push button", "square" or "rubber" next to "button", instead of "push" (which matched "pushed"). This was tightened *before* the re-runs, and it makes the check harder to pass.
+  - **After the fix, two runs of ES2002c → ES2002d (Sonnet, $0.64 and $0.67 per pair):**
+
+    | Run | changes detected | flagged out-of-scope | decisions found (c / d) |
+    |---|---|---|---|
+    | before the fix (2 runs) | 2/5, 4/5 (honestly about 3/5) | 15, 22 | 9/9, 7/8 and 8/8 |
+    | after, run 1 | **5/5** | 20 of 29 changes | 9/9, 8/8 |
+    | after, run 2 | **4/5** | 15 of 27 changes | 9/9, 7/8 |
+
+    - **I checked every detection by hand,** not only the keyword match:
+      - kinetic → regular battery, rubber → plastic buttons, and the regular chip are now caught as real modifications;
+      - battery and button changes that *reduce* work are no longer flagged;
+      - the rejected LCD now appears as "No LCD display" instead of being added as work.
+    - **Run 2's miss:** "display on the TV". The analyst wrote "the display should clearly show which function is being adjusted" without saying which display, so the change can't be matched.
+    - **Remaining noise:** the last part of ES2002d is the team reviewing its *own* meeting process (whiteboards, digital pens, PowerPoint). The analyst recorded 6–10 of these as requirements, and they were flagged as new work. A real client meeting would rarely contain this, but the analyst should still drop it. The flagged list is a review prompt for the consultant, not an automatic charge.
 - **TODO:** Haiku as analyst, for the model comparison (about $1 for 3 builds).
 
 ## Reliability and safety

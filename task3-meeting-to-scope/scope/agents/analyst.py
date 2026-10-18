@@ -41,8 +41,8 @@ class TranscriptAnalyst:
         self.max_chunk_chars = max_chunk_chars
         self.sem = asyncio.Semaphore(concurrency)
         self.effort: Effort = effort
-        self.extract_prompt = load_prompt("analyst_extract_v1")
-        self.merge_prompt = load_prompt("analyst_merge_v1")
+        self.extract_prompt = load_prompt("analyst_extract_v2")
+        self.merge_prompt = load_prompt("analyst_merge_v2")
 
     async def _extract(self, t: Transcript, chunk: Chunk, total: int) -> list[ItemRef]:
         user = (

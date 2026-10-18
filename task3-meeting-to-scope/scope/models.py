@@ -254,13 +254,20 @@ class ChangeLink(BaseModel):
     """Model output: how one item from the new meeting relates to the approved baseline."""
 
     new_item_id: str | None = Field(description="Id of the new-meeting requirement, if any")
-    baseline_id: str | None = Field(description="REQ-xxx from the baseline, if it relates to one")
+    baseline_id: str | None = Field(
+        description="REQ-xxx (approved requirement) or DEC-xxx (approved decision/constraint)"
+    )
     change: Literal["same", "modified", "added", "removed"]
     summary: str = Field(description="What changed, in one sentence")
     revised_statement: str | None = Field(
         default=None,
         description="For 'modified': the complete requirement after the change, keeping every "
         "part of the approved one that still applies",
+    )
+    adds_work: bool = Field(
+        default=True,
+        description="True if this adds or expands work compared with the approved scope; "
+        "false if it only removes, reduces or swaps like-for-like",
     )
 
 

@@ -98,10 +98,13 @@ class ScopeBuilder:
             base = await self.store.version(pid, baseline_no)
             assert base is not None and base.data is not None
             b = base.data
+            notes = [n.statement for n in b.analysis.decisions + b.analysis.constraints]
             detection, problems["changes"] = await self.changes.detect(
-                b.analysis.requirements, [n.statement for n in b.analysis.constraints], analysis
+                b.analysis.requirements, notes, analysis
             )
-            revised, change_list = apply_changes(b.analysis.requirements, analysis, detection)
+            revised, change_list = apply_changes(
+                b.analysis.requirements, analysis, detection, notes
+            )
             analysis = MeetingAnalysis(
                 meeting_ids=b.analysis.meeting_ids + analysis.meeting_ids,
                 requirements=revised,

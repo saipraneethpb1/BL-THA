@@ -196,7 +196,9 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--analyst-models", default="claude-haiku-5-5,claude-sonnet-5-5")
     ap.add_argument("--run", action="store_true")
-    ap.add_argument("--meetings", default="", help="only these first meetings (and their follow-ups)")
+    ap.add_argument(
+        "--meetings", default="", help="only these first meetings (and their follow-ups)"
+    )
     ap.add_argument(
         "--live-kb",
         action="store_true",
@@ -206,7 +208,11 @@ def main() -> None:
     gold = load_gold()
     if args.meetings:
         keep = set(args.meetings.split(","))
-        gold = {k: g for k, g in gold.items() if k in keep or g.get("followup", {}).get("baseline") in keep}
+        gold = {
+            k: g
+            for k, g in gold.items()
+            if k in keep or g.get("followup", {}).get("baseline") in keep
+        }
     models = [m for m in args.analyst_models.split(",") if m]
     if not gold:
         print(

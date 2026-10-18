@@ -3,9 +3,13 @@
 Comparing with the approved version, not the last draft, matters: otherwise an AI
 suggestion that nobody agreed to could quietly become part of the baseline.
 
-The model links new-meeting requirements to baseline ids. Code applies the links,
+The model links new-meeting requirements to baseline items. Code applies the links,
 re-numbers, and guarantees coverage: a new-meeting requirement the model did not link
 is treated as "added", so new work can never slip in unquoted.
+
+Baseline items are requirements (REQ-xxx) and, as a safety net, the baseline's
+decisions and constraints (DEC-xxx). The AMI eval showed why: a product fact filed as
+a "decision" in one meeting ("rubber buttons") was invisible when it changed later.
 """
 
 import json
@@ -14,6 +18,7 @@ from scope.agents.base import run_checked
 from scope.llm import Effort, StructuredLLM, load_prompt
 from scope.models import (
     ChangeDetection,
+    ChangeLink,
     Estimate,
     MeetingAnalysis,
     Requirement,
@@ -22,11 +27,15 @@ from scope.models import (
 )
 
 
+def note_ids(notes: list[str]) -> dict[str, str]:
+    return {f"DEC-{i:03d}": n for i, n in enumerate(notes, start=1)}
+
+
 def check_links(d: ChangeDetection, baseline_ids: set[str], new_ids: set[str]) -> list[str]:
     problems = []
     for link in d.links:
         if link.baseline_id and link.baseline_id not in baseline_ids:
-            problems.append(f"{link.baseline_id} is not an approved requirement id")
+            problems.append(f"{link.baseline_id} is not an approved requirement or decision id")
         if link.new_item_id and link.new_item_id not in new_ids:
             problems.append(f"{link.new_item_id} is not a new-meeting item id")
         if link.change in ("same", "modified") and not (link.baseline_id and link.new_item_id):
@@ -38,19 +47,30 @@ def check_links(d: ChangeDetection, baseline_ids: set[str], new_ids: set[str]) -
     return problems
 
 
+def _flag(link: ChangeLink) -> bool:
+    """Quote separately only work that the approved scope did not include."""
+    return link.change in ("added", "modified") and link.adds_work
+
+
 def apply_changes(
-    baseline: list[Requirement], followup: MeetingAnalysis, detection: ChangeDetection
+    baseline: list[Requirement],
+    followup: MeetingAnalysis,
+    detection: ChangeDetection,
+    baseline_notes: list[str] | None = None,
 ) -> tuple[list[Requirement], list[RequirementChange]]:
     """Returns the revised requirement list and one change record per baseline/new item."""
     base = {r.id: r for r in baseline}
+    notes = note_ids(baseline_notes or [])
     new = {f"NEW-{i:02d}": r for i, r in enumerate(followup.requirements, start=1)}
     revised = {r.id: r.model_copy(deep=True) for r in baseline}
     changes: dict[str, RequirementChange] = {}
     linked_new: set[str] = set()
+    added_via: dict[str, ChangeLink] = {}  # new item -> the link that made it an addition
     next_num = max((int(r.id.split("-")[1]) for r in baseline), default=0) + 1
 
     for link in detection.links:
         b = base.get(link.baseline_id or "")
+        note = notes.get(link.baseline_id or "")
         n = new.get(link.new_item_id or "")
         if link.new_item_id in new:
             linked_new.add(link.new_item_id or "")
@@ -74,9 +94,13 @@ def apply_changes(
                 before=b.description,
                 after=after,
                 summary=link.summary,
-                out_of_scope=True,
+                out_of_scope=_flag(link),
                 evidence=n.evidence,
             )
+        elif link.change == "modified" and note and n:
+            # A baseline decision changed: the new requirement enters the scope (below),
+            # recorded as a modification of the decision it replaces.
+            added_via[link.new_item_id or ""] = link
         elif link.change == "removed" and b:
             revised.pop(b.id, None)
             changes[b.id] = RequirementChange(
@@ -88,28 +112,37 @@ def apply_changes(
                 out_of_scope=False,
                 evidence=n.evidence if n else [],
             )
+        elif link.change == "removed" and note:
+            changes[link.baseline_id or ""] = RequirementChange(
+                change="removed",
+                requirement_id=link.baseline_id or "",
+                before=note,
+                after=None,
+                summary=link.summary,
+                out_of_scope=False,
+                evidence=n.evidence if n else [],
+            )
         elif link.change == "added" and n:
-            pass  # handled below together with unlinked items
+            added_via[link.new_item_id or ""] = link
+
     for nid, n in new.items():
-        is_added = any(
-            link.change == "added" and link.new_item_id == nid for link in detection.links
+        via = added_via.get(nid)
+        if via is None and nid in linked_new:
+            continue
+        rid = f"REQ-{next_num:03d}"
+        next_num += 1
+        revised[rid] = n.model_copy(update={"id": rid})
+        replaces = notes.get(via.baseline_id or "") if via else None
+        changes[rid] = RequirementChange(
+            change="modified" if replaces else "added",
+            requirement_id=rid,
+            before=replaces,
+            after=n.description,
+            summary=via.summary if via else n.description,
+            # Unlinked new items are always flagged: new work can't slip in unquoted.
+            out_of_scope=_flag(via) if via else True,
+            evidence=n.evidence,
         )
-        if is_added or nid not in linked_new:
-            rid = f"REQ-{next_num:03d}"
-            next_num += 1
-            revised[rid] = n.model_copy(update={"id": rid})
-            summary = next(
-                (link.summary for link in detection.links if link.new_item_id == nid), n.description
-            )
-            changes[rid] = RequirementChange(
-                change="added",
-                requirement_id=rid,
-                before=None,
-                after=n.description,
-                summary=summary,
-                out_of_scope=True,
-                evidence=n.evidence,
-            )
     for rid, b in base.items():
         changes.setdefault(
             rid,
@@ -149,12 +182,12 @@ class ChangeDetector:
         self.llm = llm
         self.model = model
         self.effort: Effort = effort
-        self.prompt = load_prompt("changes_v1")
+        self.prompt = load_prompt("changes_v2")
 
     async def detect(
         self,
         baseline: list[Requirement],
-        baseline_constraints: list[str],
+        baseline_notes: list[str],
         followup: MeetingAnalysis,
     ) -> tuple[ChangeDetection, list[str]]:
         def view(rid: str, r: Requirement) -> dict[str, object]:
@@ -165,9 +198,12 @@ class ChangeDetector:
                 "client_words": [e.quote for e in r.evidence][:2],
             }
 
+        notes = note_ids(baseline_notes)
         body = {
             "approved_requirements": [view(r.id, r) for r in baseline],
-            "approved_constraints": baseline_constraints,
+            "approved_decisions_and_constraints": [
+                {"id": k, "statement": v} for k, v in notes.items()
+            ],
             "new_meeting_requirements": [
                 view(f"NEW-{i:02d}", r) for i, r in enumerate(followup.requirements, 1)
             ],
@@ -183,5 +219,5 @@ class ChangeDetector:
             user=f"<input>\n{json.dumps(body, indent=1)}\n</input>",
             schema=ChangeDetection,
             effort=self.effort,
-            check=lambda d: check_links(d, {r.id for r in baseline}, new_ids),
+            check=lambda d: check_links(d, {r.id for r in baseline} | set(notes), new_ids),
         )
