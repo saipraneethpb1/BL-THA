@@ -209,6 +209,20 @@ export class InboxStore {
     }));
   }
 
+  /** Claude spend recorded on drafts (each includes its Knowledge Brain lookups). */
+  usage(): { total_usd: number; today_usd: number; calls: number; last_success_at: string | null } {
+    const r = this.db.prepare(
+      `SELECT count(*) AS calls, coalesce(sum(cost_usd), 0) AS usd,
+              coalesce(sum(CASE WHEN date(created_at) = date('now') THEN cost_usd END), 0) AS today,
+              max(CASE WHEN cost_usd > 0 THEN created_at END) AS last_ok
+       FROM drafts`,
+    ).get() as { calls: number; usd: number; today: number; last_ok: string | null };
+    return {
+      total_usd: Number(r.usd), today_usd: Number(r.today), calls: Number(r.calls),
+      last_success_at: r.last_ok ? `${r.last_ok.replace(" ", "T")}+00:00` : null,
+    };
+  }
+
   setEmailStatus(id: string, status: string, error: string | null = null): void {
     this.db.prepare("UPDATE emails SET status = ?, error = ? WHERE id = ?").run(status, error, id);
   }

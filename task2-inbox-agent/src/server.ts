@@ -65,6 +65,7 @@ function compact<T extends object>(o: T): T {
 export function buildApp(deps: AppDeps): FastifyInstance {
   const app = Fastify({ logger: false });
   const { store } = deps;
+  let lastClaudeError: { message: string; at: string } | null = null;
 
   // Accept an empty body sent as JSON (browsers and curl often label body-less POSTs).
   app.removeContentTypeParser("application/json");
@@ -85,7 +86,10 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     if (err instanceof LearningError) return reply.status(409).send({ error: err.message });
     // A failed model call (no credit, overloaded, network) is the provider's problem, not a bug:
     // say so plainly. Browsing and reviewing keep working.
-    if (err instanceof Anthropic.APIError) return reply.status(502).send({ error: `Claude API error: ${claudeMessage(err)}` });
+    if (err instanceof Anthropic.APIError) {
+      lastClaudeError = { message: claudeMessage(err), at: new Date().toISOString() };
+      return reply.status(502).send({ error: `Claude API error: ${lastClaudeError.message}` });
+    }
     return reply.status(500).send({ error: err instanceof Error ? err.message : String(err) });
   });
 
@@ -94,6 +98,10 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   app.get("/health", async () => ({ status: "ok", drafting_enabled: deps.agent !== null }));
 
   app.get("/api/emails", async () => store.listEmails());
+
+  // For the usage bar: Claude spend recorded here, and the last Claude API failure.
+  // `includes_kb_lookups` tells the bar not to count those Knowledge Brain calls twice.
+  app.get("/api/usage", async () => ({ service: "inbox", ...store.usage(), includes_kb_lookups: true, last_error: lastClaudeError }));
 
   app.get<{ Params: { id: string } }>("/api/emails/:id", async (req, reply) => {
     const email = store.getEmail(req.params.id);

@@ -96,12 +96,12 @@ def claude_error_message(exc: anthropic.APIError) -> str:
 
 
 @app.exception_handler(anthropic.APIError)
-async def claude_unavailable(_request: Request, exc: anthropic.APIError) -> JSONResponse:
+async def claude_unavailable(request: Request, exc: anthropic.APIError) -> JSONResponse:
     # The model call failed (no credit, overloaded, network). Say so plainly instead of a 500:
     # search, the expert queue and status keep working.
-    return JSONResponse(
-        status_code=502, content={"detail": f"Claude API error: {claude_error_message(exc)}"}
-    )
+    message = claude_error_message(exc)
+    request.app.state.last_claude_error = {"message": message, "at": datetime.now(UTC).isoformat()}
+    return JSONResponse(status_code=502, content={"detail": f"Claude API error: {message}"})
 
 
 def require_api_key(x_api_key: Annotated[str | None, Header()] = None) -> None:
@@ -160,6 +160,36 @@ async def health() -> Health:
     async with connect(settings.db_path) as db:
         rows = list(await db.execute_fetchall("SELECT count(*) AS n FROM articles"))
     return Health(status="ok", articles=rows[0]["n"])
+
+
+@app.get("/usage", dependencies=[Protected])
+async def usage(request: Request) -> dict[str, Any]:
+    """Claude spend recorded by this service (token counts at list prices), for the usage bar.
+    `by_caller` lets the bar avoid double counting: the Inbox Agent already includes the cost
+    of its lookups in its own figure."""
+    async with connect(settings.db_path) as db:
+        rows = await db.execute_fetchall(
+            """SELECT coalesce(caller, '') AS caller, count(*) AS calls,
+                      coalesce(sum(cost_usd), 0) AS usd,
+                      coalesce(sum(CASE WHEN date(created_at) = date('now') THEN cost_usd END), 0)
+                          AS today,
+                      max(CASE WHEN cost_usd > 0 THEN created_at END) AS last_ok
+               FROM query_log GROUP BY coalesce(caller, '')"""
+        )
+    by_caller = {
+        r["caller"] or "direct": {"usd": r["usd"], "today_usd": r["today"], "calls": r["calls"]}
+        for r in rows
+    }
+    last_ok = max((r["last_ok"] for r in rows if r["last_ok"]), default=None)
+    return {
+        "service": "kb",
+        "total_usd": round(sum(r["usd"] for r in rows), 6),
+        "today_usd": round(sum(r["today"] for r in rows), 6),
+        "calls": sum(r["calls"] for r in rows),
+        "by_caller": by_caller,
+        "last_success_at": f"{last_ok.replace(' ', 'T')}+00:00" if last_ok else None,
+        "last_error": getattr(request.app.state, "last_claude_error", None),
+    }
 
 
 @app.get("/ingestion/status", response_model=IngestionStatus, dependencies=[Protected])

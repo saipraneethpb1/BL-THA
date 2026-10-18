@@ -81,6 +81,55 @@
   scanMics();
   new MutationObserver(scanMics).observe(document.body, { childList: true, subtree: true });
 
+  // Usage bar, fixed to the bottom of every page: Claude spend recorded by this site and
+  // whether the API is currently answering. Deployed, the proxy exposes all three services'
+  // figures on every host (/_usage/...); locally, only this service's own figure is shown.
+  (function usageBar() {
+    const bar = Object.assign(document.createElement("div"), { className: "usage-bar", role: "status" });
+    bar.setAttribute("aria-live", "polite");
+    document.body.append(bar); document.body.classList.add("has-usage-bar");
+    const own = { kb: "/usage", inbox: "/api/usage", scope: "/api/usage" }[current];
+    const get = (url) => fetch(url, { headers: { accept: "application/json" } }).then((r) => r.ok ? r.json() : null).catch(() => null);
+    const money = (v) => `$${v < 1 ? v.toFixed(3) : v.toFixed(2)}`;
+    const ago = (iso) => { if (!iso) return "never"; const m = Math.round((Date.now() - Date.parse(iso)) / 60000); return m < 1 ? "just now" : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
+    async function refresh() {
+      let parts, budget = null, scope = "this site";
+      if (deployed) {
+        const [kb, inbox, sc, b] = await Promise.all(["kb", "inbox", "scope", "budget"].map((k) => get(`/_usage/${k}`)));
+        parts = [kb, inbox, sc].filter(Boolean); budget = b?.budget_usd ?? null;
+        // The Inbox Agent's figure already includes its Knowledge Brain lookups: count them once.
+        if (kb && inbox?.includes_kb_lookups) {
+          const dup = kb.by_caller?.["inbox-agent"] || { usd: 0, today_usd: 0 };
+          parts = parts.map((p) => p === kb ? { ...kb, total_usd: kb.total_usd - dup.usd, today_usd: kb.today_usd - dup.today_usd } : p);
+        }
+      } else {
+        const mine = own ? await get(own) : null;
+        parts = mine ? [mine] : []; scope = "this service (site-wide totals when deployed)";
+      }
+      if (!parts.length) { bar.hidden = true; return; }
+      bar.hidden = false;
+      const total = parts.reduce((a, p) => a + Math.max(0, p.total_usd || 0), 0);
+      const today = parts.reduce((a, p) => a + Math.max(0, p.today_usd || 0), 0);
+      const lastOk = parts.map((p) => p.last_success_at).filter(Boolean).sort().at(-1) || null;
+      const lastErr = parts.map((p) => p.last_error).filter(Boolean).sort((a, b) => a.at < b.at ? -1 : 1).at(-1) || null;
+      const paused = lastErr && (!lastOk || lastErr.at > lastOk);
+      const pct = budget ? Math.min(100, (total / budget) * 100) : null;
+      const near = pct !== null && pct >= 80;
+      bar.className = `usage-bar ${paused ? "paused" : near ? "near" : "ok"}`;
+      bar.innerHTML = `<div class="ub-in">
+        <span class="ub-state"><span class="ub-dot"></span>${paused ? `Claude API paused: ${esc(/credit balance/i.test(lastErr.message) ? "out of credit" : suite.friendlyError(lastErr.message))}` : "Claude API available"}</span>
+        <span class="ub-sep"></span>
+        <span>Today <b>${money(today)}</b></span>
+        <span>Total <b>${money(total)}</b>${budget ? ` of <b>$${Number(budget).toFixed(2)}</b> budget` : ""}</span>
+        ${pct !== null ? `<span class="ub-meter" title="${pct.toFixed(0)}% of the budget used"><span style="width:${pct}%"></span></span>` : ""}
+        <span class="ub-meta" title="Spend recorded by ${esc(scope)} from each call's token counts at list prices. The account's credit balance is shown in the Anthropic Console.">Last AI call ${ago(lastOk)} · ${esc(scope)} ⓘ</span>
+      </div>`;
+    }
+    refresh(); setInterval(refresh, 60000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+    window.addEventListener("suite:usage-changed", refresh);
+  })();
+
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   window.suite = {
     toast(msg, ms = 2600) {

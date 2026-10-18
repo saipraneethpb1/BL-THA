@@ -37,6 +37,8 @@ One AWS EC2 t3.small (2 GB RAM plus 2 GB swap, Ubuntu 24.04) runs the same `dock
 - **Every page needs a login,** so strangers can't spend the API credit. Only `/health` is open.
 - **Secrets are typed by the owner on the server.** [`deploy/set-secrets.sh`](deploy/set-secrets.sh) prompts for the Anthropic key and the login password. The `.env` and the password hash it writes never enter git.
 
+**Usage bar.** A bar fixed to the bottom of every page shows the Claude spend recorded by the site, today and in total, against a budget (`SITE_BUDGET_USD` in the server's `.env`, default $10). It also says plainly when the API is failing, for example when the account is out of credit. The figures come from each call's token counts at list prices. The account's actual credit balance is only visible in the Anthropic Console: there's no API for it.
+
 To redeploy:
 1. `bash deploy/setup-vm.sh` (once per VM: Docker and swap).
 2. Copy the repo over.

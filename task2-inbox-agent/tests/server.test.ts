@@ -87,3 +87,31 @@ describe("when the Claude API fails", () => {
     expect(r.json()).toEqual({ error: `Claude API error: ${msg}` });
   });
 });
+
+describe("usage", () => {
+  it("sums draft spend and remembers the last Claude failure", async () => {
+    const Anthropic = (await import("@anthropic-ai/sdk")).default;
+    const msg = "Your credit balance is too low to access the Anthropic API.";
+    let broke = false;
+    class MaybeBroke extends FakeDrafter {
+      override async draft(...args: Parameters<FakeDrafter["draft"]>) {
+        if (broke) throw new Anthropic.BadRequestError(400, { type: "error", error: { type: "invalid_request_error", message: msg } }, msg, new Headers());
+        return super.draft(...args);
+      }
+    }
+    const config = { ...loadConfig({}), autonomyThreshold: 2 };
+    const store = new InboxStore(":memory:");
+    const agent = new InboxAgent(store, new FakeClassifier(), new MaybeBroke(), new FakeKnowledge(), config, () => 1);
+    const a = buildApp({ config, store, agent, learning: new LearningService(store, null, null) });
+    expect((await a.inject({ url: "/api/usage" })).json()).toMatchObject({ service: "inbox", calls: 0, total_usd: 0, last_error: null });
+    await a.inject({ method: "POST", url: "/api/emails", payload: email });
+    await a.inject({ method: "POST", url: "/api/emails/X1/process" });
+    const after = (await a.inject({ url: "/api/usage" })).json();
+    expect(after.calls).toBe(1);
+    expect(after.last_success_at).not.toBeNull();
+    broke = true;
+    await a.inject({ method: "POST", url: "/api/emails", payload: { ...email, id: "X2" } });
+    await a.inject({ method: "POST", url: "/api/emails/X2/process" });
+    expect((await a.inject({ url: "/api/usage" })).json().last_error.message).toBe(msg);
+  });
+});

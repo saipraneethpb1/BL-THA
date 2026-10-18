@@ -117,3 +117,29 @@ def test_claude_failure_is_a_clear_502(client: TestClient, monkeypatch: pytest.M
     monkeypatch.setattr(api, "answer_question", out_of_credit)
     r = client.post("/query", json={"question": "refund a member"}, headers=H)
     assert r.status_code == 502 and r.json() == {"detail": f"Claude API error: {msg}"}
+
+
+def test_usage_sums_recorded_spend_and_remembers_claude_errors(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import sqlite3
+    from contextlib import closing
+
+    api.app.state.last_claude_error = None
+    assert client.get("/usage").status_code == 401
+    empty = client.get("/usage", headers=H).json()
+    assert empty["total_usd"] == 0 and empty["last_success_at"] is None
+    assert empty["last_error"] is None
+    with closing(sqlite3.connect(api.settings.db_path)) as db:
+        db.executemany(
+            "INSERT INTO query_log (question, status, cost_usd, caller) VALUES (?, 'answered', ?, ?)",
+            [("a", 0.02, "chat-ui"), ("b", 0.01, "inbox-agent"), ("c", 0.03, "inbox-agent")],
+        )
+        db.commit()
+    u = client.get("/usage", headers=H).json()
+    assert u["total_usd"] == pytest.approx(0.06) and u["calls"] == 3
+    assert u["by_caller"]["inbox-agent"]["usd"] == pytest.approx(0.04)
+    assert u["last_success_at"] is not None
+
+    test_claude_failure_is_a_clear_502(client, monkeypatch)
+    assert "credit balance" in client.get("/usage", headers=H).json()["last_error"]["message"]

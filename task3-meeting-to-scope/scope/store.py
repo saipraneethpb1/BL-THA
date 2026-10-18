@@ -246,6 +246,41 @@ class Store:
             )
             await db.commit()
 
+    async def usage(self) -> dict[str, Any]:
+        """Claude spend recorded on built versions, and the latest failure if it is newer than
+        the latest success (for the usage bar)."""
+
+        def iso(t: str | None) -> str | None:
+            return f"{t.replace(' ', 'T')}+00:00" if t else None
+
+        async with self.db() as db:
+            [r] = await db.execute_fetchall(
+                """SELECT count(*) AS calls,
+                          coalesce(sum(json_extract(usage, '$.cost_usd')), 0) AS usd,
+                          coalesce(sum(CASE WHEN date(created_at) = date('now')
+                                       THEN json_extract(usage, '$.cost_usd') END), 0) AS today,
+                          max(CASE WHEN status IN ('draft', 'approved', 'superseded')
+                              THEN created_at END) AS last_ok
+                   FROM versions WHERE status != 'building'"""
+            )
+            failed = list(
+                await db.execute_fetchall(
+                    "SELECT error, created_at FROM versions WHERE status = 'failed' "
+                    "ORDER BY created_at DESC, number DESC LIMIT 1"
+                )
+            )
+        last_error = None
+        if failed and (r["last_ok"] is None or failed[0]["created_at"] >= r["last_ok"]):
+            last_error = {"message": failed[0]["error"], "at": iso(failed[0]["created_at"])}
+        return {
+            "service": "scope",
+            "total_usd": round(float(r["usd"]), 6),
+            "today_usd": round(float(r["today"]), 6),
+            "calls": r["calls"],
+            "last_success_at": iso(r["last_ok"]),
+            "last_error": last_error,
+        }
+
     async def fail_version(self, pid: int, number: int, error: str) -> None:
         async with self.db() as db:
             await db.execute(

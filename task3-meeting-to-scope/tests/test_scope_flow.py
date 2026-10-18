@@ -304,3 +304,19 @@ async def test_failed_build_is_recorded_not_raised(setup: tuple[Store, ScopeBuil
     assert v is not None and v.status == "failed" and "KeyError" in (v.error or "")
     with pytest.raises(StateError, match="only a draft"):
         await store.approve(pid, n, "Sai", "x")
+
+
+async def test_usage_reports_spend_and_a_failure_newer_than_any_success(
+    setup: tuple[Store, ScopeBuilder, int],
+) -> None:
+    store, builder, pid = setup
+    assert (await store.usage())["last_error"] is None
+    await builder.build(pid, await builder.start(pid))
+    ok = await store.usage()
+    assert ok["calls"] == 1 and ok["last_success_at"] is not None and ok["last_error"] is None
+
+    builder.estimator.llm = team()
+    builder.estimator.llm.handlers.pop(EstimateDraft)  # type: ignore[attr-defined]
+    await builder.build(pid, await builder.start(pid))
+    failed = await store.usage()
+    assert failed["calls"] == 2 and "KeyError" in failed["last_error"]["message"]

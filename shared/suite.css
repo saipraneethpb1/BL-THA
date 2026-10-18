@@ -155,6 +155,26 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: v
 .s-foot { max-width: 1320px; margin: 8px auto 28px; padding: 0 16px; display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 13px; }
 .s-foot a { color: var(--muted); } .s-foot a:hover { color: var(--text); }
 
+/* Usage bar fixed to the bottom of every page */
+body.has-usage-bar { padding-bottom: 46px; }
+.usage-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; border-top: 1px solid var(--line-strong);
+             background: color-mix(in srgb, var(--panel) 94%, transparent); backdrop-filter: blur(10px); font-size: 13px;
+             box-shadow: 0 -4px 18px rgba(0, 0, 0, .12); }
+.ub-in { max-width: 1320px; margin: 0 auto; padding: 8px 16px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; min-height: 38px; }
+.ub-state { display: inline-flex; align-items: center; gap: 7px; font-weight: 650; }
+.ub-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); }
+.usage-bar.near .ub-dot { background: var(--warn); box-shadow: 0 0 0 3px color-mix(in srgb, var(--warn) 25%, transparent); }
+.usage-bar.paused { background: color-mix(in srgb, var(--err-bg) 92%, transparent); border-top-color: var(--err); }
+.usage-bar.paused .ub-state { color: var(--err); }
+.usage-bar.paused .ub-dot { background: var(--err); box-shadow: 0 0 0 3px color-mix(in srgb, var(--err) 25%, transparent); }
+.ub-sep { width: 1px; height: 16px; background: var(--line-strong); }
+.ub-meter { width: 110px; height: 7px; border-radius: 4px; background: var(--panel-2); overflow: hidden; border: 1px solid var(--line); }
+.ub-meter > span { display: block; height: 100%; background: var(--ok); }
+.usage-bar.near .ub-meter > span { background: var(--warn); }
+.ub-meta { margin-left: auto; color: var(--muted); cursor: help; }
+@media (max-width: 760px) { .ub-sep, .ub-meter { display: none; } .ub-meta { margin-left: 0; } body.has-usage-bar { padding-bottom: 76px; } }
+.toast { bottom: 62px; }
+
 /* logo:start */
 /* The logo is a self-contained badge (dark line art on a white disc), so it looks the same
    in light and dark mode. Source: shared/logo/ (see README there). */

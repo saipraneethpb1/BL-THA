@@ -14,6 +14,8 @@ services:
     environment:
       DOMAIN: ${DOMAIN:?set DOMAIN in .env, e.g. 3-110-25-7.sslip.io}
       KB_API_KEY: ${KB_API_KEY:-change-me}
+      # Claude budget shown in the usage bar at the bottom of every page (US dollars).
+      SITE_BUDGET_USD: ${SITE_BUDGET_USD:-10}
     ports:
       - "80:80"
       - "443:443"

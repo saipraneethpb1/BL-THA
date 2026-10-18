@@ -90,6 +90,12 @@ async def health(request: Request) -> dict[str, Any]:
     return {"status": "ok", "building_enabled": request.app.state.builder is not None}
 
 
+@app.get("/api/usage")
+async def usage(request: Request) -> dict[str, Any]:
+    """For the usage bar: Claude spend recorded on builds, and the latest build failure."""
+    return await store(request).usage()
+
+
 @app.get("/api/samples")
 async def list_samples() -> list[dict[str, str]]:
     return [
