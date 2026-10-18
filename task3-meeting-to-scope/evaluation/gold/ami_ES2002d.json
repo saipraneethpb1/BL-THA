@@ -1,0 +1,167 @@
+{
+  "title": "AMI ES2002d - detailed design (follow-up)",
+  "date": "2005-01-03",
+  "transcript": "transcripts/ami_ES2002d.txt",
+  "source": "AMI annotators' 'decisions' list in abstractive/<meeting>.abssumm.xml (ami_public_manual_1.6.2, CC BY 4.0)",
+  "requirements": [
+    {
+      "id": "D1",
+      "statement": "No kinetic battery",
+      "keywords": [
+        [
+          "batter",
+          "kinetic"
+        ]
+      ]
+    },
+    {
+      "id": "D2",
+      "statement": "Regular chip",
+      "keywords": [
+        [
+          "chip"
+        ]
+      ]
+    },
+    {
+      "id": "D3",
+      "statement": "Double-curved case",
+      "keywords": [
+        [
+          "curv"
+        ]
+      ]
+    },
+    {
+      "id": "D4",
+      "statement": "Push buttons",
+      "keywords": [
+        [
+          "button"
+        ],
+        [
+          "push"
+        ]
+      ]
+    },
+    {
+      "id": "D5",
+      "statement": "No LCD display on the remote",
+      "keywords": [
+        [
+          "lcd",
+          "display",
+          "screen"
+        ]
+      ]
+    },
+    {
+      "id": "D6",
+      "statement": "Display on the television instead",
+      "keywords": [
+        [
+          "tv",
+          "television"
+        ],
+        [
+          "display",
+          "screen",
+          "menu"
+        ]
+      ]
+    },
+    {
+      "id": "D7",
+      "statement": "Normal coloured buttons",
+      "keywords": [
+        [
+          "button"
+        ],
+        [
+          "colo"
+        ]
+      ]
+    },
+    {
+      "id": "D8",
+      "statement": "Square buttons",
+      "keywords": [
+        [
+          "square"
+        ]
+      ]
+    }
+  ],
+  "followup": {
+    "baseline": "ami_ES2002c",
+    "changes": [
+      {
+        "change": [
+          "removed",
+          "modified"
+        ],
+        "keywords": [
+          [
+            "kinetic",
+            "batter"
+          ]
+        ]
+      },
+      {
+        "change": [
+          "modified",
+          "added"
+        ],
+        "keywords": [
+          [
+            "button"
+          ],
+          [
+            "push",
+            "square"
+          ]
+        ]
+      },
+      {
+        "change": [
+          "modified",
+          "added"
+        ],
+        "keywords": [
+          [
+            "curv",
+            "case",
+            "shape"
+          ]
+        ]
+      },
+      {
+        "change": [
+          "added",
+          "modified"
+        ],
+        "keywords": [
+          [
+            "chip"
+          ]
+        ]
+      },
+      {
+        "change": [
+          "added",
+          "modified"
+        ],
+        "keywords": [
+          [
+            "tv",
+            "television"
+          ],
+          [
+            "display",
+            "screen"
+          ]
+        ]
+      }
+    ]
+  }
+}

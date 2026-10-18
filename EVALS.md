@@ -91,9 +91,25 @@ This was run after all 5,040 screenshots were described, with production retriev
 - Both models missed F08 for the same reason: the Knowledge Brain returned a partial answer, so they called it "existing, with a limitation". The expected answer was left unchanged after seeing this.
 - **Decision: Haiku.** Same accuracy, one-twentieth of the price.
 
-### Transcripts
+### Transcripts: 3 real AMI meetings, 30 gold cases
 
-**TODO (Sai):** record the 3 meetings, write the gold files, run `uv run python -m evaluation.run_transcript_eval --run`, and report requirement recall, noise, quote verification and change detection per analyst model.
+This replaces the role-plays (see DESIGN.md §5). The meetings are ES2002b, ES2002c and its follow-up ES2002d: 36–40 minutes each, 333–538 speaker turns, 7–8 chunks. The answer key is the **AMI annotators' own decision lists**, turned into keyword checks: 25 decisions and 5 changes between ES2002c and ES2002d. The product Knowledge Brain was replaced by a stand-in that always answers "not covered", because these meetings are about a TV remote.
+
+| Analyst | Meeting | decisions found | extracted, not in key | quotes verified | changes detected | $/build | time |
+|---|---|---|---|---|---|---|---|
+| Sonnet 5.5 | ES2002b | 8/8 | 7 | 100% | – | $0.28 | 99 s |
+| Sonnet 5.5 | ES2002c | 9/9 | 18 | 100% | – | $0.36 | 124 s |
+| Sonnet 5.5 | ES2002d (follow-up) | 7/8 | 28 | 100% | **2/5** | $0.32 | 92 s |
+
+- **Extraction is strong:** 24 of 25 annotated decisions found, and 100% of quotes located in the transcript.
+- **"Extracted, not in key" is not all noise.** AMI's summaries list only the headline decisions; the analyst also records details the team discussed.
+- **Change detection is weak, 2 of 5.**
+  - Found: the case shape and "display on the TV".
+  - Missed: the kinetic battery being dropped, rubber → push buttons, the regular chip.
+  - On the other side, 15 items were flagged as new out-of-scope work.
+  - **Hypothesis, not yet verified:** the change detector compares only *requirements* between versions. A design team states many things as *decisions* ("the remote will have a kinetic battery"), so a changed decision is invisible to it.
+  - The harness now saves the full baseline and diff, so one re-run (about $0.70) can confirm this before any fix.
+- **TODO:** Haiku as analyst, for the model comparison (about $1 for 3 builds).
 
 ## Reliability and safety
 

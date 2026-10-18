@@ -1,0 +1,116 @@
+{
+  "title": "AMI ES2002b - functional design",
+  "date": "2005-01-01",
+  "transcript": "transcripts/ami_ES2002b.txt",
+  "source": "AMI annotators' 'decisions' list in abstractive/<meeting>.abssumm.xml (ami_public_manual_1.6.2, CC BY 4.0)",
+  "requirements": [
+    {
+      "id": "B1",
+      "statement": "Incorporate the corporate colour and design",
+      "keywords": [
+        [
+          "corporate"
+        ],
+        [
+          "colour",
+          "color",
+          "design",
+          "logo",
+          "identity"
+        ]
+      ]
+    },
+    {
+      "id": "B2",
+      "statement": "Buttons for on/off, channel up/down, volume up/down, channel numbers",
+      "keywords": [
+        [
+          "button"
+        ],
+        [
+          "channel",
+          "volume",
+          "power",
+          "on/off",
+          "on and off",
+          "number"
+        ]
+      ]
+    },
+    {
+      "id": "B3",
+      "statement": "Must look good and be easy to use",
+      "keywords": [
+        [
+          "easy",
+          "simple",
+          "user-friendly",
+          "usab",
+          "intuitive"
+        ]
+      ]
+    },
+    {
+      "id": "B4",
+      "statement": "Target group aged 15 to 35",
+      "keywords": [
+        [
+          "15",
+          "fifteen",
+          "35",
+          "thirty",
+          "young",
+          "age",
+          "demographic"
+        ]
+      ]
+    },
+    {
+      "id": "B5",
+      "statement": "Use an infra-red sensor",
+      "keywords": [
+        [
+          "infra",
+          "infrared",
+          "ir"
+        ]
+      ]
+    },
+    {
+      "id": "B6",
+      "statement": "Use regular batteries",
+      "keywords": [
+        [
+          "batter"
+        ]
+      ]
+    },
+    {
+      "id": "B7",
+      "statement": "Only control televisions",
+      "keywords": [
+        [
+          "tv",
+          "television"
+        ],
+        [
+          "only",
+          "just",
+          "exclusive",
+          "single",
+          "solely",
+          "not"
+        ]
+      ]
+    },
+    {
+      "id": "B8",
+      "statement": "No teletext",
+      "keywords": [
+        [
+          "teletext"
+        ]
+      ]
+    }
+  ]
+}

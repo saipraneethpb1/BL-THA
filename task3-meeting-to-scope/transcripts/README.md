@@ -1,5 +1,7 @@
 # Meeting transcripts
 
+> **What is actually used.** No role-play partner was available inside the 4-day window, so the evaluated meetings are three real recorded meetings from the public **AMI Meeting Corpus** (ES2002b, ES2002c and its follow-up ES2002d; see `AMI_ATTRIBUTION.md`). The guide below is how meetings *would* be recorded for a real client project.
+
 The brief requires at least three role-played client meetings, recorded with a friend. One must be a follow-up that changes the first. Put them here as `.txt` files. Only real recordings go in this folder; test fixtures live in `tests/`.
 
 ## File format

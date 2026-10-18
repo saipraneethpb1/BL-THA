@@ -1,0 +1,106 @@
+{
+  "title": "AMI ES2002c - conceptual design",
+  "date": "2005-01-02",
+  "transcript": "transcripts/ami_ES2002c.txt",
+  "source": "AMI annotators' 'decisions' list in abstractive/<meeting>.abssumm.xml (ami_public_manual_1.6.2, CC BY 4.0)",
+  "requirements": [
+    {
+      "id": "C1",
+      "statement": "Curvy shape",
+      "keywords": [
+        [
+          "curv",
+          "round"
+        ]
+      ]
+    },
+    {
+      "id": "C2",
+      "statement": "Shaped like a snowman",
+      "keywords": [
+        [
+          "snowman",
+          "shape"
+        ]
+      ]
+    },
+    {
+      "id": "C3",
+      "statement": "No talk-back function",
+      "keywords": [
+        [
+          "talk",
+          "speech",
+          "voice"
+        ]
+      ]
+    },
+    {
+      "id": "C4",
+      "statement": "Has a jog dial",
+      "keywords": [
+        [
+          "jog",
+          "dial",
+          "scroll",
+          "wheel"
+        ]
+      ]
+    },
+    {
+      "id": "C5",
+      "statement": "Plastic and rubber materials",
+      "keywords": [
+        [
+          "rubber",
+          "plastic"
+        ]
+      ]
+    },
+    {
+      "id": "C6",
+      "statement": "Soft fruit-like feel",
+      "keywords": [
+        [
+          "fruit",
+          "soft",
+          "spongy",
+          "sponge"
+        ]
+      ]
+    },
+    {
+      "id": "C7",
+      "statement": "No LCD display",
+      "keywords": [
+        [
+          "lcd",
+          "screen",
+          "display"
+        ]
+      ]
+    },
+    {
+      "id": "C8",
+      "statement": "Kinetic battery",
+      "keywords": [
+        [
+          "kinetic"
+        ]
+      ]
+    },
+    {
+      "id": "C9",
+      "statement": "Rubber buttons",
+      "keywords": [
+        [
+          "button"
+        ],
+        [
+          "rubber",
+          "soft"
+        ]
+      ]
+    }
+  ]
+}

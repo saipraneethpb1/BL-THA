@@ -100,6 +100,11 @@ Five agents, each with one job and a typed output:
 
 ## 5. What I dropped, and why
 
+**One deviation from the brief.** The brief asks for 3 meetings role-played with a friend. No partner was available inside the 4-day window. Rather than present invented transcripts as recordings, I used three **real recorded meetings** from the public AMI Meeting Corpus (CC BY 4.0): ES2002b, ES2002c, and ES2002d, the same team's follow-up meeting, which really does change decisions from the meeting before.
+- **Gain:** the answer key is the AMI annotators' own list of decisions, not mine.
+- **Loss:** the meetings are about designing a TV remote, not a directory website, so the product feasibility check isn't exercised on them. It has its own eval (24 cases).
+
+
 | Dropped | Why |
 |---|---|
 | Real email sending and receiving | It costs time and proves nothing about judgement. The outbox is simulated, which is clearly labelled. |

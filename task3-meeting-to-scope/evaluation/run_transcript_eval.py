@@ -25,9 +25,9 @@ from typing import Any
 
 from evaluation.common import kb_key, load_root_env, save
 from scope.config import Settings, settings
-from scope.knowledge import HttpKnowledgeClient
+from scope.knowledge import HttpKnowledgeClient, KBAnswer, KnowledgeClient
 from scope.llm import ClaudeLLM
-from scope.models import Requirement, RequirementChange
+from scope.models import MeetingAnalysis, Requirement, RequirementChange
 from scope.pipeline import ScopeBuilder
 from scope.store import Store
 
@@ -40,8 +40,14 @@ def matches(text: str, keywords: list[list[str]]) -> bool:
     return all(any(k.lower() in t for k in group) for group in keywords)
 
 
-def score_requirements(gold: list[dict[str, Any]], reqs: list[Requirement]) -> dict[str, Any]:
-    found = [g["id"] for g in gold if any(matches(r.description, g["keywords"]) for r in reqs)]
+def score_requirements(
+    gold: list[dict[str, Any]], reqs: list[Requirement], notes: list[str] | None = None
+) -> dict[str, Any]:
+    """Recall counts a gold item found in a requirement OR a recorded decision/constraint:
+    teams often state a requirement as a decision ("the remote will use regular batteries").
+    Noise is counted on requirements only."""
+    texts = [r.description for r in reqs] + (notes or [])
+    found = [g["id"] for g in gold if any(matches(t, g["keywords"]) for t in texts)]
     noise = [r.id for r in reqs if not any(matches(r.description, g["keywords"]) for g in gold)]
     quotes = [e.verified for r in reqs for e in r.evidence]
     return {
@@ -60,7 +66,7 @@ def score_changes(
     hits = []
     for exp in expected:
         ok = any(
-            c.change == exp["change"]
+            c.change in ([exp["change"]] if isinstance(exp["change"], str) else exp["change"])
             and matches(" ".join(filter(None, [c.before, c.after, c.summary])), exp["keywords"])
             for c in changes
         )
@@ -72,6 +78,21 @@ def score_changes(
         "cases": hits,
         "flagged_out_of_scope": flagged,
     }
+
+
+class NoKnowledge:
+    """Stand-in Knowledge Brain for meetings that aren't about the product (the AMI
+    corpus is about a TV remote). It answers "not covered" so no money is spent and no
+    junk lands in the real expert queue. Feasibility has its own eval."""
+
+    async def query(self, question: str) -> KBAnswer:
+        return KBAnswer(
+            status="insufficient_evidence", answer="Not covered.", sources=[], needs_human=True
+        )
+
+
+def notes_of(a: MeetingAnalysis) -> list[str]:
+    return [n.statement for n in a.decisions + a.constraints]
 
 
 def load_gold() -> dict[str, dict[str, Any]]:
@@ -92,9 +113,13 @@ async def build(builder: ScopeBuilder, store: Store, pid: int) -> tuple[Any, flo
     return v, time.perf_counter() - t
 
 
-async def run(models: list[str], gold: dict[str, dict[str, Any]]) -> dict[str, Any]:
+async def run(models: list[str], gold: dict[str, dict[str, Any]], live_kb: bool) -> dict[str, Any]:
     results = []
-    kb = HttpKnowledgeClient(settings.kb_url, kb_key(settings.kb_api_key))
+    kb: KnowledgeClient = (
+        HttpKnowledgeClient(settings.kb_url, kb_key(settings.kb_api_key))
+        if live_kb
+        else NoKnowledge()
+    )
     first_meetings = {k: g for k, g in gold.items() if not g.get("followup")}
     followups = {k: g for k, g in gold.items() if g.get("followup")}
     for model in models:
@@ -115,13 +140,15 @@ async def run(models: list[str], gold: dict[str, dict[str, Any]]) -> dict[str, A
                     "build_seconds": secs,
                     "cost_usd": v1.usage.get("cost_usd", 0.0),
                     "requirements": score_requirements(
-                        g["requirements"], v1.data.analysis.requirements
+                        g["requirements"], v1.data.analysis.requirements, notes_of(v1.data.analysis)
                     ),
                 }
                 for fname, f in followups.items():
                     if f["followup"]["baseline"] != name:
                         continue
-                    await store.approve(pid, v1.number, "eval", None)
+                    await store.approve(
+                        pid, v1.number, "eval", "auto-approved to test the follow-up"
+                    )
                     await store.add_meeting(
                         pid,
                         f["title"],
@@ -134,11 +161,22 @@ async def run(models: list[str], gold: dict[str, dict[str, Any]]) -> dict[str, A
                         "build_seconds": secs2,
                         "cost_usd": v2.usage.get("cost_usd", 0.0),
                         "requirements": score_requirements(
-                            f["requirements"], v2.data.analysis.requirements
+                            f["requirements"],
+                            v2.data.analysis.requirements,
+                            notes_of(v2.data.analysis),
                         ),
                         "changes": score_changes(
                             f["followup"]["changes"], v2.data.diff.changes if v2.data.diff else []
                         ),
+                        # Full detail, so a weak score can be diagnosed without re-running.
+                        "baseline_requirements": [
+                            r.description for r in v1.data.analysis.requirements
+                        ],
+                        "baseline_decisions": notes_of(v1.data.analysis),
+                        "diff": [
+                            c.model_dump(exclude={"evidence"})
+                            for c in (v2.data.diff.changes if v2.data.diff else [])
+                        ],
                     }
                 results.append(row)
                 print(
@@ -149,7 +187,8 @@ async def run(models: list[str], gold: dict[str, dict[str, Any]]) -> dict[str, A
                         else ""
                     )
                 )
-    await kb.aclose()
+    if isinstance(kb, HttpKnowledgeClient):
+        await kb.aclose()
     return {"results": results}
 
 
@@ -157,6 +196,11 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--analyst-models", default="claude-haiku-5-5,claude-sonnet-5-5")
     ap.add_argument("--run", action="store_true")
+    ap.add_argument(
+        "--live-kb",
+        action="store_true",
+        help="ask the real Knowledge Brain (only useful for meetings about the product)",
+    )
     args = ap.parse_args()
     gold = load_gold()
     models = [m for m in args.analyst_models.split(",") if m]
@@ -174,7 +218,7 @@ def main() -> None:
         print("Dry run. Add --run to execute (needs ANTHROPIC_API_KEY and the Knowledge Brain).")
         return
     load_root_env()
-    result = asyncio.run(run(models, gold))
+    result = asyncio.run(run(models, gold, args.live_kb))
     print(
         "\n| analyst model | meeting | requirements found | unmatched extracted | quotes verified | changes detected | $ build | s build |"
     )

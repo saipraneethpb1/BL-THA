@@ -1,0 +1,142 @@
+{
+  "results": [
+    {
+      "model": "claude-sonnet-5-5",
+      "meeting": "ami_ES2002b",
+      "build_seconds": 98.67605569999978,
+      "cost_usd": 0.278583,
+      "requirements": {
+        "gold": 8,
+        "found": 8,
+        "missed": [],
+        "extracted": 14,
+        "unmatched_extracted": 7,
+        "quotes_verified": 1.0
+      }
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "meeting": "ami_ES2002c",
+      "build_seconds": 123.57081440000002,
+      "cost_usd": 0.363107,
+      "requirements": {
+        "gold": 9,
+        "found": 9,
+        "missed": [],
+        "extracted": 28,
+        "unmatched_extracted": 18,
+        "quotes_verified": 1.0
+      },
+      "followup": {
+        "meeting": "ami_ES2002d",
+        "build_seconds": 92.48465439999927,
+        "cost_usd": 0.320819,
+        "requirements": {
+          "gold": 8,
+          "found": 7,
+          "missed": [
+            "D4"
+          ],
+          "extracted": 38,
+          "unmatched_extracted": 28,
+          "quotes_verified": 1.0
+        },
+        "changes": {
+          "expected": 5,
+          "detected": 2,
+          "cases": [
+            {
+              "change": [
+                "removed",
+                "modified"
+              ],
+              "keywords": [
+                [
+                  "kinetic",
+                  "batter"
+                ]
+              ],
+              "detected": false
+            },
+            {
+              "change": [
+                "modified",
+                "added"
+              ],
+              "keywords": [
+                [
+                  "button"
+                ],
+                [
+                  "push",
+                  "square"
+                ]
+              ],
+              "detected": false
+            },
+            {
+              "change": [
+                "modified",
+                "added"
+              ],
+              "keywords": [
+                [
+                  "curv",
+                  "case",
+                  "shape"
+                ]
+              ],
+              "detected": true
+            },
+            {
+              "change": [
+                "added",
+                "modified"
+              ],
+              "keywords": [
+                [
+                  "chip"
+                ]
+              ],
+              "detected": false
+            },
+            {
+              "change": [
+                "added",
+                "modified"
+              ],
+              "keywords": [
+                [
+                  "tv",
+                  "television"
+                ],
+                [
+                  "display",
+                  "screen"
+                ]
+              ],
+              "detected": true
+            }
+          ],
+          "flagged_out_of_scope": [
+            "REQ-008",
+            "REQ-011",
+            "REQ-013",
+            "REQ-023",
+            "REQ-026",
+            "REQ-029",
+            "REQ-030",
+            "REQ-031",
+            "REQ-032",
+            "REQ-033",
+            "REQ-034",
+            "REQ-035",
+            "REQ-036",
+            "REQ-037",
+            "REQ-038"
+          ]
+        }
+      }
+    }
+  ]
+}
