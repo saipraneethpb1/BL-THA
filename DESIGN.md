@@ -124,34 +124,37 @@ Claude is used everywhere. Each choice below must be justified by its eval (EVAL
 |---|---|---|---|
 | Answering (Task 1) | **Opus 5.5** | Haiku 5.5, Sonnet 5.5 | Pass rate 88% vs 81% (Sonnet) and 69% (Haiku); all cite the right source. Opus wrongly says "partial" less often, so fewer questions go to a human. It costs $0.023 vs $0.011 per question and is 1.6 s slower: worth it for an answer every other service relies on. |
 | Screenshot descriptions | Haiku 5.5 | Sonnet 5.5 | Same 92% of labels found; $1.51 vs $29.44 for all 5,040 images |
-| Email classification | Haiku 5.5 | Sonnet 5.5 | 90% category accuracy on the 10-email sample. **TODO:** Sonnet comparison on all 40 |
-| Drafting | Sonnet 5.5 | Opus 5.5 | 10-email sample: 70% vs 75% of checklist met, 0 vs 1 must-not violations, 0 unsafe auto-sends for both, $0.026 vs $0.041 per email |
+| Email classification | Haiku 5.5 | Sonnet 5.5 | 100% category accuracy on the 20 held-out test emails (90% on the first 10 dev emails). Sonnet wasn't compared: Haiku left no room to improve on category. |
+| Drafting | Sonnet 5.5 | Opus 5.5 | 10-email dev sample: 70% vs 75% of checklist met, 0 vs 1 must-not violations, 0 unsafe auto-sends for both, $0.026 vs $0.041 per email. Held-out test (Sonnet only): 88% of checklist met, 0 unsafe auto-sends, 1 must-not violation |
 | Feasibility | Haiku 5.5 | Sonnet 5.5 | Both 96% on 24, no missed savings or false promises; $0.00023 vs $0.00465 per requirement |
-| Transcript analysis | Sonnet 5.5 | Haiku 5.5 | **TODO:** requirement recall on the recorded meetings |
+| Transcript analysis | Sonnet 5.5 | Haiku 5.5 | Both found 24/25 annotated decisions in 3 real AMI meetings. But Haiku wrote 3 wrong product facts into the follow-up scope (re-adding a rejected LCD, among others) vs 0 for Sonnet. Sonnet costs $0.30 vs $0.15 per meeting, cheap insurance against a wrong line in a quote. |
 | Query rewriting (Task 1) | Haiku 5.5 | none (simplest model that worked) | Top-5 retrieval 88% → 98%, for $0.000023 and about 1.3 s per question |
 | Judge (evals only) | Opus 5.5 | none | A stronger, different model than the one being graded |
 
 Embeddings are local: bge-small, 384 dimensions. Claude has no embedding model, and running it locally needs no second key and costs nothing per query.
 
-> **TODO (Sai):** After running the evals, replace each TODO with the numbers and one sentence on why that model won, for example: "Haiku found 94% of labels at $0.0003/image vs Sonnet 96% at $0.006: two points of recall aren't worth $28 extra across 5,040 images."
 
 ## 7. What breaks, and the honest limits
 
-- **Retrieval misses.** 5 of 42 eval questions miss the gold article in the top 5. Paraphrases with no shared words fail: "a code from their phone when logging in" doesn't find the two-factor article. Embeddings also handle dates poorly: "October 2024 update" returns October 2020. Query rewriting with a cheap model is the next fix.
-- **Screenshots aren't described yet** (0 of 5,040). That needs the API key, so the two image-only questions will fail until it runs. **TODO:** cost and time of the full run.
+- **Retrieval misses.** Before query rewriting, 5 of 42 eval questions missed the gold article in the top 5: paraphrases with no shared words, such as "a code from their phone when logging in" for the two-factor article. Rewriting with Haiku lifted top-5 to 93–98% (runs vary by about 5 points). One miss remains ("Froala strips my HTML"). Embeddings still handle dates poorly: "October 2024 update" can return October 2020.
+- **Screenshot descriptions can miss small labels.** All 5,040 were described by Haiku in 24.9 minutes for $1.62, with 0 failures. On the eval set it finds 92% of visible labels, so roughly 1 label in 12 is missing from the searchable text.
 - **The password detector misses all-letter passwords** ("letmein"). This is a deliberate trade-off to avoid flagging "password reset link".
 - **The learning score measures wording, not correctness.** It counts how close a draft is to what the human sent. A lesson could raise closeness while a fact gets worse; the policy-violation count is the only guard. A judge-based score would be better.
 - **Estimates are not validated against real projects.** The ranges are a model's judgement; only the arithmetic is guaranteed.
 - **Replies in Hindi and Spanish** are labelled, but policy checks are English phrases; non-English drafts get weaker automatic checks.
 - **SQLite allows one writer at a time.** Fine for one agency, not for many tenants.
-- **Hidden test cases** may contain kinds of email or meetings my 60 emails and 3 meetings don't cover. **TODO:** note any failures here after the test set.
+- **Hidden test cases** may contain kinds of email or meetings my 60 emails and 3 meetings don't cover. On my own held-out test set:
+  - the agent over-cautiously sent 6 answerable emails to a human, because the Knowledge Brain called its answer "partial";
+  - one draft for a quote request described a billing arrangement nobody had agreed;
+  - the cancellation policy check fires on negations ("Nothing has been cancelled").
 - **TODO (Sai):** describe the failure shown in the demo video.
 
 ## 8. What I'd build next
 
-1. Query rewriting for paraphrases and vague questions, and date-aware lookup for release notes.
-2. Grade learning by a judge model on held-out emails, not by wording closeness.
-3. Real Gmail and IMAP integration, with the same review screen.
-4. Compare estimates with actual hours, so the estimator learns per task type.
-5. Multi-tenant Postgres with pgvector, per-tenant keys, and SSO for the screens.
-6. A proper deployment: one small VM, Caddy for HTTPS and basic auth, nightly snapshot backups.
+1. Date-aware lookup for release notes, and a calibrated "partial" label so correct answers stop going to a human.
+2. Change detection that also links follow-up *decisions*, not only requirements (the remaining Task 3 miss).
+3. Grade learning by a judge model on held-out emails, not by wording closeness.
+4. Real Gmail and IMAP integration, with the same review screen.
+5. Compare estimates with actual hours, so the estimator learns per task type.
+6. Multi-tenant Postgres with pgvector, per-tenant keys, and SSO for the screens.
+7. A proper deployment: one small VM, Caddy for HTTPS and basic auth, nightly snapshot backups.

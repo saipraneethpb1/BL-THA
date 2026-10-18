@@ -39,7 +39,7 @@ A label counts as found when the stored description contains it (ignoring case a
 
 - **Fix found by this eval:** the schema capped visible labels at 12. Haiku listed 14 on one screenshot, and the whole description was rejected. Labels are now trimmed instead.
 - **Decision: Haiku.** It finds the same labels as Sonnet for one-twentieth of the price. Sonnet reads 4% more images completely, which isn't worth $28.
-- **TODO:** actual cost and time of the full run over the 5,040 screenshots.
+- **Full run over all 5,040 screenshots:** $1.62 and 24.9 minutes, 0 failures. The eval's estimate was $1.51.
 
 ### Answers: 32 questions, 3 models
 
@@ -169,7 +169,20 @@ This replaces the role-plays (see DESIGN.md §5). The meetings are ES2002b, ES20
       - "display on the TV" was never extracted from ES2002d (7/8 decisions);
       - "regular chip" was extracted but filed as a *decision* in the follow-up, and the change detector only links new-meeting *requirements*.
     - **Across the three runs since the fix: 5/5, 4/5, 3/5.** The remaining weakness is the requirement/decision split *in the follow-up meeting*. The next fix would be letting the detector link new-meeting decisions too; it has not been tried yet.
-- **TODO:** Haiku as analyst, for the model comparison (about $1 for 3 builds).
+- **Haiku as analyst** (one run of all 3 meetings, current code, $0.37):
+
+    | Analyst | decisions found (b / c / d) | changes detected | $ per c→d pair | wrong product facts in the follow-up (read by hand) |
+    |---|---|---|---|---|
+    | Sonnet 5.5 (3 runs) | 8/8, 9/9, 8/8–7/8 | 5/5, 4/5, 3/5 | $0.60–0.67 | 0 |
+    | Haiku 5.5 (1 run) | 8/8, 9/9, 7/8 | 4/5 | $0.29 | 3 |
+
+  - **The keyword score hides Haiku's errors.** In ES2002d it:
+    - turned the approved "No LCD display" into "a very small LCD screen" and flagged it as new work;
+    - added "will not use plastic or rubber", which contradicts its own "mostly plastic";
+    - moved "Homer Simpson" from the logo to the remote's shape.
+  - In a scope, each of these is a wrong line in a client quote.
+  - **Haiku's first attempt crashed.** On ES2002c, its merge step ran out of the 16k output budget, because thinking counts toward it, and returned cut-off JSON. The limit is now 32k for every model. Sonnet never came near it.
+  - **Decision: keep Sonnet.** It costs about twice as much per meeting ($0.30 vs $0.15), but a scope with invented product facts costs far more than 15 cents to fix. One Haiku run is a small sample; the three errors are why I didn't spend more on it.
 
 ## Reliability and safety
 

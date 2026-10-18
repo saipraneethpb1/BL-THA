@@ -68,7 +68,7 @@ class ClaudeLLM:
     ) -> T:
         response = await self.client.messages.parse(
             model=model,
-            max_tokens=16000,
+            max_tokens=32000,  # thinking counts too: Haiku ran out at 16k on a long merge
             system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
             messages=[{"role": "user", "content": user}],
             output_config={"effort": effort},
