@@ -18,9 +18,10 @@ services:
     <<: *env
     environment:
       KB_API_KEY: ${KB_API_KEY:-change-me}
-      # First start: use a local snapshot if present, else KB_SEED_URL, else crawl.
+      # First start: use a local snapshot if present, else download the published one
+      # (about 50 MB, seconds), else crawl the help center (about 40 minutes).
       KB_SEED_PATH: /seed/knowledge.db
-      KB_SEED_URL: ${KB_SEED_URL:-}
+      KB_SEED_URL: ${KB_SEED_URL:-https://github.com/saipraneethpb1/BL-THA/releases/download/kb-snapshot-2026-10-18/knowledge.db}
     volumes:
       - kb-data:/data
       # Snapshot made with: cd task1-knowledge-brain && uv run python -m kb.snapshot
