@@ -8,7 +8,7 @@
  *
  * Each (classifier, drafter) pair runs every email through the real pipeline (with the
  * Knowledge Brain over HTTP) in a fresh in-memory inbox. A separate, stronger model
- * judges each draft against the human-written checklist in the dataset.
+ * judges each draft against the checklist in the dataset.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";

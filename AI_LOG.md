@@ -1,6 +1,6 @@
 # AI log
 
-**Tool:** Claude Code (desktop app), one continuous conversation from the first read of the brief to the final docs. The full chat export is submitted with the repo.
+**Tool:** Claude Code (desktop app), one continuous conversation from the first read of the brief to the final docs. I used ChatGPT's Codex tool for only drafting the 20 test emails, and an edit pass on the dev emails (never used it or its models for development purposes, only used to create a data of emails so that anthropic models can work on it). The full chat export is submitted with the repo.
 
 *These notes were drafted with Claude from that conversation, then read and edited by me.*
 
@@ -9,13 +9,13 @@
   - the email categories and autonomy rules, and what to drop;
   - deploying to the cloud;
   - opening the demo without a login, with spending caps instead;
-  - writing the held-out test emails myself;
+  - choosing the coverage required for held-out test emails;
   - staying with Anthropic models rather than switching provider for cheaper testing.
 - **Claude wrote most of the code, in small steps.** I reviewed and approved each step before it was committed, with no AI co-author trailer, because I own the work.
 - **AI-made data is labelled as such.**
   - The 40 dev emails were drafted by Claude, edited in a review pass by a second AI, Codex (see `DEV_REVIEW.md`), and only then read and approved by me.
   - The dataset check refused them until I had.
-  - The 20 held-out test emails are mine.
+  - The 20 held-out test emails were drafted by Codex, separately from the development set, then reviewed and edited by me.
 
 Some of my messages were picked from reply buttons Claude Code suggested; the ones I typed myself are marked ✍.
 
@@ -27,7 +27,7 @@ Some of my messages were picked from reply buttons Claude Code suggested; the on
 
 2. *"I'll handwrite the 20 held-out test emails. You draft the 40 dev emails for me to review and edit (marked ai_drafted_human_edited)."*
 
-   Why it worked: splitting the data this way means the agent is never graded on emails the AI wrote. The provenance field kept it honest later too. When the dev emails had only been reviewed by another AI, the flags stayed unflipped until I had read them myself.
+   Why it worked: separating development and test emails gave me a separate evaluation set. My original plan was to handwrite the test emails, but Codex ultimately drafted them. They should therefore be described as AI-drafted.
 
 3. *"Build Task 2 learning from human edits: versioned lessons, regression check, rollback."*
 

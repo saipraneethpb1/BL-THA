@@ -2,10 +2,10 @@
 
 ## 1. The problem
 
-When AI writes most of the code, a website change that used to be a $2,000 job becomes a $200 one. An agency that wants to keep paying the same people then has to serve ten to twenty times as many clients. The code is no longer what slows it down. Three other jobs are:
+The brief describes an agency facing a drop from $2,000 jobs to roughly $200 jobs as AI makes implementation cheaper. To handle more clients, the agency must also reduce the time spent finding product information, answering emails, and preparing scopes of work.
 
 - **Knowing the product inside out.** Brilliant Directories documents itself in 1,537 help articles and 5,040 screenshots. They change every week, and some answers exist only as a label in a screenshot. Nobody can hold that in their head, and a wrong answer to a client costs trust.
-- **Keeping up with the inbox.** Each email has to be read, matched to the right facts, answered in the agency's voice and followed up. Some must never be answered by a machine at all: refunds, complaints, quotes.
+- **Keeping up with the inbox.** Each email has to be read, matched to the right facts, answered in the agency's voice and followed up. Replies involving refunds, complaints, and quotes require human approval.
 - **Turning loose conversations into firm quotes.** Clients say things like "make search better". Someone has to turn that into concrete tasks and hours, check first whether the product already does it, and notice when the next meeting quietly changes what was agreed.
 
 My answer is one shared **Knowledge Brain**, so product facts come from a single place, with two services built on top of it. Each one keeps a person in charge of what reaches a client.
@@ -140,7 +140,7 @@ Embeddings are local: bge-small, 384 dimensions. Claude has no embedding model, 
 - **Estimates are not validated against real projects.** The ranges are a model's judgement; only the arithmetic is guaranteed.
 - **Replies in Hindi and Spanish** are labelled, but policy checks are English phrases; non-English drafts get weaker automatic checks.
 - **SQLite allows one writer at a time.** Fine for one agency, not for many tenants.
-- **Hidden test cases** may contain kinds of email or meetings my 60 emails and 3 meetings don't cover. On my own held-out test set:
+- **Hidden test cases** may contain kinds of email or meetings the 60 emails and 3 meetings don't cover. On the held-out test set:
   - the agent over-cautiously sent 6 answerable emails to a human, because the Knowledge Brain called its answer "partial";
   - one draft for a quote request described a billing arrangement nobody had agreed;
   - the cancellation policy check fired on negations ("Nothing has been cancelled"). This is now fixed and tested.

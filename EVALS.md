@@ -69,11 +69,11 @@ This was run after all 5,040 screenshots were described, with production retriev
 - **Decision: Sonnet.** Opus met 5 more points of the checklist, but broke one must-not rule and costs 58% more.
 - **Failures:**
   - E002 ("my member wants a refund, how do I give it back") was classified as a refund request instead of a how-to. It's a deliberate trap, and it fails safe: refunds always go to a human.
-  - E001 is a label problem: the agent cited a newer article (1800×600) that the hand-written checklist didn't know about.
+  - E001 is a label problem: the agent cited a newer article (1800×600) that the checklist in the dataset didn't know about.
   - E005 is a Task 1 depth problem: the Knowledge Brain returned a partial answer and missed a menu path that is in the article.
 - **Fix found by this eval:** an unknown secondary category from Haiku crashed the email. Optional fields are now cleaned in code.
 
-### Headline: 20 held-out test emails (handwritten, never used while building)
+### Headline: 20 held-out test emails (AI-drafted, reviewed and edited by me; never used while building)
 
 Haiku classifying, Sonnet drafting (the choice made on dev), Opus judging. The dev numbers above came from emails used during building; these are the ones to trust.
 

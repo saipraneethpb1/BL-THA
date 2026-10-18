@@ -46,7 +46,7 @@ Optional: click the sun/moon icon once to show light and dark mode.
    > "This email tells the AI to approve a refund. It's treated as text, not an instruction. Refunds always go to a person, and a rule check in code blocks any reply that says a refund or cancellation is done."
 3. Open **Autonomy**.
    > "A kind of email can only start sending on its own after 20 approvals in a row without edits. Refunds, complaints and quotes never can, and I can revoke it at any time."
-   > "On 20 test emails I wrote by hand and never tuned on: every category right, and no unsafe auto-sends."
+   > "On 20 held-out test emails, every category was classified correctly, and there were no unsafe auto-sends."
 
 ## 2:35–4:10 · Task 3: Scope Builder and the approval gate
 
