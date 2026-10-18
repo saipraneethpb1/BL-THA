@@ -211,3 +211,17 @@ async def test_http_client_parses_answers() -> None:
     )
     ans = await HttpKnowledgeClient("http://kb", None).query("q")
     assert ans.status == "answered" and ans.sources[0].source_type == "expert"
+
+
+async def test_requirement_items_refiled_as_decisions_are_not_restored() -> None:
+    def merge_refiling(user: str) -> dict[str, object]:
+        out = merge_dropping_one(user)
+        fee = [i for i in ids_of(user, "requirement") if i.endswith("-2")]
+        out["decisions"] = [{"statement": "Team will use a shared whiteboard", "item_ids": fee}]
+        return out
+
+    llm = FakeLLM({ChunkExtraction: extraction, MergeResult: merge_refiling})
+    t = parse_transcript(TRANSCRIPT, "m1", "Kickoff", "2026-10-10")
+    a = await TranscriptAnalyst(llm, "fake").analyse([t])
+    assert not any("yearly listing fee" in r.description for r in a.requirements)
+    assert [d.statement for d in a.decisions] == ["Team will use a shared whiteboard"]

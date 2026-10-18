@@ -101,6 +101,7 @@ This replaces the role-plays (see DESIGN.md §5). The meetings are ES2002b, ES20
 | Sonnet 5.5 | ES2002c | 9/9 | 18 | 100% | – | $0.36 | 124 s |
 | Sonnet 5.5 | ES2002d (follow-up), before fix | 7/8 | 28 | 100% | **2/5** | $0.32 | 92 s |
 | Sonnet 5.5 | ES2002d, after fix (2 runs) | 8/8, 7/8 | 41, 31 | 100% | **5/5, 4/5** | $0.34 | 97–104 s |
+| Sonnet 5.5 | ES2002d, + process-talk filter | 7/8 | 31 | 100% | 3/5 | $0.30 | 84 s |
 
 - **Extraction is strong:** 24 of 25 annotated decisions found, and 100% of quotes located in the transcript.
 - **"Extracted, not in key" is not all noise.** AMI's summaries list only the headline decisions; the analyst also records details the team discussed.
@@ -133,6 +134,16 @@ This replaces the role-plays (see DESIGN.md §5). The meetings are ES2002b, ES20
       - the rejected LCD now appears as "No LCD display" instead of being added as work.
     - **Run 2's miss:** "display on the TV". The analyst wrote "the display should clearly show which function is being adjusted" without saying which display, so the change can't be matched.
     - **Remaining noise:** the last part of ES2002d is the team reviewing its *own* meeting process (whiteboards, digital pens, PowerPoint). The analyst recorded 6–10 of these as requirements, and they were flagged as new work. A real client meeting would rarely contain this, but the analyst should still drop it. The flagged list is a review prompt for the consultant, not an automatic charge.
+  - **Process-talk filter** (analyst prompts v3):
+    - The analyst skips talk about the team's own tools and meeting process.
+    - Code no longer restores a requirement item that the merge deliberately re-filed under decisions.
+    - One run ($0.60):
+      - **Flags dropped from 15–20 to 3**, with no whiteboard, pen or PowerPoint items. All 3 are real expansions (audio controls, jog dial for advanced functions, hidden functions).
+      - Changes detected: **3/5.**
+    - **Both misses are extraction variance, not the filter:**
+      - "display on the TV" was never extracted from ES2002d (7/8 decisions);
+      - "regular chip" was extracted but filed as a *decision* in the follow-up, and the change detector only links new-meeting *requirements*.
+    - **Across the three runs since the fix: 5/5, 4/5, 3/5.** The remaining weakness is the requirement/decision split *in the follow-up meeting*. The next fix would be letting the detector link new-meeting decisions too; it has not been tried yet.
 - **TODO:** Haiku as analyst, for the model comparison (about $1 for 3 builds).
 
 ## Reliability and safety

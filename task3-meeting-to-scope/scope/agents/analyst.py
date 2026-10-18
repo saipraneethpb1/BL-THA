@@ -41,8 +41,8 @@ class TranscriptAnalyst:
         self.max_chunk_chars = max_chunk_chars
         self.sem = asyncio.Semaphore(concurrency)
         self.effort: Effort = effort
-        self.extract_prompt = load_prompt("analyst_extract_v2")
-        self.merge_prompt = load_prompt("analyst_merge_v2")
+        self.extract_prompt = load_prompt("analyst_extract_v3")
+        self.merge_prompt = load_prompt("analyst_merge_v3")
 
     async def _extract(self, t: Transcript, chunk: Chunk, total: int) -> list[ItemRef]:
         user = (
@@ -147,6 +147,11 @@ def build_analysis(
             continue  # the merge invented it: no extracted item supports it
         used.update(rid for rid in entry.item_ids if rid in by_id)
         add_requirement(entry, evidence)
+
+    # A requirement item the merge deliberately re-filed (e.g. meeting-process talk moved
+    # to decisions) is not forgotten.
+    for other in (merged.decisions, merged.constraints, merged.open_questions, merged.commitments):
+        used.update(rid for e in other for rid in e.item_ids if rid in by_id)
 
     # Coverage guarantee: a requirement the merge forgot comes back as "unclear".
     for rid, item, ev in refs:

@@ -1,0 +1,507 @@
+{
+  "results": [
+    {
+      "model": "claude-sonnet-5-5",
+      "meeting": "ami_ES2002c",
+      "build_seconds": 88.88072029999967,
+      "cost_usd": 0.302238,
+      "requirements": {
+        "gold": 9,
+        "found": 9,
+        "missed": [],
+        "extracted": 38,
+        "unmatched_extracted": 22,
+        "quotes_verified": 1.0
+      },
+      "followup": {
+        "meeting": "ami_ES2002d",
+        "build_seconds": 83.73476539999865,
+        "cost_usd": 0.299844,
+        "requirements": {
+          "gold": 8,
+          "found": 7,
+          "missed": [
+            "D6"
+          ],
+          "extracted": 39,
+          "unmatched_extracted": 31,
+          "quotes_verified": 1.0
+        },
+        "changes": {
+          "expected": 5,
+          "detected": 3,
+          "cases": [
+            {
+              "change": [
+                "removed",
+                "modified"
+              ],
+              "keywords": [
+                [
+                  "kinetic",
+                  "batter"
+                ]
+              ],
+              "detected": true
+            },
+            {
+              "change": [
+                "modified",
+                "added"
+              ],
+              "keywords": [
+                [
+                  "button"
+                ],
+                [
+                  "push button",
+                  "square",
+                  "rubber"
+                ]
+              ],
+              "detected": true
+            },
+            {
+              "change": [
+                "modified",
+                "added"
+              ],
+              "keywords": [
+                [
+                  "curv",
+                  "case",
+                  "shape"
+                ]
+              ],
+              "detected": true
+            },
+            {
+              "change": [
+                "added",
+                "modified"
+              ],
+              "keywords": [
+                [
+                  "chip"
+                ]
+              ],
+              "detected": false
+            },
+            {
+              "change": [
+                "added",
+                "modified"
+              ],
+              "keywords": [
+                [
+                  "tv",
+                  "television"
+                ],
+                [
+                  "display",
+                  "screen"
+                ]
+              ],
+              "detected": false
+            }
+          ],
+          "flagged_out_of_scope": [
+            "REQ-028",
+            "REQ-037",
+            "REQ-039"
+          ]
+        },
+        "baseline_requirements": [
+          "Remote is powered by a non-rechargeable battery (agreed in previous meeting)",
+          "Remote is powered by a hybrid system: kinetic power with a battery as backup (kinetic does not charge the battery)",
+          "Battery must be long-lasting so users do not recharge every few days; remote needs a battery even if an alternative source is used",
+          "Target group is people aged 15 to 35",
+          "Functions are grouped into categories (audio-visual and others) on the remote",
+          "Remote controls the TV only; ignore teletext and other functions",
+          "Product incorporates the corporate colour and slogan",
+          "Slogan appears on the casing (e.g. on the side)",
+          "Remote incorporates a logo on the casing",
+          "Style and fancy look and feel are the top design priority, with innovation shown in look and feel rather than extra functions",
+          "Easy to use and user friendly throughout, while still having technology",
+          "Not shaped like a literal fruit (no apple, no lemon shape); fruit trend only inspires texture and colour",
+          "Soft, spongy, ergonomic, friendly-to-handle materials; plastic textured to feel soft and grippy; rubber may be incorporated into the case",
+          "Case combines plastic with rubber on the outside for a warm, comfortable feel and curved shapes",
+          "No wood or titanium case, since they force a boxy rectangular shape",
+          "Use vibrant natural colours with softness in materials, shape and function",
+          "Possible lemon/lime theme with green or yellow colours (idea only, not agreed)",
+          "Lighting feature: buttons light up when touched or picked up (possibly in different colours), usable in the dark",
+          "Case could be slightly transparent and tinted yellow, with one or two low-power lights glowing subtly in the dark",
+          "Interchangeable covers sold with the control in different looks",
+          "Take some iPod features (high-tech, few buttons) but softer, more vibrant and friendly rather than hard and glossy",
+          "Buttons are large, easy and comfortable to press, not tiny",
+          "Buttons are rubber and not big protruding; more flush with the case",
+          "Stand-by button is always red",
+          "Volume up and down buttons are clearly distinguishable from each other",
+          "Use a very bright colour if the corporate scheme allows, so the control is easy to find and not tacky; avoid dark colours",
+          "Yellow must feature in the colour scheme; yellow background with bold contrasting button colour",
+          "Only basic, frequently used functions are visible on the front; advanced, rarely used functions are hidden inside",
+          "If voice activation is included, a button alternative must always exist, possibly in the hidden section",
+          "Remote does not look like a big square block; not flat or angular, but curvy",
+          "No voice talk-back to the user (no spoken slogan or speaker output)",
+          "Remote is comfortable to hold, attractive, not easily lost, and feels right in the hand",
+          "Remote is small and slim but not so small it is hard to use",
+          "Snowman shape: larger lower part sits in the hand, smaller bubble at top for other functions (team agreed)",
+          "Remote may fold up to reveal a third group of controls inside, with volume controls on the body",
+          "No LCD display (cost and complexity, no input to feed it)",
+          "Jog dial for volume and channel control, placed where it fits the device shape, considering hand position and accidental movement",
+          "Number buttons are still needed for skipping many channels, even with a jog dial"
+        ],
+        "baseline_decisions": [
+          "Presentations in order (Andrew, Craig, David), discussion at the end, then decisions",
+          "Pursue one unifying theme across shape, materials and series as marketing identity, linked to yellow company colour and fruit such as lime/lemon, to be agreed in production-side discussion",
+          "Next meeting in thirty minutes, with designers working with Play-doh meanwhile",
+          "Meeting goal is to reach a decision on the product concept; about fifteen minutes remained",
+          "Corporate colour appears to be yellow, possibly constraining colour choice (unconfirmed)",
+          "Keep component count low (affects cost, complexity, size, time to market)",
+          "Rubber case cannot be combined with a solar power source",
+          "Titanium case cannot be curved (must be square)",
+          "Wood case cannot be curved; plastic has no restrictions",
+          "LCD panel or scroll wheel needs more complicated logic; buttons are standard"
+        ],
+        "diff": [
+          {
+            "change": "removed",
+            "requirement_id": "DEC-007",
+            "before": "Rubber case cannot be combined with a solar power source",
+            "after": null,
+            "summary": "The rubber/solar constraint no longer applies because rubber and solar power are both dropped.",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-001",
+            "before": "Remote is powered by a non-rechargeable battery (agreed in previous meeting)",
+            "after": "Remote is powered by a non-rechargeable battery only, with no kinetic power.",
+            "summary": "Battery-only power is confirmed, settling the earlier dispute between battery-only and hybrid kinetic power.",
+            "out_of_scope": false
+          },
+          {
+            "change": "removed",
+            "requirement_id": "REQ-002",
+            "before": "Remote is powered by a hybrid system: kinetic power with a battery as backup (kinetic does not charge the battery)",
+            "after": null,
+            "summary": "Kinetic power with battery backup is dropped; battery only.",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-003",
+            "before": "Battery must be long-lasting so users do not recharge every few days; remote needs a battery even if an alternative source is used",
+            "after": "Battery must be long-lasting so users do not recharge every few days; remote needs a battery even if an alternative source is used",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-004",
+            "before": "Target group is people aged 15 to 35",
+            "after": "Target group is people aged 15 to 35",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-005",
+            "before": "Functions are grouped into categories (audio-visual and others) on the remote",
+            "after": "Functions are grouped into categories (audio-visual and others) on the remote",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-006",
+            "before": "Remote controls the TV only; ignore teletext and other functions",
+            "after": "Remote controls the TV only; ignore teletext and other functions",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-007",
+            "before": "Product incorporates the corporate colour and slogan",
+            "after": "Product incorporates the corporate colour and slogan",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-008",
+            "before": "Slogan appears on the casing (e.g. on the side)",
+            "after": "Slogan appears on the casing (on the side or near the buttons); the logo is embossed.",
+            "summary": "Slogan may be placed on the side or near the buttons, and the logo is embossed.",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-009",
+            "before": "Remote incorporates a logo on the casing",
+            "after": "Remote incorporates a decorative 'Ninja Homer' logo on the casing, with no function; red area represents other printing on the side.",
+            "summary": "The logo is specified as a decorative 'Ninja Homer' logo with no function.",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-010",
+            "before": "Style and fancy look and feel are the top design priority, with innovation shown in look and feel rather than extra functions",
+            "after": "Style and fancy look and feel are the top design priority, with innovation shown in look and feel rather than extra functions",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-011",
+            "before": "Easy to use and user friendly throughout, while still having technology",
+            "after": "Easy to use and user friendly throughout, while still having technology",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-012",
+            "before": "Not shaped like a literal fruit (no apple, no lemon shape); fruit trend only inspires texture and colour",
+            "after": "Not shaped like a literal fruit (no apple, no lemon shape); fruit trend only inspires texture and colour",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-013",
+            "before": "Soft, spongy, ergonomic, friendly-to-handle materials; plastic textured to feel soft and grippy; rubber may be incorporated into the case",
+            "after": "Soft, spongy, ergonomic, friendly-to-handle materials; plastic textured to feel soft and grippy; no rubber.",
+            "summary": "Rubber is no longer incorporated; soft, grippy feel comes from textured plastic only.",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-014",
+            "before": "Case combines plastic with rubber on the outside for a warm, comfortable feel and curved shapes",
+            "after": "Case is all plastic, with no rubber, shaped with curves for a comfortable feel.",
+            "summary": "Rubber is dropped; the case is all plastic.",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-015",
+            "before": "No wood or titanium case, since they force a boxy rectangular shape",
+            "after": "No wood or titanium case, since they force a boxy rectangular shape",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-016",
+            "before": "Use vibrant natural colours with softness in materials, shape and function",
+            "after": "Use vibrant natural colours with softness in materials, shape and function",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-017",
+            "before": "Possible lemon/lime theme with green or yellow colours (idea only, not agreed)",
+            "after": "Possible lemon/lime theme with green or yellow colours (idea only, not agreed)",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-018",
+            "before": "Lighting feature: buttons light up when touched or picked up (possibly in different colours), usable in the dark",
+            "after": "Optional lighting feature: internal LEDs backlight the buttons and shine through the casing, usable in the dark.",
+            "summary": "Lighting is now optional internal LED backlighting shining through the casing, rather than lighting up when touched or picked up.",
+            "out_of_scope": false
+          },
+          {
+            "change": "removed",
+            "requirement_id": "REQ-019",
+            "before": "Case could be slightly transparent and tinted yellow, with one or two low-power lights glowing subtly in the dark",
+            "after": null,
+            "summary": "Transparent tinted case is replaced by a single yellow case colour; the foggy yellow is only noted in dispute.",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-020",
+            "before": "Interchangeable covers sold with the control in different looks",
+            "after": "Interchangeable covers sold with the control in different looks",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-021",
+            "before": "Take some iPod features (high-tech, few buttons) but softer, more vibrant and friendly rather than hard and glossy",
+            "after": "Take some iPod features (high-tech, few buttons) but softer, more vibrant and friendly rather than hard and glossy",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-022",
+            "before": "Buttons are large, easy and comfortable to press, not tiny",
+            "after": "Buttons are large, easy and comfortable to press, not tiny",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-023",
+            "before": "Buttons are rubber and not big protruding; more flush with the case",
+            "after": "Buttons are plastic, not big protruding; more flush with the case.",
+            "summary": "Buttons are now plastic instead of rubber.",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-024",
+            "before": "Stand-by button is always red",
+            "after": "Stand-by button is always red and acts as the power button; holding it about 2 seconds sends a stand-by signal.",
+            "summary": "The red button now acts as the power button, with a hold of about 2 seconds sending stand-by.",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-025",
+            "before": "Volume up and down buttons are clearly distinguishable from each other",
+            "after": "Volume up and down buttons are clearly distinguishable from each other",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-026",
+            "before": "Use a very bright colour if the corporate scheme allows, so the control is easy to find and not tacky; avoid dark colours",
+            "after": "Use a very bright colour if the corporate scheme allows, so the control is easy to find and not tacky; avoid dark colours",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-027",
+            "before": "Yellow must feature in the colour scheme; yellow background with bold contrasting button colour",
+            "after": "Case is one special colour, yellow (company colour); yellow must feature in the colour scheme with normal-coloured buttons.",
+            "summary": "Case is a single special colour, yellow.",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-028",
+            "before": "Only basic, frequently used functions are visible on the front; advanced, rarely used functions are hidden inside",
+            "after": "Only basic, frequently used functions are visible on the front; advanced, rarely used functions are hidden inside, including TV controls (brightness, contrast, channel tuning, input selection, colour, sharpness), many user-definable.",
+            "summary": "A set of TV controls (brightness, contrast, channel tuning, input, colour, sharpness) is specified, many user-definable.",
+            "out_of_scope": true
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-029",
+            "before": "If voice activation is included, a button alternative must always exist, possibly in the hidden section",
+            "after": "If voice activation is included, a button alternative must always exist, possibly in the hidden section",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-030",
+            "before": "Remote does not look like a big square block; not flat or angular, but curvy",
+            "after": "Remote does not look like a big square block; not flat or angular, but curvy with a double-curved case design.",
+            "summary": "Case uses a double-curved design.",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-031",
+            "before": "No voice talk-back to the user (no spoken slogan or speaker output)",
+            "after": "No voice talk-back to the user (no spoken slogan or speaker output)",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-032",
+            "before": "Remote is comfortable to hold, attractive, not easily lost, and feels right in the hand",
+            "after": "Remote is comfortable to hold, attractive, not easily lost, and feels right in the hand",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-033",
+            "before": "Remote is small and slim but not so small it is hard to use",
+            "after": "Remote is small and slim, about 10 cm high, about 3 cm wide and 2.5 cm thick (earlier suggestion 3.5 cm), but not so small it is hard to use.",
+            "summary": "Width/depth about 3 cm wide and 2.5 cm thick (disputed against 3.5 cm).",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-034",
+            "before": "Snowman shape: larger lower part sits in the hand, smaller bubble at top for other functions (team agreed)",
+            "after": "Snowman shape: larger lower part sits in the hand, smaller bubble at top for other functions (team agreed)",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-035",
+            "before": "Remote may fold up to reveal a third group of controls inside, with volume controls on the body",
+            "after": "Remote may fold up to reveal a third group of controls inside; volume is handled by the jog dial, not separate volume controls.",
+            "summary": "There are no separate volume controls on the body; the jog dial handles volume.",
+            "out_of_scope": false
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-036",
+            "before": "No LCD display (cost and complexity, no input to feed it)",
+            "after": "No LCD display (cost and complexity, no input to feed it)",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "modified",
+            "requirement_id": "REQ-037",
+            "before": "Jog dial for volume and channel control, placed where it fits the device shape, considering hand position and accidental movement",
+            "after": "Jog dial for volume and channel control and for advanced functions (e.g. contrast, colour), placed where it fits the device shape, considering hand position and accidental movement.",
+            "summary": "The jog dial is now also used for advanced functions such as contrast and colour, and for volume.",
+            "out_of_scope": true
+          },
+          {
+            "change": "unchanged",
+            "requirement_id": "REQ-038",
+            "before": "Number buttons are still needed for skipping many channels, even with a jog dial",
+            "after": "Number buttons are still needed for skipping many channels, even with a jog dial",
+            "summary": "No change",
+            "out_of_scope": false
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-039",
+            "before": null,
+            "after": "Audio controls for bass, mid-range, treble and balance, possibly user-defined sound modes",
+            "summary": "New audio controls for bass, mid-range, treble and balance, possibly user-defined sound modes.",
+            "out_of_scope": true
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-040",
+            "before": null,
+            "after": "Push buttons: cost basis of four buttons although the design has twelve button positions under one panel",
+            "summary": "Cost basis of four buttons although the design has twelve button positions under one panel.",
+            "out_of_scope": false
+          },
+          {
+            "change": "added",
+            "requirement_id": "REQ-041",
+            "before": null,
+            "after": "Button layout keeps familiar telephone-style keypad positioning; square button shape suggested",
+            "summary": "Keep a familiar telephone-style keypad layout; change the button shape, possibly square.",
+            "out_of_scope": false
+          }
+        ]
+      }
+    }
+  ]
+}
