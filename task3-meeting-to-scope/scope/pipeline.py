@@ -71,10 +71,13 @@ class ScopeBuilder:
 
     async def build(self, pid: int, number: int) -> None:
         """Runs the agents for a version created by start(). Never raises: failures are stored."""
+        before = asdict(self.llm.usage)
         try:
             await self._build(pid, number)
         except Exception as exc:  # the UI shows the error; the service stays up
-            await self.store.fail_version(pid, number, f"{type(exc).__name__}: {exc}")
+            # Keep what the build spent before it failed, so the usage bar stays honest.
+            spent = usage_since(before, asdict(self.llm.usage))
+            await self.store.fail_version(pid, number, f"{type(exc).__name__}: {exc}", spent)
 
     async def _build(self, pid: int, number: int) -> None:
         before = asdict(self.llm.usage)

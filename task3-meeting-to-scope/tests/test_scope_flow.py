@@ -302,6 +302,7 @@ async def test_failed_build_is_recorded_not_raised(setup: tuple[Store, ScopeBuil
     await builder.build(pid, n)
     v = await store.version(pid, n)
     assert v is not None and v.status == "failed" and "KeyError" in (v.error or "")
+    assert v.usage["calls"] > 0  # what it spent before failing is kept for the usage bar
     with pytest.raises(StateError, match="only a draft"):
         await store.approve(pid, n, "Sai", "x")
 

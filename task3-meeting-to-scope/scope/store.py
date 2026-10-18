@@ -284,11 +284,14 @@ class Store:
             "last_error": last_error,
         }
 
-    async def fail_version(self, pid: int, number: int, error: str) -> None:
+    async def fail_version(
+        self, pid: int, number: int, error: str, usage: dict[str, Any] | None = None
+    ) -> None:
         async with self.db() as db:
             await db.execute(
-                "UPDATE versions SET status = 'failed', error = ? WHERE project_id = ? AND number = ?",
-                (error, pid, number),
+                "UPDATE versions SET status = 'failed', error = ?, usage = ? "
+                "WHERE project_id = ? AND number = ?",
+                (error, json.dumps(usage or {}), pid, number),
             )
             await self.audit(db, pid, number, "build_failed", "system", error[:500])
             await db.commit()
