@@ -54,6 +54,13 @@ class Settings(BaseSettings):
     speech_preload: bool = True
     max_audio_bytes: int = 10_000_000
 
+    # Public demo guards (kb/guard.py). budget_usd caps total recorded spend on answers;
+    # None = no cap. Rate limits apply per visitor (requests that came through the proxy).
+    budget_usd: float | None = None
+    query_limit_per_10min: int = 20
+    transcribe_limit_per_10min: int = 30
+    refresh_limit_per_hour: int = 2
+
     # Shared secret for callers (Tasks 2 and 3). None = no auth, for local development only.
     api_key: str | None = None
 

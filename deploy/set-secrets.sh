@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Run this YOURSELF on the VM, in your own terminal. It asks for the secrets, so they are
-# typed by you and never pass through anyone else's tools or logs:
-#   - the Anthropic API key
-#   - a username and password for the login prompt on every page
-# Then it starts everything.   Usage:  bash deploy/set-secrets.sh
+# Run this YOURSELF on the VM, in your own terminal. It asks for the Anthropic API key, so
+# the key is typed by you and never passes through anyone else's tools or logs. Then it
+# starts everything. The demo is open (no login); spending is capped per service by the
+# *_BUDGET_USD settings (deploy/compose.prod.yml) and rate-limited per visitor.
+#   Usage:  bash deploy/set-secrets.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -11,15 +11,9 @@ ip=$(curl -fsS https://checkip.amazonaws.com | tr -d '[:space:]')
 domain="${ip//./-}.sslip.io"
 
 read -rsp "Anthropic API key (input hidden): " anthropic_key; echo
-read -rp  "Login username [reviewer]: " user; user=${user:-reviewer}
-read -rsp "Login password (input hidden): " password; echo
-read -rsp "Repeat password: " password2; echo
-[ "$password" = "$password2" ] || { echo "Passwords differ."; exit 1; }
-[ ${#password} -ge 10 ] || { echo "Use at least 10 characters."; exit 1; }
 
-hash=$(sudo docker run --rm caddy:2.8.4-alpine caddy hash-password --plaintext "$password")
-printf '%s %s\n' "$user" "$hash" > deploy/auth.caddy
-chmod 600 deploy/auth.caddy
+# Only used if a login is switched back on (see deploy/Caddyfile); must exist for the mount.
+[ -f deploy/auth.caddy ] || { touch deploy/auth.caddy; chmod 600 deploy/auth.caddy; }
 
 umask 077
 cat > .env <<EOF
@@ -32,5 +26,5 @@ sudo docker compose -f docker-compose.yml -f deploy/compose.prod.yml up -d --bui
 # Caddy reads its config only at start: restart it so Caddyfile changes always apply.
 sudo docker compose -f docker-compose.yml -f deploy/compose.prod.yml restart caddy
 echo
-echo "Starting. In 2-5 minutes, open https://$domain (user: $user)."
+echo "Starting. In 2-5 minutes, open https://$domain"
 echo "API key for the Knowledge Brain's /docs (X-API-Key header): see KB_API_KEY in .env"

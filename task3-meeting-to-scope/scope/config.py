@@ -25,5 +25,10 @@ class Settings(BaseSettings):
 
     max_chunk_chars: int = 8000
 
+    # Public demo guards (scope/guard.py): cap on recorded build spend (None = no cap), and
+    # builds per visitor per hour.
+    budget_usd: float | None = None
+    build_limit_per_hour: int = 3
+
 
 settings = Settings()

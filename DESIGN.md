@@ -113,7 +113,7 @@ Five agents, each with one job and a typed output:
 | LangChain or other agent frameworks | Every step is plain code I can explain line by line in the live review. |
 | Transcribing audio in the app | Recording tools already export text. I accept pasted or uploaded text in three common formats. |
 | PDF proposals | Markdown is easy to review and diff; turning it into a PDF is a solved problem. |
-| User accounts in the apps | One shared login at the proxy is enough for a small team. The live deployment puts every page behind Caddy's basic auth, and the Knowledge Brain API also has its own key. Per-person accounts and SSO would come with multi-tenancy. |
+| User accounts in the apps | The live demo is deliberately open, so reviewers can start straight away. Spending is protected instead by a budget cap per service, per-visitor rate limits on everything that calls Claude, and a spend limit on the Anthropic account. A login at the proxy can be switched back on in one line. Per-person accounts and SSO would come with multi-tenancy. |
 | Fine-tuning | Versioned lessons are cheaper, measurable and can be rolled back. |
 
 ## 6. Model choices

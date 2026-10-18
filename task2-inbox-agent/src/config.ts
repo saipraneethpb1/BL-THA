@@ -12,6 +12,10 @@ export interface Config {
   readonly autonomyThreshold: number;
   /** Share of auto-sent emails a human still checks afterwards (0..1). */
   readonly spotCheckRate: number;
+  /** Public demo: cap on recorded drafting spend in USD (null = no cap). */
+  readonly budgetUsd: number | null;
+  /** Public demo: drafts per visitor per 10 minutes. */
+  readonly draftLimitPer10Min: number;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -26,6 +30,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     port: Number(env.INBOX_PORT ?? 8002),
     autonomyThreshold: Number(env.INBOX_AUTONOMY_THRESHOLD ?? 20),
     spotCheckRate: Number(env.INBOX_SPOT_CHECK_RATE ?? 0.2),
+    budgetUsd: env.INBOX_BUDGET_USD ? Number(env.INBOX_BUDGET_USD) : null,
+    draftLimitPer10Min: Number(env.INBOX_DRAFT_LIMIT_PER_10MIN ?? 15),
   };
 }
 

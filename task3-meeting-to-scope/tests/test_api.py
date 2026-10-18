@@ -90,3 +90,25 @@ def test_sample_meetings_are_listed_and_served_safely(client: TestClient) -> Non
     assert len(text) > 10_000 and text.splitlines()[1].startswith("[00:00:00] Speaker A:")
     assert client.get("/api/samples/..%2F..%2Fpyproject").status_code == 404
     assert client.get("/api/samples/unknown").status_code == 404
+
+
+def test_public_demo_guards_limit_builds_per_visitor_and_cap_spend(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pid = client.post("/api/projects", json={"name": "Vets", "client": "GV"}).json()["id"]
+    client.post(
+        f"/api/projects/{pid}/meetings",
+        json={"title": "Kickoff", "date": "2026-10-10", "transcript": TRANSCRIPT},
+    )
+    api.build_limiter.calls.clear()
+    monkeypatch.setattr(api.build_limiter, "limit", 1)
+    who = {"X-Forwarded-For": "203.0.113.7"}
+    assert client.post(f"/api/projects/{pid}/build", headers=who).status_code == 202
+    second = client.post(f"/api/projects/{pid}/build", headers=who)
+    assert second.status_code == 429 and "try again" in second.json()["detail"]
+
+    monkeypatch.setattr(api.settings, "budget_usd", 0.0)
+    capped = client.post(f"/api/projects/{pid}/build")
+    assert capped.status_code == 429 and "budget" in capped.json()["detail"]
+    assert client.get("/api/usage").json()["over_budget"] is True
+    api.build_limiter.calls.clear()

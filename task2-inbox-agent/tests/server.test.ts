@@ -115,3 +115,27 @@ describe("usage", () => {
     expect((await a.inject({ url: "/api/usage" })).json().last_error.message).toBe(msg);
   });
 });
+
+describe("public demo guards", () => {
+  it("limits drafts per visitor and stops at the budget", async () => {
+    const config = { ...loadConfig({}), autonomyThreshold: 2, draftLimitPer10Min: 2 };
+    const store = new InboxStore(":memory:");
+    const agent = new InboxAgent(store, new FakeClassifier(), new FakeDrafter(), new FakeKnowledge(), config, () => 1);
+    const a = buildApp({ config, store, agent, learning: new LearningService(store, null, null) });
+    for (const id of ["A1", "A2", "A3", "A4"]) await a.inject({ method: "POST", url: "/api/emails", payload: { ...email, id } });
+    const from = (ip: string) => ({ "x-forwarded-for": ip });
+    expect((await a.inject({ method: "POST", url: "/api/emails/A1/process", headers: from("203.0.113.7") })).statusCode).toBe(200);
+    expect((await a.inject({ method: "POST", url: "/api/emails/A2/process", headers: from("203.0.113.7") })).statusCode).toBe(200);
+    const third = await a.inject({ method: "POST", url: "/api/emails/A3/process", headers: from("203.0.113.7") });
+    expect(third.statusCode).toBe(429);
+    expect(third.json().error).toMatch(/try again/);
+    expect((await a.inject({ method: "POST", url: "/api/emails/A3/process", headers: from("198.51.100.9") })).statusCode).toBe(200);
+
+    const spent = store.usage().total_usd;
+    const capped = buildApp({ config: { ...config, budgetUsd: spent }, store, agent, learning: new LearningService(store, null, null) });
+    const r = await capped.inject({ method: "POST", url: "/api/emails/A4/process" });
+    expect(r.statusCode).toBe(429);
+    expect(r.json().error).toMatch(/budget/);
+    expect((await capped.inject({ url: "/api/usage" })).json()).toMatchObject({ over_budget: true });
+  });
+});

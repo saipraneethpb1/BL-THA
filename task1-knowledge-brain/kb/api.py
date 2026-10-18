@@ -23,6 +23,7 @@ from kb.answer.service import answer_question
 from kb.bootstrap import article_count, seed_database
 from kb.config import settings
 from kb.db import connect, init_db
+from kb.guard import RateLimiter, over_budget
 from kb.ingestion.vision import ClaudeImageDescriber
 from kb.refresh import Refresher, daily_loop, seconds_until
 from kb.retrieval.embedder import FastEmbedder
@@ -124,6 +125,19 @@ def require_api_key(x_api_key: Annotated[str | None, Header()] = None) -> None:
 
 Protected = Depends(require_api_key)
 
+# Public demo guards: per-visitor limits on the endpoints that cost money or CPU.
+query_limiter = RateLimiter(settings.query_limit_per_10min, 600, "questions")
+speech_limiter = RateLimiter(settings.transcribe_limit_per_10min, 600, "voice recordings")
+refresh_limiter = RateLimiter(settings.refresh_limit_per_hour, 3600, "refreshes")
+
+
+async def spent_usd() -> float:
+    async with connect(settings.db_path) as db:
+        rows = list(
+            await db.execute_fetchall("SELECT coalesce(sum(cost_usd), 0) AS s FROM query_log")
+        )
+    return float(rows[0]["s"])
+
 
 class Health(BaseModel):
     status: Literal["ok"]
@@ -180,6 +194,7 @@ async def transcribe(request: Request, language: str | None = None) -> dict[str,
     transcriber: Transcriber | None = request.app.state.transcriber
     if transcriber is None:
         raise HTTPException(503, "speech to text is disabled (KB_SPEECH_ENABLED=false)")
+    speech_limiter.check(request)
     if language is not None and not (len(language) == 2 and language.isalpha()):
         raise HTTPException(422, "language must be a two-letter code such as en or hi")
     audio = await request.body()
@@ -222,6 +237,9 @@ async def usage(request: Request) -> dict[str, Any]:
         "by_caller": by_caller,
         "last_success_at": f"{last_ok.replace(' ', 'T')}+00:00" if last_ok else None,
         "last_error": getattr(request.app.state, "last_claude_error", None),
+        "budget_usd": settings.budget_usd,
+        "over_budget": settings.budget_usd is not None
+        and sum(r["usd"] for r in rows) >= settings.budget_usd,
     }
 
 
@@ -272,6 +290,7 @@ async def ingestion_status(request: Request) -> IngestionStatus:
 async def run_refresh(request: Request) -> dict[str, str]:
     """Start a refresh now (crawl changes, describe new screenshots, re-index).
     Returns at once; poll `/ingestion/status` for progress."""
+    refresh_limiter.check(request)
     refresher: Refresher = request.app.state.refresher
     if refresher.running:
         raise HTTPException(409, "a refresh is already running")
@@ -355,6 +374,8 @@ async def query(req: QueryRequest, request: Request) -> QueryResponse:
     answerer: Answerer | None = request.app.state.answerer
     if answerer is None:
         raise HTTPException(503, "answering is disabled: ANTHROPIC_API_KEY is not configured")
+    query_limiter.check(request)
+    over_budget(await spent_usd(), settings.budget_usd)
     async with connect(settings.db_path) as db:
         result = await answer_question(
             db,

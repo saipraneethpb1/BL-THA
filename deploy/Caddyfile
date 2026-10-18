@@ -1,6 +1,10 @@
-# Public entry point: HTTPS (Let's Encrypt, automatic) and a login on every page.
-# DOMAIN is the VM's sslip.io name, e.g. 3-110-25-7.sslip.io (no domain purchase needed).
-# auth.caddy holds the basic_auth block; set-secrets.sh writes it and it never enters git.
+# Public entry point: HTTPS (Let's Encrypt, automatic). DOMAIN is the VM's sslip.io name,
+# e.g. 3-110-25-7.sslip.io (no domain purchase needed).
+#
+# The demo is open, with no login, so reviewers can start straight away. Spending is protected
+# in the services themselves: per-visitor rate limits and a budget cap per service (see
+# guard.py / guard.ts and the *_BUDGET_USD settings). To require a login again, add
+# `import protected` to each site below and put a basic_auth line in deploy/auth.caddy.
 
 (protected) {
 	# /health stays open so uptime checks work; it reveals nothing and costs nothing.
@@ -13,6 +17,13 @@
 # Shared routes on every host, so any page can use them without cross-origin requests:
 # Claude usage from all three services (the usage bar), and speech to text (the mic buttons).
 (suite_routes) {
+	# A demo, not a product: keep it out of search engines.
+	header X-Robots-Tag "noindex, nofollow"
+	handle /robots.txt {
+		respond "User-agent: *
+Disallow: /
+"
+	}
 	handle_path /_speech {
 		request_body {
 			max_size 12MB
@@ -44,7 +55,6 @@
 
 # Hub page: what each service does and what to try first.
 {$DOMAIN} {
-	import protected
 	import suite_routes
 	handle {
 		root * /srv/site
@@ -53,7 +63,6 @@
 }
 
 kb.{$DOMAIN} {
-	import protected
 	import suite_routes
 	handle {
 		reverse_proxy knowledge-brain:8001 {
@@ -66,7 +75,6 @@ kb.{$DOMAIN} {
 }
 
 inbox.{$DOMAIN} {
-	import protected
 	import suite_routes
 	handle {
 		reverse_proxy inbox-agent:8002
@@ -74,7 +82,6 @@ inbox.{$DOMAIN} {
 }
 
 scope.{$DOMAIN} {
-	import protected
 	import suite_routes
 	handle {
 		reverse_proxy scope-builder:8003

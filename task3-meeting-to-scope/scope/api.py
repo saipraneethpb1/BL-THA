@@ -12,6 +12,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from scope.config import settings
+from scope.guard import RateLimiter, over_budget
 from scope.knowledge import HttpKnowledgeClient
 from scope.llm import ClaudeLLM
 from scope.pipeline import ScopeBuilder, export_proposal
@@ -19,6 +20,7 @@ from scope.store import StateError, Store, Version
 from scope.transcript import TranscriptError, parse_transcript
 
 UI = Path(__file__).parent / "ui" / "index.html"
+build_limiter = RateLimiter(settings.build_limit_per_hour, 3600, "scope builds")
 SAMPLES_DIR = Path(
     os.environ.get("SCOPE_SAMPLES_DIR", Path(__file__).parent.parent / "transcripts")
 )
@@ -93,7 +95,13 @@ async def health(request: Request) -> dict[str, Any]:
 @app.get("/api/usage")
 async def usage(request: Request) -> dict[str, Any]:
     """For the usage bar: Claude spend recorded on builds, and the latest build failure."""
-    return await store(request).usage()
+    u = await store(request).usage()
+    budget = settings.budget_usd
+    return {
+        **u,
+        "budget_usd": budget,
+        "over_budget": budget is not None and u["total_usd"] >= budget,
+    }
 
 
 @app.get("/api/samples")
@@ -174,6 +182,8 @@ async def build(pid: int, request: Request) -> dict[str, int]:
     builder: ScopeBuilder | None = request.app.state.builder
     if builder is None:
         raise HTTPException(503, "building is disabled: ANTHROPIC_API_KEY is not configured")
+    build_limiter.check(request)
+    over_budget((await store(request).usage())["total_usd"], settings.budget_usd)
     try:
         number = await builder.start(pid)
     except StateError as exc:

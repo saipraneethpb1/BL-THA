@@ -7,7 +7,7 @@ Recorded on the live site: https://13-203-203-28.sslip.io. It covers one flow pe
 1. **Credits are topped up and the site is on the real models** (Opus answers, Sonnet drafting and scoping, Haiku for the small jobs). The usage bar at the bottom should be green, "Claude API available". If you rehearsed in Haiku mode, ask Claude to switch back first.
 2. **The demo project is pre-built** (Claude does this after credits are added): "TV remote control (demo)" in the Scope Builder, with v1 approved and v2 (the follow-up meeting) as a draft. A live build takes about 2 minutes, too long to watch on camera.
 3. **Check the follow-up's Changes tab** before recording, and note which of the five AMI changes it found (see "An honest failure" below). That decides which plan you use.
-4. Browser: Chrome or Edge, signed in to the site, zoom 110–125%, notifications off, other tabs closed. Press **Ctrl+F5** once on each service so you see the latest version.
+4. Browser: Chrome or Edge (no sign-in needed), zoom 110–125%, notifications off, other tabs closed. Press **Ctrl+F5** once on each service so you see the latest version.
 5. **Rehearse once in full.** Each question costs about 2 cents and each draft about 5 cents; the usage bar shows the total.
 
 ---
@@ -16,7 +16,7 @@ Recorded on the live site: https://13-203-203-28.sslip.io. It covers one flow pe
 
 **Show:** https://13-203-203-28.sslip.io (the logo, the three cards, the usage bar at the bottom).
 
-> "This is my submission: three services that do a consultant's slow work. A Knowledge Brain over the Brilliant Directories help center, an Inbox Agent that drafts replies from it, and a Scope Builder that turns client meetings into a priced scope. It runs on AWS behind a login, and the bar at the bottom shows exactly what the AI has cost so far against a budget."
+> "This is my submission: three services that do a consultant's slow work. A Knowledge Brain over the Brilliant Directories help center, an Inbox Agent that drafts replies from it, and a Scope Builder that turns client meetings into a priced scope. It runs on AWS and anyone can open it, so each service has a spending cap and per-visitor limits. The bar at the bottom shows exactly what the AI has cost so far against that budget."
 
 Optional: click the sun/moon icon once to show light and dark mode.
 

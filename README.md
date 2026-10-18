@@ -30,12 +30,18 @@ After that, a daily refresh at 02:00 UTC fetches only pages that changed.
 
 ## Live deployment
 
-**Live demo:** https://13-203-203-28.sslip.io (login required; the credentials are in the submission email). Each service is also at `kb.`, `inbox.` and `scope.` in front of that address.
+**Live demo:** https://13-203-203-28.sslip.io. Open it and start using it: no sign-in. Each service is also at `kb.`, `inbox.` and `scope.` in front of that address.
 
 One AWS EC2 t3.small (2 GB RAM plus 2 GB swap, Ubuntu 24.04) runs the same `docker-compose.yml`, plus an overlay, [`deploy/compose.prod.yml`](deploy/compose.prod.yml):
 - **Only [Caddy](deploy/Caddyfile) is reachable from the internet.** It serves HTTPS with automatic Let's Encrypt certificates on a free `sslip.io` hostname, with one subdomain per service (`kb.`, `inbox.`, `scope.`).
-- **Every page needs a login,** so strangers can't spend the API credit. Only `/health` is open.
-- **Secrets are typed by the owner on the server.** [`deploy/set-secrets.sh`](deploy/set-secrets.sh) prompts for the Anthropic key and the login password. The `.env` and the password hash it writes never enter git.
+- **Open to anyone, with spending guarded in the services:**
+  - each service caps its own recorded Claude spend: Knowledge Brain $3, Inbox Agent $3, Scope Builder $4 (`*_BUDGET_USD`);
+  - each visitor is rate-limited on the actions that cost money: questions, drafts, builds and lesson checks;
+  - when a cap is reached the service says so and stops calling Claude, and browsing keeps working.
+- **A spend limit on the Anthropic account** is the final backstop.
+- **Search engines are asked not to index it** (`X-Robots-Tag` and `robots.txt`).
+- **To require a login again,** add `import protected` back to each site in [`deploy/Caddyfile`](deploy/Caddyfile).
+- **The API key is typed by the owner on the server:** [`deploy/set-secrets.sh`](deploy/set-secrets.sh) prompts for it, and the `.env` it writes never enters git.
 
 **Usage bar.** A bar fixed to the bottom of every page shows the Claude spend recorded by the site, today and in total, against a budget (`SITE_BUDGET_USD` in the server's `.env`, default $10). It also says plainly when the API is failing, for example when the account is out of credit. The figures come from each call's token counts at list prices. The account's actual credit balance is only visible in the Anthropic Console: there's no API for it.
 

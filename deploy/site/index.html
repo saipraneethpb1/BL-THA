@@ -489,11 +489,12 @@ body.has-usage-bar { padding-bottom: 46px; }
       const lastOk = parts.map((p) => p.last_success_at).filter(Boolean).sort().at(-1) || null;
       const lastErr = parts.map((p) => p.last_error).filter(Boolean).sort((a, b) => a.at < b.at ? -1 : 1).at(-1) || null;
       const paused = lastErr && (!lastOk || lastErr.at > lastOk);
+      const capped = parts.filter((p) => p.over_budget).map((p) => ({ kb: "Knowledge Brain", inbox: "Inbox Agent", scope: "Scope Builder" })[p.service]);
       const pct = budget ? Math.min(100, (total / budget) * 100) : null;
       const near = pct !== null && pct >= 80;
-      bar.className = `usage-bar ${paused ? "paused" : near ? "near" : "ok"}`;
+      bar.className = `usage-bar ${paused || capped.length ? "paused" : near ? "near" : "ok"}`;
       bar.innerHTML = `<div class="ub-in">
-        <span class="ub-state"><span class="ub-dot"></span>${paused ? `Claude API paused: ${esc(/credit balance/i.test(lastErr.message) ? "out of credit" : suite.friendlyError(lastErr.message))}` : "Claude API available"}</span>
+        <span class="ub-state"><span class="ub-dot"></span>${capped.length ? `AI budget for this demo used up (${esc(capped.join(", "))}): browsing still works` : paused ? `Claude API paused: ${esc(/credit balance/i.test(lastErr.message) ? "out of credit" : suite.friendlyError(lastErr.message))}` : "Claude API available"}</span>
         <span class="ub-sep"></span>
         <span>Today <b>${money(today)}</b></span>
         <span>Total <b>${money(total)}</b>${budget ? ` of <b>$${Number(budget).toFixed(2)}</b> budget` : ""}</span>

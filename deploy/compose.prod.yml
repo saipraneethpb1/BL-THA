@@ -2,12 +2,20 @@
 #   docker compose -f docker-compose.yml -f deploy/compose.prod.yml up -d --build
 
 services:
+  # Public demo, no login: each service caps its own recorded AI spend (US dollars) and
+  # rate-limits each visitor. Together they match the usage bar's SITE_BUDGET_USD.
   knowledge-brain:
     ports: !reset []
+    environment:
+      KB_BUDGET_USD: ${KB_BUDGET_USD:-3}
   inbox-agent:
     ports: !reset []
+    environment:
+      INBOX_BUDGET_USD: ${INBOX_BUDGET_USD:-3}
   scope-builder:
     ports: !reset []
+    environment:
+      SCOPE_BUDGET_USD: ${SCOPE_BUDGET_USD:-4}
 
   caddy:
     image: caddy:2.8.4-alpine

@@ -175,3 +175,36 @@ def test_transcribe_turns_audio_into_text_and_validates(
     api.app.state.transcriber = None
     assert client.post("/transcribe", content=audio, headers=H).status_code == 503
     del api.app.state.transcriber
+
+
+def test_public_demo_guards_limit_visitors_and_cap_spend(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import sqlite3
+    from contextlib import closing
+
+    api.app.state.answerer = FakeAnswerer()
+    monkeypatch.setattr(api.settings, "min_evidence_score", 0.99)
+    api.query_limiter.calls.clear()
+    monkeypatch.setattr(api.query_limiter, "limit", 2)
+    visitor = {**H, "X-Forwarded-For": "203.0.113.7"}
+    ask = {"question": "do you support SAP?"}
+    assert client.post("/query", json=ask, headers=visitor).status_code == 200
+    assert client.post("/query", json=ask, headers=visitor).status_code == 200
+    third = client.post("/query", json=ask, headers=visitor)
+    assert third.status_code == 429 and "try again" in third.json()["detail"]
+    other = {**H, "X-Forwarded-For": "198.51.100.9"}
+    assert client.post("/query", json=ask, headers=other).status_code == 200  # per visitor
+    assert client.post("/query", json=ask, headers=H).status_code == 200  # internal: no limit
+
+    with closing(sqlite3.connect(api.settings.db_path)) as db:
+        db.execute(
+            "INSERT INTO query_log (question, status, cost_usd) VALUES ('x', 'answered', 1.5)"
+        )
+        db.commit()
+    monkeypatch.setattr(api.settings, "budget_usd", 1.0)
+    capped = client.post("/query", json=ask, headers=H)
+    assert capped.status_code == 429 and "budget" in capped.json()["detail"]
+    u = client.get("/usage", headers=H).json()
+    assert u["over_budget"] is True and u["budget_usd"] == 1.0
+    api.query_limiter.calls.clear()

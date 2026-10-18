@@ -11,6 +11,7 @@ import { HttpKnowledgeClient } from "./knowledge-client/client.js";
 import { ClaudeClassifier, ClaudeDrafter } from "./llm/models.js";
 import { ClaudeLessonMiner, LearningError, LearningService, LearningUnavailableError } from "./feedback/learning.js";
 import { InboxAgent, ReviewError, type ReviewAction } from "./pipeline.js";
+import { checkBudget, GuardError, RateLimiter } from "./guard.js";
 import { InboxStore } from "./store/db.js";
 
 const ROOT = join(import.meta.dirname, "..");
@@ -66,6 +67,10 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   const app = Fastify({ logger: false });
   const { store } = deps;
   let lastClaudeError: { message: string; at: string } | null = null;
+  // Public demo guards: per-visitor limits on what costs money, and a spending cap.
+  const draftLimiter = new RateLimiter(deps.config.draftLimitPer10Min, 600, "drafts");
+  const lessonLimiter = new RateLimiter(3, 3600, "lesson checks");
+  const guardSpend = () => checkBudget(store.usage().total_usd, deps.config.budgetUsd);
 
   // Accept an empty body sent as JSON (browsers and curl often label body-less POSTs).
   app.removeContentTypeParser("application/json");
@@ -80,6 +85,10 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   });
 
   app.setErrorHandler((err, _req, reply) => {
+    if (err instanceof GuardError) {
+      if (err.retryAfterS) void reply.header("Retry-After", String(err.retryAfterS));
+      return reply.status(429).send({ error: err.message });
+    }
     if (err instanceof z.ZodError) return reply.status(422).send({ error: "invalid input", issues: err.issues });
     if (err instanceof ReviewError) return reply.status(409).send({ error: err.message });
     if (err instanceof LearningUnavailableError) return reply.status(503).send({ error: err.message });
@@ -101,7 +110,11 @@ export function buildApp(deps: AppDeps): FastifyInstance {
 
   // For the usage bar: Claude spend recorded here, and the last Claude API failure.
   // `includes_kb_lookups` tells the bar not to count those Knowledge Brain calls twice.
-  app.get("/api/usage", async () => ({ service: "inbox", ...store.usage(), includes_kb_lookups: true, last_error: lastClaudeError }));
+  app.get("/api/usage", async () => {
+    const u = store.usage();
+    const budget = deps.config.budgetUsd;
+    return { service: "inbox", ...u, includes_kb_lookups: true, last_error: lastClaudeError, budget_usd: budget, over_budget: budget !== null && u.total_usd >= budget };
+  });
 
   app.get<{ Params: { id: string } }>("/api/emails/:id", async (req, reply) => {
     const email = store.getEmail(req.params.id);
@@ -120,6 +133,8 @@ export function buildApp(deps: AppDeps): FastifyInstance {
 
   app.post<{ Params: { id: string } }>("/api/emails/:id/process", async (req, reply) => {
     if (!deps.agent) return reply.status(503).send({ error: "drafting is disabled: ANTHROPIC_API_KEY is not configured" });
+    draftLimiter.check(req);
+    guardSpend();
     return deps.agent.process(req.params.id);
   });
 
@@ -180,6 +195,8 @@ export function buildApp(deps: AppDeps): FastifyInstance {
 
   app.post<{ Params: { category: string } }>("/api/learning/:category/propose", async (req, reply) => {
     const { actor } = Actor.parse(req.body);
+    lessonLimiter.check(req);
+    guardSpend();
     const version = await deps.learning.propose(kindParam(req.params.category), actor);
     return reply.status(201).send({ version });
   });
@@ -188,6 +205,8 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     "/api/learning/:category/:version/evaluate",
     async (req) => {
       const { actor } = Actor.parse(req.body);
+      lessonLimiter.check(req); // a check re-drafts past emails: the costliest action here
+      guardSpend();
       return deps.learning.evaluate(kindParam(req.params.category), Number(req.params.version), actor);
     },
   );
