@@ -247,8 +247,9 @@ class Store:
             await db.commit()
 
     async def usage(self) -> dict[str, Any]:
-        """Claude spend recorded on built versions, and the latest failure if it is newer than
-        the latest success (for the usage bar)."""
+        """Claude spend recorded on built versions, and the latest build failure if it happened
+        after the latest successful build (for the usage bar). Times come from the audit log,
+        i.e. when a build finished or failed, not when it started."""
 
         def iso(t: str | None) -> str | None:
             return f"{t.replace(' ', 'T')}+00:00" if t else None
@@ -258,26 +259,28 @@ class Store:
                 """SELECT count(*) AS calls,
                           coalesce(sum(json_extract(usage, '$.cost_usd')), 0) AS usd,
                           coalesce(sum(CASE WHEN date(created_at) = date('now')
-                                       THEN json_extract(usage, '$.cost_usd') END), 0) AS today,
-                          max(CASE WHEN status IN ('draft', 'approved', 'superseded')
-                              THEN created_at END) AS last_ok
+                                       THEN json_extract(usage, '$.cost_usd') END), 0) AS today
                    FROM versions WHERE status != 'building'"""
+            )
+            [ok] = await db.execute_fetchall(
+                "SELECT max(created_at) AS at FROM audit WHERE action = 'draft_ready'"
             )
             failed = list(
                 await db.execute_fetchall(
-                    "SELECT error, created_at FROM versions WHERE status = 'failed' "
-                    "ORDER BY created_at DESC, number DESC LIMIT 1"
+                    """SELECT a.created_at AS at, v.error AS error FROM audit a
+                       JOIN versions v ON v.project_id = a.project_id AND v.number = a.version_number
+                       WHERE a.action = 'build_failed' ORDER BY a.id DESC LIMIT 1"""
                 )
             )
         last_error = None
-        if failed and (r["last_ok"] is None or failed[0]["created_at"] >= r["last_ok"]):
-            last_error = {"message": failed[0]["error"], "at": iso(failed[0]["created_at"])}
+        if failed and (ok["at"] is None or failed[0]["at"] >= ok["at"]):
+            last_error = {"message": failed[0]["error"], "at": iso(failed[0]["at"])}
         return {
             "service": "scope",
             "total_usd": round(float(r["usd"]), 6),
             "today_usd": round(float(r["today"]), 6),
             "calls": r["calls"],
-            "last_success_at": iso(r["last_ok"]),
+            "last_success_at": iso(ok["at"]),
             "last_error": last_error,
         }
 
