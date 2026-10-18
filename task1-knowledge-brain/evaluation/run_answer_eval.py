@@ -21,12 +21,13 @@ import time
 from pathlib import Path
 from typing import Any
 
-from evaluation.common import p50_p95, save, table
+from evaluation.common import load_root_env, p50_p95, save, table
 from kb.answer.llm import ClaudeAnswerer
 from kb.answer.service import QueryResult, answer_question
 from kb.config import settings
 from kb.db import connect
 from kb.retrieval.embedder import FastEmbedder
+from kb.retrieval.rewrite import ClaudeQueryRewriter
 from kb.retrieval.search import Searcher
 from kb.snapshot import make_snapshot
 
@@ -86,7 +87,10 @@ async def run(models: list[str], cases: list[dict[str, Any]]) -> dict[str, Any]:
     with tempfile.TemporaryDirectory() as tmp:
         db_copy = Path(tmp) / "eval.db"
         make_snapshot(settings.db_path, db_copy)
-        searcher = Searcher(FastEmbedder(settings.embedding_model, settings.model_cache_dir))
+        searcher = Searcher(  # same retrieval as production, including query rewriting
+            FastEmbedder(settings.embedding_model, settings.model_cache_dir),
+            rewriter=ClaudeQueryRewriter(settings.rewrite_model),
+        )
         summaries, per_case = [], []
         async with connect(db_copy) as db:
             await searcher.vectors.refresh(db)
@@ -145,6 +149,7 @@ def main() -> None:
     if not args.run:
         print("Dry run. Add --run to execute.")
         return
+    load_root_env()
     result = asyncio.run(run(models, cases))
     path = save("answers", result)
     print(

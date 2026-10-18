@@ -23,13 +23,16 @@ class Settings(BaseSettings):
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     model_cache_dir: Path = Path("data/models")
 
-    # Answering. The model is a starting point; the answer eval decides the final choice.
-    answer_model: str = "claude-sonnet-5-5"
+    # Answering. Opus 5.5 passed 88% of the answer eval vs Sonnet 81% at ~2 cents a question.
+    answer_model: str = "claude-opus-5-5"  # chosen on the 32-question answer eval (see EVALS.md)
     answer_prompt_version: str = "answer_v1"
     answer_effort: Literal["low", "medium", "high", "xhigh", "max"] = "low"
     # Below this cosine score we do not ask the model at all (calibrated on the eval set:
     # real questions scored >= 0.68, unrelated ones <= 0.56).
     min_evidence_score: float = 0.60
+    # Rephrase questions into help-center vocabulary before searching (needs the API key).
+    query_rewrite: bool = True
+    rewrite_model: str = "claude-haiku-5-5"
 
     # Screenshots. Haiku is the starting point; the vision eval compares it with Sonnet.
     vision_model: str = "claude-haiku-5-5"

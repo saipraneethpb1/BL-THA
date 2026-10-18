@@ -16,21 +16,24 @@ import time
 from datetime import UTC, datetime
 from pathlib import Path
 
+from evaluation.common import load_root_env
 from kb.config import settings
 from kb.db import connect
 from kb.retrieval.embedder import FastEmbedder
+from kb.retrieval.rewrite import ClaudeQueryRewriter
 from kb.retrieval.search import Mode, Searcher
 
 HERE = Path(__file__).parent
 # (label, mode, keyword weight, changelog weight, max passages per article)
-CONFIGS: list[tuple[str, Mode, float, float, int | None]] = [
-    ("keyword", "keyword", 1.0, 1.0, None),
-    ("vector", "vector", 1.0, 1.0, None),
-    ("hybrid w=0.3 (before tuning)", "hybrid", 0.3, 1.0, None),
-    ("+ changelogs x0.5", "hybrid", 0.3, 0.5, None),
-    ("+ changelogs x0.25", "hybrid", 0.3, 0.25, None),
-    ("+ changelogs x0.5, max 2/article", "hybrid", 0.3, 0.5, 2),
-    ("+ changelogs x0.25, max 2/article", "hybrid", 0.3, 0.25, 2),
+CONFIGS: list[tuple[str, Mode, float, float, int | None, bool]] = [
+    ("keyword", "keyword", 1.0, 1.0, None, False),
+    ("vector", "vector", 1.0, 1.0, None, False),
+    ("hybrid w=0.3 (before tuning)", "hybrid", 0.3, 1.0, None, False),
+    ("+ changelogs x0.5", "hybrid", 0.3, 0.5, None, False),
+    ("+ changelogs x0.25", "hybrid", 0.3, 0.25, None, False),
+    ("+ changelogs x0.5, max 2/article", "hybrid", 0.3, 0.5, 2, False),
+    ("+ changelogs x0.25, max 2/article", "hybrid", 0.3, 0.25, 2, False),
+    ("+ query rewriting (Haiku)", "hybrid", 0.3, 0.5, 2, True),
 ]
 CONTEXT_K = 6  # passages the answer model actually sees per question
 
@@ -48,12 +51,15 @@ def first_gold_rank(article_ids: list[str], gold: set[str]) -> int | None:
 
 async def main() -> None:
     cases = [json.loads(line) for line in (HERE / "retrieval_cases.jsonl").read_text().splitlines()]
+    load_root_env()
+    rewriter = ClaudeQueryRewriter(settings.rewrite_model)
     searcher = Searcher(FastEmbedder(settings.embedding_model, settings.model_cache_dir))
     results: dict[str, dict[str, object]] = {}
     per_case: list[dict[str, object]] = []
     async with connect(settings.db_path) as db:
         await searcher.vectors.refresh(db)  # load once, outside the timings
-        for label, mode, weight, changelog, cap in CONFIGS:
+        for label, mode, weight, changelog, cap, rewrite in CONFIGS:
+            searcher.rewriter = rewriter if rewrite else None
             searcher.keyword_weight = weight
             searcher.changelog_weight = changelog
             searcher.max_per_article = cap
@@ -112,6 +118,11 @@ async def main() -> None:
             f"{r['in_context@6']:.0%} | {r['in_context@6_fresh']:.0%} | "
             f"{r['p50_ms']:.0f} | {r['p95_ms']:.0f} | {', '.join(r['misses@5']) or '-'} |"
         )  # type: ignore[arg-type]
+    cost = (rewriter.input_tokens * 0.10 + rewriter.output_tokens * 0.50) / 1e6
+    print()
+    print(
+        f"Query rewriting: {len(cases)} Haiku calls, ${cost:.4f} total ({cost / len(cases):.6f}/question)."
+    )
 
 
 if __name__ == "__main__":

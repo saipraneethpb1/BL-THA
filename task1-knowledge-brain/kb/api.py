@@ -25,6 +25,7 @@ from kb.db import connect, init_db
 from kb.ingestion.vision import ClaudeImageDescriber
 from kb.refresh import Refresher, daily_loop, seconds_until
 from kb.retrieval.embedder import FastEmbedder
+from kb.retrieval.rewrite import ClaudeQueryRewriter
 from kb.retrieval.search import Searcher
 
 UI_FILE = Path(__file__).parent / "ui" / "index.html"
@@ -35,8 +36,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.seed = await seed_database(settings.db_path, settings.seed_path, settings.seed_url)
     await init_db(settings.db_path)
     if not hasattr(app.state, "searcher"):  # tests inject a searcher with a fake embedder
+        rewriter = (
+            ClaudeQueryRewriter(settings.rewrite_model)
+            if settings.query_rewrite and os.environ.get("ANTHROPIC_API_KEY")
+            else None
+        )
         app.state.searcher = Searcher(
-            FastEmbedder(settings.embedding_model, settings.model_cache_dir)
+            FastEmbedder(settings.embedding_model, settings.model_cache_dir), rewriter=rewriter
         )
     if not hasattr(app.state, "answerer"):
         # Without a key the service still searches; only /query is unavailable.

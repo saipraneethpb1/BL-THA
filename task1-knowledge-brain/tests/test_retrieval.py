@@ -124,3 +124,38 @@ async def test_changelogs_rank_lower_and_articles_are_capped(db: aiosqlite.Conne
         db, "refund a member", k=6
     )
     assert sum(h.article_id == "8" for h in uncapped) > 2
+
+
+class FakeRewriter:
+    def __init__(self, queries: list[str]) -> None:
+        self.queries = queries
+        self.calls = 0
+
+    async def rewrite(self, question: str) -> list[str]:
+        self.calls += 1
+        return self.queries
+
+
+async def test_rewriting_finds_articles_the_customer_wording_misses(
+    db: aiosqlite.Connection,
+) -> None:
+    emb = FakeEmbedder()
+    await sync_index(db, emb)
+    question = "my company picture at the top looks old"  # shares no words with "logo"
+    plain = await Searcher(emb).search(db, question, k=1)
+    rewriter = FakeRewriter(["change the site logo", "Design Settings Logo"])
+    rewritten = await Searcher(emb, rewriter=rewriter).search(db, question, k=1)
+    assert rewritten[0].article_id == "2" and rewriter.calls == 1
+    # The best similarity across queries feeds the evidence gate: a weak chance match
+    # on the original wording becomes a strong match through the rewrite.
+    assert plain[0].score < 0.3 < 0.5 < rewritten[0].score
+
+
+async def test_failed_rewrite_falls_back_to_the_question(db: aiosqlite.Connection) -> None:
+    emb = FakeEmbedder()
+    await sync_index(db, emb)
+    hits = await Searcher(emb, rewriter=FakeRewriter([])).search(db, "refund a member", k=1)
+    assert hits[0].article_id == "1"
+    vector_only = FakeRewriter(["unused"])
+    await Searcher(emb, rewriter=vector_only).search(db, "refund a member", k=1, mode="vector")
+    assert vector_only.calls == 0  # only hybrid search rewrites

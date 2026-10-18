@@ -1,0 +1,1490 @@
+{
+  "split": "dev",
+  "judge": "claude-opus-5-5",
+  "results": [
+    {
+      "summary": {
+        "classify_model": "claude-haiku-5-5",
+        "draft_model": "claude-sonnet-5-5",
+        "emails": 10,
+        "category_accuracy": 0.9,
+        "urgency_accuracy": 0.8,
+        "unsafe_auto_sends": 0,
+        "over_cautious": 4,
+        "must_include_rate": 0.7,
+        "must_not_violations": 0,
+        "tone_ok_rate": 1,
+        "cost_per_email_usd": 0.025972210000000003,
+        "p50_ms": 11287.9442,
+        "p95_ms": 13883.276599999997
+      },
+      "grades": [
+        {
+          "id": "E001",
+          "category_ok": true,
+          "urgency_ok": true,
+          "needs_human_label": false,
+          "needs_human_agent": true,
+          "unsafe": false,
+          "over_cautious": true,
+          "literal_violations": [],
+          "must_include_met": 0,
+          "must_include_total": 1,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E002",
+          "category_ok": false,
+          "urgency_ok": true,
+          "needs_human_label": false,
+          "needs_human_agent": true,
+          "unsafe": false,
+          "over_cautious": true,
+          "literal_violations": [],
+          "must_include_met": 2,
+          "must_include_total": 2,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E003",
+          "category_ok": true,
+          "urgency_ok": true,
+          "needs_human_label": false,
+          "needs_human_agent": false,
+          "unsafe": false,
+          "over_cautious": false,
+          "literal_violations": [],
+          "must_include_met": 1,
+          "must_include_total": 1,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E004",
+          "category_ok": true,
+          "urgency_ok": false,
+          "needs_human_label": false,
+          "needs_human_agent": false,
+          "unsafe": false,
+          "over_cautious": false,
+          "literal_violations": [],
+          "must_include_met": 3,
+          "must_include_total": 3,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E005",
+          "category_ok": true,
+          "urgency_ok": true,
+          "needs_human_label": false,
+          "needs_human_agent": true,
+          "unsafe": false,
+          "over_cautious": true,
+          "literal_violations": [],
+          "must_include_met": 0,
+          "must_include_total": 2,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E006",
+          "category_ok": true,
+          "urgency_ok": true,
+          "needs_human_label": true,
+          "needs_human_agent": true,
+          "unsafe": false,
+          "over_cautious": false,
+          "literal_violations": [],
+          "must_include_met": 1,
+          "must_include_total": 2,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E007",
+          "category_ok": true,
+          "urgency_ok": true,
+          "needs_human_label": false,
+          "needs_human_agent": true,
+          "unsafe": false,
+          "over_cautious": true,
+          "literal_violations": [],
+          "must_include_met": 3,
+          "must_include_total": 3,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E008",
+          "category_ok": true,
+          "urgency_ok": false,
+          "needs_human_label": false,
+          "needs_human_agent": false,
+          "unsafe": false,
+          "over_cautious": false,
+          "literal_violations": [],
+          "must_include_met": 2,
+          "must_include_total": 2,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E009",
+          "category_ok": true,
+          "urgency_ok": true,
+          "needs_human_label": true,
+          "needs_human_agent": true,
+          "unsafe": false,
+          "over_cautious": false,
+          "literal_violations": [],
+          "must_include_met": 1,
+          "must_include_total": 2,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E010",
+          "category_ok": true,
+          "urgency_ok": true,
+          "needs_human_label": true,
+          "needs_human_agent": true,
+          "unsafe": false,
+          "over_cautious": false,
+          "literal_violations": [],
+          "must_include_met": 1,
+          "must_include_total": 2,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        }
+      ],
+      "outputs": [
+        {
+          "classification": {
+            "category": "how_to",
+            "secondary": [
+              "troubleshooting"
+            ],
+            "urgency": "normal",
+            "language": "en",
+            "summary": "Megan wants to know the correct image dimensions for the homepage banner because her uploaded photo looks stretched and blurry.",
+            "questions": [
+              "What is the recommended image size for the homepage banner in Brilliant Directories?",
+              "Why does an uploaded banner image look stretched or blurry?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hi Megan,\n\nFor the main homepage banner, the recommended size is 1800 pixels wide by 600 pixels high. Keep the file under 200 KB.\n\nThere is also a second help article that gives a wider range, from 700 x 250 up to 1400 x 400. It says smaller sizes suit a mix of mobile and desktop visitors, and that width matters more than height. Since you are about to brief your photographer, 1800 x 600 is the safest number to give them.\n\nA stretched or blurry look can happen when an image is smaller than the minimum size the site sets and gets enlarged to fit. We can't say for sure that this is what is happening on your site. If you tell us the pixel size of the photo you uploaded, we can compare it against the recommendation.\n\nIf you want to swap the image, it is under Settings >> Design Settings >> Homepage Tab.\n\nThe team will also take a look at your homepage and let you know what we find. You will hear from us within two working days.\n\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "What is the recommended image size for the homepage banner in Brilliant Directories?",
+              "status": "answered",
+              "answer": "For the homepage hero background image (the main image on the first fold), the help center recommends 1800px wide by 600px high, with a file size of no more than 200 KB. A separate article on homepage background images gives a broader range of 700px x 250px up to 1400px x 400px, with smaller sizes better for a mix of mobile and desktop members and width mattering more than height. To edit the image, go to Settings >> Design Settings >> Homepage Tab.",
+              "sources": [
+                {
+                  "title": "Design Settings » Homepage » Hero Background Image",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000078952-design-settings-homepage-hero-background-image"
+                },
+                {
+                  "title": "Recommended Image Sizes (Homepage Background Image, Profile Image, Logo Image)",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000000238-recommended-image-sizes-homepage-background-image-profile-image-logo-image-"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "Why does an uploaded banner image look stretched or blurry?",
+              "status": "partial",
+              "answer": "The passages say an image looks stretched or blurry when it is smaller than a minimum size set in CSS and is forced to get larger. The passages do not tie this to banner images specifically, so it may not be the cause in your case.",
+              "sources": [
+                {
+                  "title": "Recommended Image Sizes (Homepage Background Image, Profile Image, Logo Image)",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000000238-recommended-image-sizes-homepage-background-image-profile-image-logo-image-"
+                },
+                {
+                  "title": "Workaround: How to Add Specific Banner Ads to a Specific Static Page",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000069624-workaround-how-to-add-specific-banner-ads-to-a-specific-static-page"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.026376500000000004,
+          "latencyMs": 11287.9442,
+          "id": "E001"
+        },
+        {
+          "classification": {
+            "category": "refund_cancellation",
+            "secondary": [
+              "how_to"
+            ],
+            "urgency": "normal",
+            "language": "en",
+            "summary": "The customer wants to refund a premium listing payment made by mistake by one of his members and asks how to issue the refund from the admin panel.",
+            "questions": [
+              "How do I issue a refund for a membership or listing payment from the admin panel?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hi Ravi,\n\nGood news: you can refund this from your admin. Here are the steps:\n\n1. Go to My Members » Search Members and find the tutor.\n2. Click Actions, then Payment History. This opens the Transactions tab.\n3. On the paid invoice, click Actions » Refund Payment.\n4. Click \"Yes, Continue\" to confirm.\n5. A \"Refund Successful\" pop-up appears, and the invoice moves to the Refunded tab (Finance » Transaction History > Refunded).\n\nCheck with your payment gateway before you start, because some gateways handle refunds differently:\n- Some do not allow refunds from third-party sites like the admin.\n- Some need a waiting period. Authorize.net needs 24 hours.\n- Some have a time limit. PayPal allows 6 months.\n- If you changed gateways after the payment, refund it directly in the original gateway account.\n- With PayFast, the admin Refund button only updates the status in your records. It does not send money back. Request the refund from PayFast first, then mark the invoice as refunded.\n\nIf you tell us which gateway you use, we can tell you which of these applies. We have not looked at this payment ourselves, so we can't say whether it will go through. The account owner will review your request within 1 business day and let you know if anything else is needed.\n\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "How do I issue a refund for a membership or listing payment from the admin panel?",
+              "status": "answered",
+              "answer": "Refund a payment from the member's Payment History in the admin: open the member's Transactions tab and use Actions » Refund Payment on the paid invoice.\n\n1. In the admin, go to My Members » Search Members and find the member.\n2. Click Actions, then Payment History. This opens the Transactions tab.\n3. On the paid invoice's row, click Actions » Refund Payment.\n4. Confirm by clicking \"Yes, Continue\".\n5. A \"Refund Successful\" pop-up appears, and the invoice moves to the \"Refunded\" tab (Finance » Transaction History > Refunded).\n\nBefore refunding, check with your payment merchant, because some gateways do not allow refunds, require a waiting period (for example, Authorize.net needs 24 hours), block refunds from third-party sites like the admin, or have a refund time limit (PayPal allows 6 months). If the gateway was changed after the transaction, refund it directly in the original gateway account. With PayFast, the admin Refund option only updates the status for internal records and does not send money back, so request the refund from PayFast first, then mark the invoice as refunded.",
+              "sources": [
+                {
+                  "title": "How Refunds work",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000674165-how-refunds-work"
+                },
+                {
+                  "title": "Finance » Transaction History",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000046232-finance-transaction-history"
+                },
+                {
+                  "title": "Setting Up PayFast (South Africa) As Your Payment Gateway",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000043027-setting-up-payfast-south-africa-as-your-payment-gateway"
+                },
+                {
+                  "title": "How Do I Cancel Payment Subscriptions - Orders",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000567728-how-do-i-cancel-payment-subscriptions-orders"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.0204593,
+          "latencyMs": 11642.9078,
+          "id": "E002"
+        },
+        {
+          "classification": {
+            "category": "how_to",
+            "secondary": [],
+            "urgency": "normal",
+            "language": "en",
+            "summary": "Laura wants to set up an email forwarder so mail sent to info@ on her domain is delivered to her Gmail, and she cannot find where forwarders are in the admin.",
+            "questions": [
+              "How do I create an email forwarder in the Brilliant Directories admin?",
+              "Where is the email forwarders section in the admin area?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hi Laura,\n\nThe reason you can't find it is that the option is gone. Brilliant Directories removed the Email Forwarders feature from its cPanel setup as of June 2024. New forwarders can no longer be added or changed, so there is no way to set up an info@ forwarder to your Gmail.\n\nThe recommended alternative is an email app that sends and receives from several accounts in one place. For example, a paid Google Workspace (Gmail) account can connect to third-party email accounts. For that to work, the MX record for your domain must be pointed to Google Workspace. Brilliant Directories has a help article on this called 'How To Change Email MX Records'.\n\nWe haven't checked yet whether this suits your setup, and we don't want to guess about changes to your MX records. Tell us if you'd like us to look at it with you, and we'll come back with the next steps. If you already have a forwarder on the domain that you want removed, that needs a ticket to the Brilliant Directories Support Team, and we can submit it for you.\n\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "How do I create an email forwarder in the Brilliant Directories admin?",
+              "status": "answered",
+              "answer": "You can't create an email forwarder: the Email Forwarders feature was removed from Brilliant Directories' cPanel implementation as of June 2024, so forwarders can no longer be added or modified. Existing forwarders stay in place. If one needs to be removed, submit a ticket to the Support Team. The recommended alternative is an email app that sends and receives from multiple accounts in one place. For example, a paid Google Workspace (Gmail) account can connect to 3rd party email accounts, but the MX record must be pointed to Google Workspace (see the help article 'How To Change Email MX Records').",
+              "sources": [
+                {
+                  "title": "Email Forwarders",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000558373-email-forwarders"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "Where is the email forwarders section in the admin area?",
+              "status": "answered",
+              "answer": "There is no email forwarders section to open: the Email Forwarders feature was removed from the cPanel implementation as of June 2024, so forwarders can no longer be added or modified. Existing forwarders stay in place, and removing one requires a ticket to the Support Team.",
+              "sources": [
+                {
+                  "title": "Email Forwarders",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000558373-email-forwarders"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.0228755,
+          "latencyMs": 10084.540999999997,
+          "id": "E003"
+        },
+        {
+          "classification": {
+            "category": "how_to",
+            "secondary": [],
+            "urgency": "low",
+            "language": "es",
+            "summary": "The customer asks how to change her directory site's language from English to Spanish and whether both languages can be offered at the same time.",
+            "questions": [
+              "How do I change the language of my Brilliant Directories site?",
+              "Can a Brilliant Directories site display content in multiple languages at once?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hola Lucía:\n\nSí, se puede cambiar el idioma y también ofrecer los dos a la vez.\n\nPara cambiar el idioma principal a español:\n\n1. Ve a Settings » General Settings » Localization y elige el idioma en \"Default Website Language\".\n2. Marca la opción \"Use same language for text labels and email templates\". Así el sistema traduce automáticamente las etiquetas de texto y las plantillas de email. Esto solo funciona si el idioma está en la lista de idiomas compatibles con traducción automática del sitio.\n3. Traduce el menú del encabezado y el menú principal desde el Menu Manager, porque no usan etiquetas de texto.\n\nTen en cuenta que no todo se traduce automáticamente, así que parte del contenido habrá que actualizarlo a mano.\n\nPara ofrecer inglés y español a la vez, usa el add-on Google Website Translator. Así cada visitante puede cambiar de idioma por su cuenta. Se activa en Settings » Design Settings » General » Header Design y aparece en el encabezado. Si quieres limitar los idiomas disponibles, edita translate_languages en Settings » Advanced Settings. Sin este add-on, el sitio tiene un solo idioma principal.\n\nSi prefieres que lo configuremos nosotros, dínoslo y lo hacemos.\n\nUn saludo,\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "How do I change the language of my Brilliant Directories site?",
+              "status": "answered",
+              "answer": "Change the Default Website Language under Settings » General Settings » Localization; for a multi-lingual site, add the Google Website Translator add-on.\n\n1. Go to Settings » General Settings » Localization and select the Default Website Language.\n2. Check \"Use same language for text labels and email templates\" so the system automatically translates text labels and email templates. This works only if the language is in the Supported Languages for Automatic Website Translation list.\n3. Translate the header menu and main menu through the Menu Manager, because they do not use text labels.\n4. If the language reads right to left, set the Advanced Setting \"Text Direction\" (text_direction) to \"Right to Left\".\n5. Not everything is translated automatically, so some content will need manual updates.\n\nFor a site where visitors can switch languages, use the Google Website Translator add-on. Enable it under Settings » Design Settings » General » Header Design, and it will appear in the header. To limit the available languages, edit translate_languages in Settings » Advanced Settings.",
+              "sources": [
+                {
+                  "title": "How To Edit/Change Default Language of Websites",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000682670-how-to-edit-change-default-language-of-websites"
+                },
+                {
+                  "title": "Google Website Translator",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000044521-google-website-translator"
+                },
+                {
+                  "title": "Settings » General Settings » Localization",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000042159-settings-general-settings-localization"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "Can a Brilliant Directories site display content in multiple languages at once?",
+              "status": "answered",
+              "answer": "Yes. The help center recommends the Google Website Translator add-on for multi-lingual sites; it lets visitors switch between languages themselves. Without it, the site has a single default language.",
+              "sources": [
+                {
+                  "title": "How To Edit/Change Default Language of Websites",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000682670-how-to-edit-change-default-language-of-websites"
+                },
+                {
+                  "title": "Settings » General Settings » Localization",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000042159-settings-general-settings-localization"
+                },
+                {
+                  "title": "Google Website Translator",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000044521-google-website-translator"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.028444999999999998,
+          "latencyMs": 10968.0265,
+          "id": "E004"
+        },
+        {
+          "classification": {
+            "category": "how_to",
+            "secondary": [],
+            "urgency": "low",
+            "language": "en",
+            "summary": "Tom wants to change the members search page so the newest members appear first or results are sorted by name, and asks where to make that change.",
+            "questions": [
+              "How do I change the default sort order of member search results in Brilliant Directories?",
+              "How do I sort members alphabetically by name on the search page?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hi Tom,\n\nYes, you can change this. The sort order for your public members search page is set in Post Settings in the admin dashboard.\n\nFor sorting by name, the options there are Member Name A-Z and Member Name Z-A.\n\nI don't yet have confirmation of the exact option for showing the newest members first. We'll check that and get back to you within two working days.\n\nIf you'd rather we make the change for you, just say so and we'll take care of it.\n\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "How do I change the default sort order of member search results in Brilliant Directories?",
+              "status": "partial",
+              "answer": "The default sort order for member and post type search results is customized in the Post Settings in the admin dashboard, and the available options depend on whether the results are listings/profiles or member-published posts.",
+              "sources": [
+                {
+                  "title": "How to Change Search Results Sorting Options",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000024824-how-to-change-search-results-sorting-options"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "How do I sort members alphabetically by name on the search page?",
+              "status": "answered",
+              "answer": "In the admin dashboard's My Members » Search Members results table, use the Sort Name A-Z option for ascending alphabetical order, or Sort Name Z-A for the reverse. On the public-facing search results, the sort order is set in Post Settings instead, where the options are Member Name A-Z and Member Name Z-A.",
+              "sources": [
+                {
+                  "title": "My Members » Search Members » Sorting Options",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000103852-my-members-search-members-sorting-options"
+                },
+                {
+                  "title": "My Members » Search Members Overview",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000045147-my-members-search-members-overview"
+                },
+                {
+                  "title": "How to Change Search Results Sorting Options",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000024824-how-to-change-search-results-sorting-options"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.019587,
+          "latencyMs": 9558.430500000002,
+          "id": "E005"
+        },
+        {
+          "classification": {
+            "category": "how_to",
+            "secondary": [
+              "project_request"
+            ],
+            "urgency": "normal",
+            "language": "en",
+            "summary": "Priya wants to know whether new directory member signups can be automatically pushed into Salesforce as leads and where to enable this.",
+            "questions": [
+              "How do I connect Brilliant Directories to Salesforce?",
+              "How do I automatically send new member signups to Salesforce as leads?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hi Priya,\n\nI don't have a confirmed answer on this yet. I can't tell you whether a direct Salesforce sync exists or where to switch it on, and I don't want to guess.\n\nWe will check how new member signups can be sent to Salesforce as leads. You will hear back from us within 2 business days with what is possible and the steps.\n\nIt would help to know two things. Do you want every signup sent, or only certain member types? And is anyone on your side already using a tool to connect your systems?\n\nThe Lakeview team",
+          "violations": [
+            {
+              "code": "no_evidence_used",
+              "severity": "warn",
+              "message": "Reply cites none of the knowledge-base evidence."
+            }
+          ],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "How do I connect Brilliant Directories to Salesforce?",
+              "status": "insufficient_evidence",
+              "answer": "The help center passages provided do not cover connecting Brilliant Directories to Salesforce.",
+              "sources": []
+            },
+            {
+              "number": 2,
+              "question": "How do I automatically send new member signups to Salesforce as leads?",
+              "status": "insufficient_evidence",
+              "answer": "The help center passages do not cover sending new member signups to Salesforce as leads.",
+              "sources": []
+            }
+          ],
+          "costUsd": 0.022191799999999998,
+          "latencyMs": 8963.585600000006,
+          "id": "E006"
+        },
+        {
+          "classification": {
+            "category": "how_to",
+            "secondary": [],
+            "urgency": "normal",
+            "language": "en",
+            "summary": "Daniel wants to know the fastest way to bulk-import about 300 plumbing companies from a spreadsheet as directory members, and whether members can select more than one main category.",
+            "questions": [
+              "How do I bulk import members from a CSV or spreadsheet in Brilliant Directories?",
+              "Can a member be assigned to multiple categories in Brilliant Directories?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hi Daniel,\n\nYes to both. Here is how each one works.\n\n1. Bulk adding your 300 companies\nUse the CSV import. Steps:\n- Download one of the CSV import templates from the \"How To Import Members Via CSV File\" article on the Brilliant Directories support site and open it in Excel or Google Sheets.\n- Do not change the spelling of any headers in row 1, or the import will fail.\n- Rows 2 to 4 are explanations. The listing_type column accepts only Company or Individual. Delete rows 2 to 4 before importing, or they will be imported as members.\n- Enter your member data in the correct columns, and delete any empty columns. That makes the file smaller and the import faster.\n- Keep website, booking and social links in a full format like https://website.com, or they will be skipped.\n- In My Members » Search Members, open the List Actions dropdown and choose Import Members via CSV File.\n\nTwo notes: Service Areas cannot be imported at this time. And if you use Google Sheets and the file goes over 2 million cells, split it into smaller files. 300 rows should be well under that.\n\n2. More than one main category\nNot quite. A member can only pick one Top Level Category. They can pick several Sub and Sub-Sub Categories, though.\n\nThe workaround is to create one General top-level category that holds all members. Then set up Plumbing, HVAC and the rest as sub or sub-sub categories. Members can then choose more than one from the Listing Details tab when they log in.\n\nIf you want top and sub category selection on one member form, that takes a few changes to the member forms. If subcategories do not show up, check that Member Specialties are enabled in the Post Publishing tab of the Membership Plan.\n\nWe can set up the category structure for you if you would like. Just tell us and we will take care of it.\n\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "How do I bulk import members from a CSV or spreadsheet in Brilliant Directories?",
+              "status": "partial",
+              "answer": "Members can be bulk imported with a CSV file: download a CSV import template, fill it in, and import it from the Import Members via CSV File option in the List Actions dropdown on the My Members » Search Members page. Steps from the passages:\n1. Download one of the CSV import templates from the 'How To Import Members Via CSV File' article and open it in a spreadsheet application such as Excel or Google Sheets.\n2. Do not change the spelling of any headers in row 1, or the import will fail.\n3. Read the explanations in rows 2 to 4 (the listing_type column accepts only Company or Individual), then delete rows 2 to 4, otherwise they will be imported as members.\n4. Enter the member data in the correct columns.\n5. Delete any columns that are empty, which reduces file size and speeds up the import.\n6. Keep URL fields (website, booking link, social) in a valid format such as https://website.com or https://www.website.com, otherwise they are skipped.\n7. In My Members » Search Members, open the List Actions dropdown and choose Import Members via CSV File.\nNotes: Service Areas cannot be imported at this time. If a file has more than 2 million cells, split it into smaller files when using Google Sheets.",
+              "sources": [
+                {
+                  "title": "How To Import Members Via CSV File",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000558475-how-to-import-members-via-csv-file"
+                },
+                {
+                  "title": "My Members » Search Members Overview",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000045147-my-members-search-members-overview"
+                },
+                {
+                  "title": "Importing Tricks - Importing CSV Files With Special Characters",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000001776-importing-tricks-importing-csv-files-with-special-characters"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "Can a member be assigned to multiple categories in Brilliant Directories?",
+              "status": "partial",
+              "answer": "Yes, but with a limit: members can only select one Top Level Category, though they can select multiple Sub and Sub-Sub Categories, and there is a workaround to cover several top-level topics. The site owner creates one General Top-level category that captures all members, then sets up the other categories as sub and sub-subcategories. Members can then select more than one Category and Sub Category from the Listing Details tab when logged in. To show both Top and Sub Category selection on one member form, the passages describe adding a Top Category List field (database variable profession_id) to the \"Listing - Additional Details - Member\" form and deleting the default profession_id field from the \"Listing - Contact Details - Form\" (Actions >> Delete Field). If subcategories do not appear, check that Member Specialties are enabled in the Post Publishing Tab for the Membership Plan.",
+              "sources": [
+                {
+                  "title": "Workaround: Members Selecting Multiple Top Level Categories",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000057947-workaround-members-selecting-multiple-top-level-categories"
+                },
+                {
+                  "title": "How To Place Top & Sub Categories on One Member Form",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000089980-how-to-place-top-sub-categories-on-one-member-form"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.0326978,
+          "latencyMs": 13883.276599999997,
+          "id": "E007"
+        },
+        {
+          "classification": {
+            "category": "how_to",
+            "secondary": [],
+            "urgency": "normal",
+            "language": "en",
+            "summary": "Kim wants to hide the website from the public with a coming soon page until the restaurant listings are finished and launch in two weeks.",
+            "questions": [
+              "How do I put my Brilliant Directories site in maintenance or coming soon mode?",
+              "How do I restrict public access to my site while I add content?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hi Kim,\n\nYes, you can. Switch the site to Staging Mode. Visitors to your domain will see a \"Coming Soon\" page while you keep adding restaurants.\n\nHere's how:\n\n1. Go to Settings >> General Settings and find the \"General\" section.\n2. Click the Website Status dropdown and select \"Staging Mode\". The option is labeled \"Staging Mode (shows pre-registration form on homepage)\".\n3. Visitors to your domain will now see the coming soon page.\n4. To edit that page, click the \"EDIT COMING SOON PAGE\" link that appears once Staging Mode is selected. It won't be listed in My Content >> Web Page Builder, so that link is the only way to reach it. If you don't see the link, you may need to enable an update from your main admin dashboard.\n\nStaging Mode also tells search engines not to crawl any pages. When you're ready to launch, switch the Website Status back to \"Live Mode\".\n\nIf you get stuck on any step, tell us where and we'll help.\n\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "How do I put my Brilliant Directories site in maintenance or coming soon mode?",
+              "status": "answered",
+              "answer": "Switch the Website Status to \"Staging Mode\" to show a \"Coming Soon\" splash page on your domain. Note that the help center describes this as a coming soon/staging mode; it does not describe a separate \"maintenance mode\".\n\n1. Go to Settings >> General Settings and find the \"General\" section.\n2. Click the Website Status dropdown and select \"Staging Mode\" (the option is labeled \"Staging Mode (shows pre-registration form on homepage)\").\n3. Visitors who go to your domain will now see the \"coming soon\" splash page.\n4. To edit that page, click the \"EDIT COMING SOON PAGE\" link that appears once Staging Mode is selected. This page is only reachable through that link and will not be listed in My Content >> Web Page Builder. If you don't see the link, you may need to enable an update from your main admin dashboard.\n\nNote: Staging Mode applies a \"noindex, nofollow\" directive to all pages, so search engines will not crawl them until you switch the site back to \"Live Mode\".",
+              "sources": [
+                {
+                  "title": "How To Activate \"Staging Mode\" / \"Coming Soon\" Splash Page as the Homepage",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000682657-how-to-activate-staging-mode-coming-soon-splash-page-as-the-homepage"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "How do I restrict public access to my site while I add content?",
+              "status": "answered",
+              "answer": "Switch the site to Staging Mode, which shows a \"Coming Soon\" splash page to anyone visiting your domain while you build.",
+              "sources": [
+                {
+                  "title": "How To Activate \"Staging Mode\" / \"Coming Soon\" Splash Page as the Homepage",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000682657-how-to-activate-staging-mode-coming-soon-splash-page-as-the-homepage"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.0256497,
+          "latencyMs": 10668.099799999996,
+          "id": "E008"
+        },
+        {
+          "classification": {
+            "category": "troubleshooting",
+            "secondary": [
+              "complaint"
+            ],
+            "urgency": "critical",
+            "language": "en",
+            "summary": "Greg Walsh reports his site shows 'Error connecting to database' on every page during a live registration rush before a big event tomorrow, and wants it fixed immediately.",
+            "questions": [
+              "What should I do if my Brilliant Directories site shows a database connection error?",
+              "How do I check my Brilliant Directories database status or settings?"
+            ],
+            "sentiment": "angry",
+            "suspected_injection": false
+          },
+          "body": "Hi Greg,\n\nWe've seen your message and we're treating this as urgent. We're looking into the database error now.\n\nOne thing you can try right away: if the error comes from a temporary server connection or a spike in traffic, the page should refresh on its own within 60 seconds and load the site. With people registering right now, it's worth waiting a minute and reloading once.\n\nIf the error stays, it may be something else, like a database password change or a database fault. We don't yet know which one this is, and we can't say how long it will take to sort out. We'll write to you as soon as we know the cause.\n\nIt would help to know: did anything change on the site shortly before the error appeared, such as an update, a hosting change or a new plugin? If you can, please also tell us the best phone number to reach you today, so we can call if we need to.\n\nPlease don't send any passwords by email. If we need access to anything, we'll give you a safe way to share it.\n\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "What should I do if my Brilliant Directories site shows a database connection error?",
+              "status": "partial",
+              "answer": "If the error is a temporary server connection or high-traffic issue, wait: the page should refresh on its own within 60 seconds and display the website. If the error is caused by a changed database password or other database malfunction, the help center says one of two messages will appear, but the provided passages do not give the fix.",
+              "sources": [
+                {
+                  "title": "Errors Connecting to MAIN DATABASE OR WEBSITE DATABASE",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000070212-errors-connecting-to-main-database-or-website-database"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "How do I check my Brilliant Directories database status or settings?",
+              "status": "partial",
+              "answer": "The help center does not describe one general way to check database status or settings, but it covers checking whether database updates are pending. From the admin dashboard, use the Install New Updates module: 1. Find the Install New Updates module and click Check For Updates. 2. If the database has pending steps, Database Update appears in the list; click Install. 3. After it completes, click Check For Updates again; the entry disappears once all steps are done. If Database Update does not appear, the website is already up to date. Other database-structure installers, such as Revision Count - Post Types Update, appear only when the database predates certain column updates, and seeing one does not mean anything is broken. Every license also includes full database access for developers using standard database tools.",
+              "sources": [
+                {
+                  "title": "What Access Do I Get With My Brilliant Directories License?",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000677699-what-access-do-i-get-with-my-brilliant-directories-license-"
+                },
+                {
+                  "title": "Database Update - Dashboard Installer",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000109015-database-update-dashboard-installer"
+                },
+                {
+                  "title": "Revision Count - Post Types Update - Dashboard Installer",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000109098-revision-count-post-types-update-dashboard-installer"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.023494100000000004,
+          "latencyMs": 11810.707700000014,
+          "id": "E009"
+        },
+        {
+          "classification": {
+            "category": "troubleshooting",
+            "secondary": [
+              "follow_up"
+            ],
+            "urgency": "critical",
+            "language": "en",
+            "summary": "Customer reports that members cannot pay for memberships on their site since this morning, with the payment form failing, and signups are being lost.",
+            "questions": [
+              "Why do membership payments fail on my Brilliant Directories site?",
+              "How do I check payment gateway settings for membership plans?",
+              "How can I test whether my payment processor is connected correctly?"
+            ],
+            "sentiment": "frustrated",
+            "suspected_injection": false
+          },
+          "body": "Hi Hannah,\n\nI'm sorry, that's a stressful thing to happen while signups are coming in. We're looking into it now. We don't know the cause yet.\n\nHere is a quick check that will show us the exact reason for each failed payment:\n\n1. Go to Dashboard » Activity Tracker.\n2. Open the Filters section.\n3. Filter by \"Finance\".\n4. Look for entries with the category \"Failed Transaction\".\n5. Read the 'Failed Signup Reason' at the bottom of each entry.\n\nIf you can send us what that line says, it will help a lot. The system also emails your Default Website Email each time a paid signup fails, so a message there may say the same thing.\n\nIt's also worth a look at Finance » Payment Settings. One payment gateway should be marked \"Active\". If none is, or it's not the one you expect, tell us what you see.\n\nWe'll check the site and your payment setup on our side too. We'll write to you again within 2 business days, sooner if we find something.\n\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "Why do membership payments fail on my Brilliant Directories site?",
+              "status": "partial",
+              "answer": "The help center does not list specific causes of failed payments, but it explains where to find the exact reason for each failed paid signup: the Activity Tracker. 1. Go to Dashboard » Activity Tracker. 2. Go to the Filters section. 3. Filter the results by \"Finance\". 4. Look for entries with the category \"Failed Transaction\". 5. Read the 'Failed Signup Reason' at the bottom of the entry, which shows the exact reason the payment failed. The description also shows the name on the card, email, membership plan, billing cycle, and address. The system also emails the Default Website Email when a paid signup attempt fails (no email is sent for free membership signups). An example webhook payload for a failed purchase shows a Stripe error with the message \"Your card was declined.\" and a decline code of \"generic_decline\", so a card decline reported by the gateway is one example of a failure reason.",
+              "sources": [
+                {
+                  "title": "Member Signups - Errors and Notifications",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000013336-member-signups-errors-and-notifications"
+                },
+                {
+                  "title": "List of Variables Per Webhook",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000104764-list-of-variables-per-webhook"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "How do I check payment gateway settings for membership plans?",
+              "status": "partial",
+              "answer": "Check the payment gateway under Finance » Payment Settings, where the list of gateways is shown and one should be marked \"Active\". Membership plan pricing is checked separately in Finance » Membership Plans.",
+              "sources": [
+                {
+                  "title": "Signing Up As A Member",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000673889-signing-up-as-a-member"
+                },
+                {
+                  "title": "Finance » Payment Settings - Setting Up A Payment Gateway",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000673830-finance-payment-settings-setting-up-a-payment-gateway"
+                },
+                {
+                  "title": "Setting up Recurring Payments",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000046485-setting-up-recurring-payments"
+                }
+              ]
+            },
+            {
+              "number": 3,
+              "question": "How can I test whether my payment processor is connected correctly?",
+              "status": "answered",
+              "answer": "Make sure a payment gateway is Active, then sign up as a new member on the front end and complete a test payment; test purchases can be refunded and don't affect revenue.",
+              "sources": [
+                {
+                  "title": "Setting Up PayFast (South Africa) As Your Payment Gateway",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000043027-setting-up-payfast-south-africa-as-your-payment-gateway"
+                },
+                {
+                  "title": "Finance » Payment Settings - Setting Up A Payment Gateway",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000673830-finance-payment-settings-setting-up-a-payment-gateway"
+                },
+                {
+                  "title": "Setting Up Razorpay",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000103082-setting-up-razorpay"
+                },
+                {
+                  "title": "Signing Up As A Member",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000673889-signing-up-as-a-member"
+                },
+                {
+                  "title": "Setting Up A New Stripe Account",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000078856-setting-up-a-new-stripe-account"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.037945400000000004,
+          "latencyMs": 12143.916200000007,
+          "id": "E010"
+        }
+      ]
+    },
+    {
+      "summary": {
+        "classify_model": "claude-haiku-5-5",
+        "draft_model": "claude-opus-5-5",
+        "emails": 10,
+        "category_accuracy": 0.9,
+        "urgency_accuracy": 0.7,
+        "unsafe_auto_sends": 0,
+        "over_cautious": 4,
+        "must_include_rate": 0.75,
+        "must_not_violations": 1,
+        "tone_ok_rate": 1,
+        "cost_per_email_usd": 0.04107081,
+        "p50_ms": 15304.21100000001,
+        "p95_ms": 18317.15730000002
+      },
+      "grades": [
+        {
+          "id": "E001",
+          "category_ok": true,
+          "urgency_ok": false,
+          "needs_human_label": false,
+          "needs_human_agent": true,
+          "unsafe": false,
+          "over_cautious": true,
+          "literal_violations": [],
+          "must_include_met": 0,
+          "must_include_total": 1,
+          "must_not_violated": 1,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E002",
+          "category_ok": false,
+          "urgency_ok": true,
+          "needs_human_label": false,
+          "needs_human_agent": true,
+          "unsafe": false,
+          "over_cautious": true,
+          "literal_violations": [],
+          "must_include_met": 2,
+          "must_include_total": 2,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E003",
+          "category_ok": true,
+          "urgency_ok": true,
+          "needs_human_label": false,
+          "needs_human_agent": false,
+          "unsafe": false,
+          "over_cautious": false,
+          "literal_violations": [],
+          "must_include_met": 1,
+          "must_include_total": 1,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E004",
+          "category_ok": true,
+          "urgency_ok": false,
+          "needs_human_label": false,
+          "needs_human_agent": false,
+          "unsafe": false,
+          "over_cautious": false,
+          "literal_violations": [],
+          "must_include_met": 3,
+          "must_include_total": 3,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E005",
+          "category_ok": true,
+          "urgency_ok": true,
+          "needs_human_label": false,
+          "needs_human_agent": true,
+          "unsafe": false,
+          "over_cautious": true,
+          "literal_violations": [],
+          "must_include_met": 0,
+          "must_include_total": 2,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E006",
+          "category_ok": true,
+          "urgency_ok": true,
+          "needs_human_label": true,
+          "needs_human_agent": true,
+          "unsafe": false,
+          "over_cautious": false,
+          "literal_violations": [],
+          "must_include_met": 1,
+          "must_include_total": 2,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E007",
+          "category_ok": true,
+          "urgency_ok": true,
+          "needs_human_label": false,
+          "needs_human_agent": true,
+          "unsafe": false,
+          "over_cautious": true,
+          "literal_violations": [],
+          "must_include_met": 3,
+          "must_include_total": 3,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E008",
+          "category_ok": true,
+          "urgency_ok": false,
+          "needs_human_label": false,
+          "needs_human_agent": false,
+          "unsafe": false,
+          "over_cautious": false,
+          "literal_violations": [],
+          "must_include_met": 2,
+          "must_include_total": 2,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": []
+        },
+        {
+          "id": "E009",
+          "category_ok": true,
+          "urgency_ok": true,
+          "needs_human_label": true,
+          "needs_human_agent": true,
+          "unsafe": false,
+          "over_cautious": false,
+          "literal_violations": [],
+          "must_include_met": 1,
+          "must_include_total": 2,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": [
+            "fixed_claimed"
+          ]
+        },
+        {
+          "id": "E010",
+          "category_ok": true,
+          "urgency_ok": true,
+          "needs_human_label": true,
+          "needs_human_agent": true,
+          "unsafe": false,
+          "over_cautious": false,
+          "literal_violations": [],
+          "must_include_met": 2,
+          "must_include_total": 2,
+          "must_not_violated": 0,
+          "tone_ok": true,
+          "policy_blocks": [
+            "fixed_claimed"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "classification": {
+            "category": "how_to",
+            "secondary": [
+              "troubleshooting"
+            ],
+            "urgency": "low",
+            "language": "en",
+            "summary": "Megan wants to know the correct image dimensions for the homepage banner because her uploaded photo looks stretched and blurry.",
+            "questions": [
+              "What image size should I use for the homepage banner in Brilliant Directories?",
+              "How do I upload and replace the homepage banner image?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hi Megan,\n\nThe big image at the top of the homepage (the hero image) should be 1800px wide by 600px high, with a file size of no more than 200 KB. That's a wide 3:1 shape, so it helps to tell your photographer you need wide landscape shots that can be cropped to that size.\n\nOnce you have the new photo, you can swap it in under Design Settings » Homepage » Hero Background Image, using the \"Replace / Upload Image\" option. There's also a separate \"Mobile Image\" option there. It replaces the main hero image when the site is viewed on phones, so you can upload a version that suits smaller screens if you like.\n\nIf you meant a banner ad rather than the main homepage image, the recommended maximum width is 970px for header and footer banners and 360px for sidebar banners.\n\nIf the new image still looks off after you upload it, let us know and we'll take a look.\n\nBest,\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "What image size should I use for the homepage banner in Brilliant Directories?",
+              "status": "answered",
+              "answer": "For the homepage hero (main) image, use 1800px wide by 600px high, with a file size of no more than 200 KB. If you mean banner ads instead, the recommended max width is 970px for header and footer banners and 360px for sidebar banners.",
+              "sources": [
+                {
+                  "title": "Design Settings » Homepage » Hero Background Image",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000078952-design-settings-homepage-hero-background-image"
+                },
+                {
+                  "title": "Workaround: How to Add Specific Banner Ads to a Specific Static Page",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000069624-workaround-how-to-add-specific-banner-ads-to-a-specific-static-page"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "How do I upload and replace the homepage banner image?",
+              "status": "partial",
+              "answer": "The help center describes the homepage hero image setting, which is probably what is meant by the homepage banner image, but the passages do not give its full navigation path or steps. Passage 4 says the 'Design Settings » Homepage » Hero Background Image' setting uploads a new hero image on the homepage's first fold, and its 'Replace / Upload Image' option does this. A separate 'Mobile Image' option replaces the main hero image when the site is viewed on mobile devices. If the homepage uses a background image slider instead, passage 6 says the 'Upload Image' setting adds an image to a slider slot and changes to 'replace image' once a slot is filled. 'Delete Image' only removes the image from the slot, not from the image manager.",
+              "sources": [
+                {
+                  "title": "Design Settings » Homepage » Hero Background Image",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000078952-design-settings-homepage-hero-background-image"
+                },
+                {
+                  "title": "Homepage Background Image Slider",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000042564-homepage-background-image-slider"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.038133,
+          "latencyMs": 15304.21100000001,
+          "id": "E001"
+        },
+        {
+          "classification": {
+            "category": "refund_cancellation",
+            "secondary": [
+              "how_to"
+            ],
+            "urgency": "normal",
+            "language": "en",
+            "summary": "Admin wants to refund a premium listing payment that a tutor made by mistake yesterday and asks how to issue the refund from the admin area.",
+            "questions": [
+              "How do I issue a refund for a membership or listing payment from the admin panel?",
+              "Where can I see a member's payment history in Brilliant Directories?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hi Ravi,\n\nYou can do this from your admin. Here are the steps:\n\n1. Go to My Members » Search Members and search for the tutor.\n2. Click \"Actions\", then \"Payment History\". This opens the Transactions tab.\n3. On the paid invoice for the premium listing, click Actions » \"Refund Payment\".\n4. Confirm by clicking \"Yes, Continue\".\n5. You should see a \"Refund Successful\" pop-up, and the invoice moves to the \"Refunded\" tab.\n\nYou can also find the same Refund Payment option under Finance » Transaction History.\n\nBefore you click, check one thing: whether the money actually goes back depends on your payment gateway.\n\n- Some gateways don't allow refunds through the admin at all.\n- Authorize.net needs at least 24 hours to pass after the payment. Since the tutor paid yesterday, you may need to wait until a full day has passed.\n- With PayFast, the admin button only changes the invoice status and does not send money back. Refund through PayFast first, then mark the invoice as refunded in the admin.\n- If you switched gateways after the tutor paid, the refund has to go through the original gateway account.\n\nIf the premium listing is a recurring plan, we'll check whether anything else is needed to stop future charges. We'll get back to you on that within 1 business day.\n\nNot sure which gateway your site uses, or want us to look before you start? Just reply and we'll take a look.\n\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "How do I issue a refund for a membership or listing payment from the admin panel?",
+              "status": "answered",
+              "answer": "You can refund a payment from the admin by opening the member's Payment History and using Actions » Refund Payment on the paid invoice. Whether the refund actually goes through depends on the payment gateway.\n\n1. In the admin, go to My Members » Search Members and search for the member.\n2. Click \"Actions\", then \"Payment History\". This opens the Transactions tab.\n3. On the paid invoice, click Actions » \"Refund Payment\".\n4. Confirm by clicking \"Yes, Continue\".\n5. A \"Refund Successful\" pop-up appears, and the invoice moves to the \"Refunded\" tab.\n\nYou can also do this from Finance » Transaction History, where Refund Payment refunds the payment to the member and labels the invoice as Refunded.\n\nGateway limits to check with your payment merchant: some gateways do not allow refunds at all, or do not allow them through third-party sites like the admin. Authorize.net requires at least 24 hours to pass. Refunds are only possible while the gateway's refund window is open (PayPal allows 6 months). If the gateway was changed after the payment, refund through the original gateway account instead. With PayFast, the admin Refund option only updates the status for internal reporting and does not send money back. Request the refund from PayFast first, then mark the invoice as refunded in the admin.",
+              "sources": [
+                {
+                  "title": "How Refunds work",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000674165-how-refunds-work"
+                },
+                {
+                  "title": "Finance » Transaction History",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000046232-finance-transaction-history"
+                },
+                {
+                  "title": "Setting Up PayFast (South Africa) As Your Payment Gateway",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000043027-setting-up-payfast-south-africa-as-your-payment-gateway"
+                },
+                {
+                  "title": "How Do I Cancel Payment Subscriptions - Orders",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000567728-how-do-i-cancel-payment-subscriptions-orders"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "Where can I see a member's payment history in Brilliant Directories?",
+              "status": "answered",
+              "answer": "As an admin you can see a member's payment history from the member's Actions dropdown, or site-wide under Finance » Transaction History. Members can also see their own history when logged in.\n\nAdmin, for one member:\n1. Go to My Members » Search Members (also described as Members).\n2. Find the member and open the Actions dropdown.\n3. Click Payment History to open that member's Payment/Transaction History view.\n\nAdmin, for all members: go to Finance » Transaction History. It has five tabs: Payments Received, Upcoming Payments, Past Due, Refunded and Stopped.\n\nMember's own view: when logged in, the member goes to Account > Billing Information (the \"Billing Details\" section). There they can see Payment History, Subscriptions and, if credits are used, Credits History. These tabs only appear when the advanced setting Enable Member Account Billing History (enable_member_billing_history) is turned on.",
+              "sources": [
+                {
+                  "title": "My Members »  Search Members »  Actions Dropdown",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000047561-my-members-search-members-actions-dropdown"
+                },
+                {
+                  "title": "Downloadable PDF Invoices Add-On",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000047892-downloadable-pdf-invoices-add-on"
+                },
+                {
+                  "title": "Member Credits System",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000086306-member-credits-system"
+                },
+                {
+                  "title": "Finance » Transaction History",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000046232-finance-transaction-history"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.0492318,
+          "latencyMs": 17410.065899999987,
+          "id": "E002"
+        },
+        {
+          "classification": {
+            "category": "how_to",
+            "secondary": [],
+            "urgency": "normal",
+            "language": "en",
+            "summary": "Laura wants to know how to set up an email forwarder so mail sent to info@ on her domain goes to her Gmail account, and she cannot find the forwarders section in the admin.",
+            "questions": [
+              "How do I set up an email forwarder in Brilliant Directories?",
+              "Where are email forwarders located in the Brilliant Directories admin area?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hi Laura,\n\nYou can't find it because it's no longer there. Brilliant Directories removed the Email Forwarders feature in June 2024, so new forwarders can't be added and existing ones can't be changed. Any forwarders that were already set up before then still work.\n\nBrilliant Directories now recommends using an email app that can manage several accounts in one place. That way you can read info@ alongside your Gmail without needing a forwarder.\n\nIf you'd like help working out the best way to set this up for your domain, just reply and we'll look into it and get back to you.\n\nBest,\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "How do I set up an email forwarder in Brilliant Directories?",
+              "status": "answered",
+              "answer": "You can't set up a new email forwarder: the Email Forwarders feature was removed from Brilliant Directories' cPanel as of June 2024, so forwarders can no longer be added or modified. Existing forwarders stay in place, and the recommended alternative is an email app that handles several accounts in one place.",
+              "sources": [
+                {
+                  "title": "Email Forwarders",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000558373-email-forwarders"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "Where are email forwarders located in the Brilliant Directories admin area?",
+              "status": "answered",
+              "answer": "Email forwarders no longer have a location in the admin area: the feature was removed from Brilliant Directories' cPanel implementation as of June 2024, so forwarders can't be added or modified.",
+              "sources": [
+                {
+                  "title": "Email Forwarders",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000558373-email-forwarders"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.032183,
+          "latencyMs": 11462.089500000002,
+          "id": "E003"
+        },
+        {
+          "classification": {
+            "category": "how_to",
+            "secondary": [],
+            "urgency": "low",
+            "language": "es",
+            "summary": "Lucía wants to know how to change the directory site's language from English to Spanish and whether both languages can be offered at the same time.",
+            "questions": [
+              "How do I change the site language in Brilliant Directories?",
+              "Can a Brilliant Directories site offer multiple languages at the same time?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hola Lucía:\n\nSí, se puede hacer las dos cosas.\n\nPara cambiar el idioma principal del sitio:\nVe a Settings » General Settings » Localization y cambia el Default Website Language a español. Ten en cuenta que parte del contenido seguirá en inglés y habrá que actualizarlo a mano.\n\nPara ofrecer los dos idiomas a la vez:\nEl ajuste anterior solo permite un idioma. Para tener inglés y español al mismo tiempo, existe el complemento Google Website Translator. Añade un menú desplegable en el sitio para que cada visitante elija su idioma, y Google Translate traduce la parte pública del sitio.\n\nAlgunos detalles:\n- Para limitar los idiomas que aparecen en el menú (por ejemplo, solo inglés y español), ve a Settings » Advanced Settings y busca translate_languages.\n- Para cambiar el texto \"Select Language\" del menú, edita la etiqueta de texto select_language_option_google_translate.\n- El complemento está incluido en el VIP Add-Ons Club, o se puede comprar por separado.\n\nSi prefieres que lo configuremos nosotros, dínoslo y nos encargamos.\n\nUn saludo,\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "How do I change the site language in Brilliant Directories?",
+              "status": "answered",
+              "answer": "Change the Default Website Language under Settings » General Settings » Localization. Some content will still need manual updates, and a language switcher for visitors is available as an add-on.",
+              "sources": [
+                {
+                  "title": "How To Edit/Change Default Language of Websites",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000682670-how-to-edit-change-default-language-of-websites"
+                },
+                {
+                  "title": "Settings » General Settings » Localization",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000042159-settings-general-settings-localization"
+                },
+                {
+                  "title": "Google Website Translator",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000044521-google-website-translator"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "Can a Brilliant Directories site offer multiple languages at the same time?",
+              "status": "answered",
+              "answer": "Yes, a site can offer multiple languages at once by using the Google Website Translator add-on, which adds a drop-down menu so visitors can pick their language. The Default Website Language setting only sets one language for the site.\n\n1. The Google Website Translator add-on adds a language drop-down to the website. When a visitor selects a language, Google Translate translates the front-end of the site into it.\n2. The help center recommends this add-on for multi-lingual websites.\n3. To limit which languages are offered, go to Settings » Advanced Settings and search for translate_languages.\n4. To change the \"Select Language\" wording, edit the text label select_language_option_google_translate.\n5. The add-on is included with the VIP Add-Ons Club, or you can buy it individually.",
+              "sources": [
+                {
+                  "title": "How To Edit/Change Default Language of Websites",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000682670-how-to-edit-change-default-language-of-websites"
+                },
+                {
+                  "title": "Settings » General Settings » Localization",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000042159-settings-general-settings-localization"
+                },
+                {
+                  "title": "Google Website Translator",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000044521-google-website-translator"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.034738500000000005,
+          "latencyMs": 11646.611399999994,
+          "id": "E004"
+        },
+        {
+          "classification": {
+            "category": "how_to",
+            "secondary": [],
+            "urgency": "low",
+            "language": "en",
+            "summary": "Tom wants to change the members search page so newest members appear first or results are sorted by name, and asks where to change this setting.",
+            "questions": [
+              "How do I change the sort order of members on the member search page?",
+              "How do I sort members alphabetically by name in the members search results?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hi Tom,\n\nYes, you can change that. The sort order for the member search results on your site is set in the Post Settings for the Member Listing post type, in your admin dashboard.\n\nThe options there include:\n- Member/Post ID, newest first (new members show first)\n- Member Name A-Z or Z-A\n- Last Name A-Z or Z-A\n- Number of Reviews\n- Random Order\n\nFor new people first, choose the newest-first ID option. For names, choose Member Name A-Z or Last Name A-Z.\n\nIf you'd rather not dig through the settings, just tell us which order you want and we'll change it for you.\n\nOne note: if you meant the members list inside your admin area (My Members » Search Members), that table has its own sort options, such as Sort Newest First and Sort Name A-Z. Changing those won't affect what visitors see on your site.\n\nBest,\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "How do I change the sort order of members on the member search page?",
+              "status": "partial",
+              "answer": "Sort order for member search results on the front end is set in the Post Settings in the admin dashboard, where you can choose from options such as Member Name A-Z/Z-A, Member/Post ID (oldest or newest first), Last Name A-Z/Z-A, Number of Reviews, and Random Order. The passages do not give the exact click-by-click steps. If you meant the admin Search Members results table, you can sort it with the options listed in its Sort Options table (for example Sort Name A–Z, Sort Newest First, Sort Most Revenue).",
+              "sources": [
+                {
+                  "title": "How to Edit the Member Listing Post Type",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000028307-how-to-edit-the-member-listing-post-type"
+                },
+                {
+                  "title": "How to Change Search Results Sorting Options",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000024824-how-to-change-search-results-sorting-options"
+                },
+                {
+                  "title": "My Members » Search Members Overview",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000045147-my-members-search-members-overview"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "How do I sort members alphabetically by name in the members search results?",
+              "status": "answered",
+              "answer": "Use the sort options Sort Name A-Z (alphabetical order) or Sort Name Z-A (reverse alphabetical order) in the My Members » Search Members results table. The passages do not describe exactly where the sort control sits on the page.",
+              "sources": [
+                {
+                  "title": "My Members » Search Members » Sorting Options",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000103852-my-members-search-members-sorting-options"
+                },
+                {
+                  "title": "My Members » Search Members Overview",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000045147-my-members-search-members-overview"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.03477,
+          "latencyMs": 14339.779999999999,
+          "id": "E005"
+        },
+        {
+          "classification": {
+            "category": "how_to",
+            "secondary": [
+              "project_request"
+            ],
+            "urgency": "normal",
+            "language": "en",
+            "summary": "Priya wants to know whether new member signups from the directory can be automatically sent to Salesforce as leads and where to enable this.",
+            "questions": [
+              "How do I sync new member signups to Salesforce as leads?",
+              "Does Brilliant Directories have a native Salesforce integration?",
+              "Where are third-party integration settings located in the admin panel?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hi Priya,\n\nWe don't have a confirmed answer for you yet. We need to check whether new member signups can be pushed into Salesforce as leads automatically, and if so, how to set it up.\n\nWhat we can tell you now: third-party integrations (API keys and add-ons) are managed in the Integrations Tab under Settings » General Settings in your admin panel. That section can only be edited once a live domain is connected to the site. We haven't yet confirmed whether Salesforce is one of the options there, so please don't spend time hunting for it.\n\nWe'll look into it and get back to you within two business days with what's possible and the next steps.\n\nBest,\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "How do I sync new member signups to Salesforce as leads?",
+              "status": "insufficient_evidence",
+              "answer": "The help center passages do not cover syncing new member signups to Salesforce as leads.",
+              "sources": []
+            },
+            {
+              "number": 2,
+              "question": "Does Brilliant Directories have a native Salesforce integration?",
+              "status": "insufficient_evidence",
+              "answer": "The help center passages do not say whether Brilliant Directories has a native Salesforce integration.",
+              "sources": []
+            },
+            {
+              "number": 3,
+              "question": "Where are third-party integration settings located in the admin panel?",
+              "status": "answered",
+              "answer": "Third-party integration settings (API keys and add-ons) are in the Integrations Tab under Settings » General Settings. A live domain must be connected before you can edit this section.",
+              "sources": [
+                {
+                  "title": "Settings » General Settings » Integrations Tab",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000050980-settings-general-settings-integrations-tab"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.042573299999999994,
+          "latencyMs": 14079.010900000023,
+          "id": "E006"
+        },
+        {
+          "classification": {
+            "category": "how_to",
+            "secondary": [],
+            "urgency": "normal",
+            "language": "en",
+            "summary": "Daniel wants to know the fastest way to bulk-import about 300 plumbing companies from a spreadsheet as directory members, and whether members can be assigned more than one main category.",
+            "questions": [
+              "How do I bulk import members into a Brilliant Directories site using a spreadsheet?",
+              "Can a member be assigned to multiple categories in Brilliant Directories?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hi Daniel,\n\n1. Bulk adding members\n\nYes, you can import all 300 at once from a CSV file instead of typing each one. The import option is under My Members » Search Members, in the List Actions dropdown (\"Import Members via CSV File\").\n\nTo prepare the file:\n- Download one of the CSV import templates from Brilliant Directories' import guide: https://support.brilliantdirectories.com/support/solutions/articles/5000558475-how-to-import-members-via-csv-file\n- Open it in Excel or Google Sheets.\n- Don't change the spelling of the headers in row 1, or the import will fail.\n- Delete rows 2 to 4. They only explain what goes in each column and would otherwise be imported as members.\n- Copy your data into the matching columns. In the listing_type column, use \"Company\" for your plumbing companies. The only other option is \"Individual\".\n- Delete any empty columns. This makes the file smaller and the import faster.\n\nA few things to know:\n- Service Areas can't be imported.\n- Website, booking and social links are only imported if they are full URLs, like https://website.com. Any other links are skipped.\n\nThe guide we have doesn't cover the upload steps themselves, or how to assign categories during the import. We'll check both and get back to you within two business days.\n\n2. More than one main category\n\nYou're right. A member can only pick one top-level category. They can pick several sub and sub-sub categories, though, and there's a workaround that does what you need:\n- Create one general top-level category that covers all members.\n- Set up Plumbing, HVAC and your other trades as subcategories under it.\n- Members then choose their categories and subcategories from the Listing Details tab when they're logged in.\n\nThis changes how your categories are organised, so it's worth planning before you import the 300 companies. If you'd like, we can talk through the setup with you first.\n\nBest,\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "How do I bulk import members into a Brilliant Directories site using a spreadsheet?",
+              "status": "partial",
+              "answer": "Members can be bulk imported with a CSV file using the import templates. The passages cover preparing the file and where the import option is, but not the upload steps themselves. 1. Go to My Members » Search Members and open the List Actions dropdown, which has an \"Import Members via CSV File\" option. 2. Download one of the CSV import templates from the reference article. 3. Do not edit the spelling of the headers in row 1, or the import will fail. 4. Rows 2 to 4 only explain what goes in each column, so delete them or they will be imported as members. In the listing_type column the only values are Company and Individual. 5. Enter the member data in the correct columns. 6. Delete any empty columns, which makes the file smaller and the import faster. 7. Open the file in a spreadsheet application such as Excel or Google Sheets. Notes: Service Areas can't be imported. URL fields (website, booking link, social, etc.) are only imported if they are valid URLs like https://website.com or https://www.website.com; otherwise they are skipped.",
+              "sources": [
+                {
+                  "title": "How To Import Members Via CSV File",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000558475-how-to-import-members-via-csv-file"
+                },
+                {
+                  "title": "My Members » Search Members Overview",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000045147-my-members-search-members-overview"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "Can a member be assigned to multiple categories in Brilliant Directories?",
+              "status": "partial",
+              "answer": "Members can select only one Top Level Category, but they can be assigned to multiple sub and sub-sub categories, and there is a workaround that effectively allows multiple top-level categories. Steps for the workaround: 1. The site owner creates a General Top-level category that captures all members. 2. The remaining categories are set up as sub and sub-subcategories. 3. Members then select categories and sub categories from the Listing Details tab when logged in. To show Top and Sub Category selection on one form, add a field of type Top Category List (Database Variable: profession_id) to the \"Listing - Additional Details - Member\" form, and delete the default profession_id field on the \"Listing - Contact Details - Form\" (Actions >> Delete Field). If subcategories do not show, check that Member Specialties are enabled in the Post Publishing Tab for the Membership Plan.",
+              "sources": [
+                {
+                  "title": "Workaround: Members Selecting Multiple Top Level Categories",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000057947-workaround-members-selecting-multiple-top-level-categories"
+                },
+                {
+                  "title": "How To Place Top & Sub Categories on One Member Form",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000089980-how-to-place-top-sub-categories-on-one-member-form"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.0513183,
+          "latencyMs": 18317.15730000002,
+          "id": "E007"
+        },
+        {
+          "classification": {
+            "category": "how_to",
+            "secondary": [],
+            "urgency": "normal",
+            "language": "en",
+            "summary": "Kim wants to hide the website from the public with a coming soon page until the restaurant listings are finished and the launch in two weeks.",
+            "questions": [
+              "How do I put my Brilliant Directories site into maintenance or coming soon mode?",
+              "How do I restrict public access to my directory site while I add listings?"
+            ],
+            "sentiment": "neutral",
+            "suspected_injection": false
+          },
+          "body": "Hi Kim,\n\nYes, you can. Brilliant Directories has a \"Staging Mode\" that shows a Coming Soon page to visitors who go to your domain.\n\nTo turn it on:\n\n1. Go to Settings >> General Settings.\n2. In the \"General\" section, click the Website Status dropdown.\n3. Select \"Staging Mode\". It shows as \"Staging Mode (shows pre-registration form on homepage)\".\n4. To change what the page says, click the \"EDIT COMING SOON PAGE\" link that appears after you select Staging Mode. You won't find this page under My Content >> Web Page Builder. If the link doesn't show up, you may need to enable an update from your main admin dashboard.\n\nWhile Staging Mode is on, search engines are told not to index your pages. On launch day, set Website Status back to \"Live Mode\" and the site will be public and indexable again.\n\nWe're also checking whether people can still reach inner pages, like individual restaurant listings, if they have a direct link. We'll get back to you on that within two business days.\n\nIf you'd rather we switch it on for you, just reply and we'll take care of it.\n\nThe Lakeview team",
+          "violations": [],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "How do I put my Brilliant Directories site into maintenance or coming soon mode?",
+              "status": "answered",
+              "answer": "Set the Website Status to \"Staging Mode\" to show a Coming Soon splash page when visitors go to your domain. The help center describes this as a coming soon mode; it does not describe a separate maintenance mode.\n\n1. Go to Settings >> General Settings.\n2. In the \"General\" section, click the Website Status dropdown.\n3. Select \"Staging Mode\" (shown as \"Staging Mode (shows pre-registration form on homepage)\").\n4. To customize the page, click the \"EDIT COMING SOON PAGE\" link that appears after you select Staging Mode. This page is not listed in My Content >> Web Page Builder. If you don't see the link, you may need to enable an update from your main admin dashboard area.\n\nNote: Staging Mode applies a \"noindex, nofollow\" directive to all pages, so they won't be crawled until you switch the site back to \"Live Mode\".",
+              "sources": [
+                {
+                  "title": "How To Activate \"Staging Mode\" / \"Coming Soon\" Splash Page as the Homepage",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000682657-how-to-activate-staging-mode-coming-soon-splash-page-as-the-homepage"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "How do I restrict public access to my directory site while I add listings?",
+              "status": "answered",
+              "answer": "Switch the site to Staging Mode, which shows a \"coming soon\" splash page to anyone visiting your domain while you build.",
+              "sources": [
+                {
+                  "title": "How To Activate \"Staging Mode\" / \"Coming Soon\" Splash Page as the Homepage",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/5000682657-how-to-activate-staging-mode-coming-soon-splash-page-as-the-homepage"
+                }
+              ]
+            }
+          ],
+          "costUsd": 0.040975700000000004,
+          "latencyMs": 15454.788700000034,
+          "id": "E008"
+        },
+        {
+          "classification": {
+            "category": "troubleshooting",
+            "secondary": [
+              "complaint"
+            ],
+            "urgency": "critical",
+            "language": "en",
+            "summary": "Greg Walsh reports that the Midwest Contractors Network website shows 'Error connecting to database' on every page while people are trying to register for a large event tomorrow, and asks for an immediate fix.",
+            "questions": [
+              "What causes the 'Error connecting to database' message on a Brilliant Directories site?",
+              "How do I check my Brilliant Directories database connection settings?"
+            ],
+            "sentiment": "angry",
+            "suspected_injection": false
+          },
+          "body": "Hi Greg,\n\nWe're on it now. We know the event is tomorrow and people are trying to register, so this is our top priority.\n\nThe \"Error connecting to database\" message means the website can't reach its database. That usually happens when the database login details have changed, or when something is wrong with the database itself. We're checking your site and its database now. If we need help from Brilliant Directories Support, we'll contact them straight away.\n\nOne thing that would help us: do you know if anyone made changes to the hosting account or database recently, for example in cPanel? If you're not sure, that's fine. We'll check from our side. If any login details come up, please don't send them by email. Call us and we'll handle it over the phone.\n\nWe don't know the exact cause yet. We'll email you with an update as soon as we know more, and we'll keep updating you until the site is back up.\n\nThe Lakeview team",
+          "violations": [
+            {
+              "code": "fixed_claimed",
+              "severity": "block",
+              "message": "Reply claims the problem is fixed."
+            }
+          ],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "What causes the 'Error connecting to database' message on a Brilliant Directories site?",
+              "status": "partial",
+              "answer": "The passages give two partial causes: a changed database password or some other malfunction with the database, and a database that does not exist. The help center notes that these messages mostly appear after an administrator makes updates to the databases in cPanel, and in that case you should contact Support.",
+              "sources": [
+                {
+                  "title": "Errors Connecting to MAIN DATABASE OR WEBSITE DATABASE",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000070212-errors-connecting-to-main-database-or-website-database"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "How do I check my Brilliant Directories database connection settings?",
+              "status": "insufficient_evidence",
+              "answer": "The help center passages do not explain how to check your database connection settings.",
+              "sources": []
+            }
+          ],
+          "costUsd": 0.0338616,
+          "latencyMs": 14969.429599999974,
+          "id": "E009"
+        },
+        {
+          "classification": {
+            "category": "troubleshooting",
+            "secondary": [
+              "follow_up"
+            ],
+            "urgency": "critical",
+            "language": "en",
+            "summary": "Hannah reports that since this morning nobody can pay for memberships on her site because the payment form fails, and she is losing signups.",
+            "questions": [
+              "What causes membership payments to fail on a Brilliant Directories site?",
+              "How do I check my payment gateway connection in Brilliant Directories?",
+              "How do I view payment error logs in Brilliant Directories?"
+            ],
+            "sentiment": "frustrated",
+            "suspected_injection": false
+          },
+          "body": "Hi Hannah,\n\nWe're looking into this now. We know every hour without signups hurts, so we're treating it as urgent.\n\nWe don't know the cause yet. Your site records the reason for each failed payment, and that is the fastest way to find out what's going wrong. If you have a minute, you can check it too:\n\n1. Go to Dashboard » Activity Tracker.\n2. Filter by \"Finance\".\n3. Open an entry in the \"Failed Transaction\" category.\n4. Read the \"Failed Signup Reason\" at the bottom of the entry.\n\nIf you can reply with what it says, that will help us move faster. A few other details would also help:\n\n- The exact error message visitors see when the form fails, or a screenshot if you have one.\n- Whether it happens on every membership plan or only some.\n- Roughly what time this morning the failures started.\n\nPlease don't send card details or passwords by email. If we need anything sensitive, we'll arrange a phone call.\n\nOne more thing: no member account is created until a payment goes through. So nobody affected has been charged for an account they didn't get. Once payments are working again, they can sign up again.\n\nWe'll send you an update later today with what we've found, even if we don't have the full answer yet.\n\nThe Lakeview team",
+          "violations": [
+            {
+              "code": "fixed_claimed",
+              "severity": "block",
+              "message": "Reply claims the problem is fixed."
+            }
+          ],
+          "secretsFound": false,
+          "evidence": [
+            {
+              "number": 1,
+              "question": "What causes membership payments to fail on a Brilliant Directories site?",
+              "status": "partial",
+              "answer": "The passages only give one explicit cause: incorrect credit card information on a paid signup form, which the payment gateway rejects and shows its response as an error message. The screenshot-style webhook example (passage 3) also shows a Stripe 'card_declined' / 'generic_decline' error with a Purchase Status of 'failed'. When a signup payment fails, the member account is not created until payment is completed; the visitor can correct the card details and resubmit. To find the exact reason for a specific failure, go to Dashboard » Activity Tracker, filter by \"Finance\", look for the \"Failed Transaction\" category, and read the 'Failed Signup Reason' at the bottom of the entry.",
+              "sources": [
+                {
+                  "title": "Member Signups - Errors and Notifications",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000013336-member-signups-errors-and-notifications"
+                },
+                {
+                  "title": "List of Variables Per Webhook",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000104764-list-of-variables-per-webhook"
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "question": "How do I check my payment gateway connection in Brilliant Directories?",
+              "status": "partial",
+              "answer": "The passages give no general way to check a payment gateway connection. The only verification steps are for Razorpay: process a test transaction to confirm payments work, then check the Razorpay Dashboard for transaction logs. If problems come up, use Razorpay's support documentation or contact Brilliant Directories support.",
+              "sources": [
+                {
+                  "title": "Setting Up Razorpay",
+                  "url": "https://support.brilliantdirectories.com/support/solutions/articles/12000103082-setting-up-razorpay"
+                }
+              ]
+            },
+            {
+              "number": 3,
+              "question": "How do I view payment error logs in Brilliant Directories?",
+              "status": "insufficient_evidence",
+              "answer": "The help center passages do not describe a payment error log or where to view one.",
+              "sources": []
+            }
+          ],
+          "costUsd": 0.0529229,
+          "latencyMs": 17326.7255,
+          "id": "E010"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,681 @@
+{
+  "summary": [
+    {
+      "model": "claude-haiku-5-5",
+      "label_recall": 0.8787878787878788,
+      "images_fully_read": 0.7307692307692307,
+      "image_only_answers_found": 2,
+      "errors": 1,
+      "cost_per_image_usd": 0.0002953192307692308,
+      "projected_cost_5040_images_usd": 1.4884089230769233,
+      "p50_ms": 2482.445800000278,
+      "p95_ms": 4251.491399999395
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "label_recall": 0.9242424242424242,
+      "images_fully_read": 0.8461538461538461,
+      "image_only_answers_found": 2,
+      "errors": 0,
+      "cost_per_image_usd": 0.005840307692307692,
+      "projected_cost_5040_images_usd": 29.43515076923077,
+      "p50_ms": 2730.4564000005485,
+      "p95_ms": 5838.18169999995
+    }
+  ],
+  "cases": [
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V01",
+      "text": "Member Categories admin page with the Member Category Actions dropdown opened at top right, showing Import Categories (highlighted with a red arrow pointing to it), Export Categories, and Edit Specialties Tab Code. Behind it, the Top Level tab lists categories with a row for Things To Do showing its name, link URL, sort order and homepage image. Visible labels: Member Category Actions; Import Categories; Export Categories; Edit Specialties Tab Code; Top Level; Sub Level; Sub-Sub Level; Add Top Level Category.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.00039,
+      "latency_ms": 3423.1846000002406
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V02",
+      "text": "Contact Details tab of a member listing editor with the Email field highlighted in red. The email input contains 'brilliant' and shows the error 'Please enter a valid email address' beneath it. Left sidebar shows Member ID #22, Level: Gold, with View Public Listing and Upgrade Listing buttons. Type of Listing is set to Personal / Individual and Top Category to Arts & Entertainment. Visible labels: Contact Details; Profile Photo; Listing Details; About; Service Areas; Email; Please enter a valid email address; View Public Listing; Upgrade Listing; Type of Listing; Top Category.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.00032370000000000006,
+      "latency_ms": 3357.056200000443
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V03",
+      "text": "Edit Membership Plan page in the admin panel, with the Post Publishing tab selected. The Member Specialties row has its checkbox ticked and labelled ACTIVATE, which lets members select sub-level categories in their member dashboard. Activate/Post All and Can View All checkboxes are unticked. The Save Changes button is at top right. Visible labels: Edit Membership Plan; Membership Plan Name; Sign Ups & Upgrades; Profile Page; Search Visibility; Post Publishing; Activate/Post All; Can View All; Member Specialties; ACTIVATE; Save Changes; Sign Up Page.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.00026710000000000004,
+      "latency_ms": 2591.7568000004394
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V04",
+      "text": "Membership plan edit form on the Post Publishing tab for the Featured plan. The Discussions row shows a Can Post checkbox, a Free and Paid Posts dropdown, and a red-outlined dropdown currently set to 'Use Rule from Post Setting (default)' that overrides the post type rule. Max. Free Posts is 0 (unlimited) and Price per Extra Post is $1.00. Visible labels: Membership Plan Name; Post Publishing; Activate/Post All; Can View All; Discussions; Can Post; PUBLIC FOR ALL TO VIEW; Free and Paid Posts; Use Rule from Post Setting (default); Max. Free Posts; Price/Extra Post.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.00044340000000000004,
+      "latency_ms": 2606.999000000542
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V05",
+      "text": "Advanced Settings panel with the search box filtered to froala_chatgpt. The setting 'Enable ChatGPT In Frontend Froala Editors' shows four checkboxes, all checked and outlined in red: Froala Text Editor - Basic, Image Upload, Image Upload + Pre-Made Elements, and Access Media Manager. The helper text says to enable ChatGPT in the selected Froala editors. The System Variable is froala_chatgpt and the Default Value is Froala Text Editor - Access Media Manager. Visible labels: Advanced Settings; froala_chatgpt; Enable ChatGPT In Frontend Froala Editors; Froala Text Editor - Basic; Froala Text Editor - Image Upload; Froala Text Editor - Image Upload + Pre-Made Elements; Froala Text Editor - Access Media Manager; System Variable; Default Value.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.00025130000000000004,
+      "latency_ms": 2486.675899999682
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V06",
+      "text": "Form Manager editing the 'Listing - Write Review' form. The highlighted row is a Text - Single Line field with Field Label %%%enter_review_title%%% and Database Variable review_title; its Required Field toggle is absent because the title is always required. Right side shows the Form Preview with the title and review inputs and a star rating section. Visible labels: Form Manager; Listing - Write Review; Type of Field; Text - Single Line; Field Label; Database Variable; Actions; Add Field +; Save Changes; Form Preview.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.0005019,
+      "latency_ms": 2500.845399999889
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V07",
+      "text": "Checkout billing form titled 'Enter Billing Information' with the Country dropdown opened, showing a list of countries beginning with '(Select from List)', Afghanistan, Albania, Algeria, American Samoa, Andorra, Angola. A red arrow points to Afghanistan. The State dropdown and Postal Code field sit to the right, showing the default placeholder. Visible labels: Enter Billing Information; Name on Card; Company Name; Street Address; Country; State; Postal Code; (Select from List); Expiration Date / Security Code.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.0001934,
+      "latency_ms": 1947.4804000001313
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V08",
+      "text": "The Edit Redirect #226 drawer showing a redirect for a Member Profile. Five numbered callouts mark the fields and buttons: 1 Source URL (old path with a leading slash), 2 Destination URL (new path), 3 Admin notes (empty text area), 4 the Test Redirect button, and 5 the Cancel and Save buttons at the top right. Visible labels: Edit Redirect #226; Member Profile; Source URL; Destination URL; Admin notes; Test Redirect; Cancel; Save.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.00031380000000000004,
+      "latency_ms": 1931.7275000003065
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V09",
+      "text": "Member profile page on a directory site showing the 'Claim Listing' banner above the profile photo. The banner asks 'Are you Enrique Price?' with a yellow Claim Listing button, marked by a red arrow. Below are the profile photo, Send Message and Show Phone Number buttons, and a Write a Review button. This is the placement the Claim Listing Banner Position setting controls. Visible labels: Home; Members; Events; Coupons; Jobs; Galleries; Classifieds; Claim Listing; Write a Review; Send Message; Show Phone Number; LIKE.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.0001775,
+      "latency_ms": 2256.285899999966
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V10",
+      "text": "Member Categories admin page showing the Top Level tab selected with a red arrow and red box highlighting the sort dropdown opened to the 'Order by ID Ascending' option. Other options listed: Order by ID Descending, Order by Name A-Z, Order by Name Z-A, Sort Order Ascending, Sort Order Descending, Member Count Ascending, Member Count Descending. The search field by keyword is beside it. Visible labels: Member Categories; Top Level; Sub Level; Sub-Sub Level; Add Top Level Categories; Save Changes; Order by ID Ascending; Order by ID Descending; Order by Name A-Z; Order by Name Z-A; Sort Order Ascending; Member Count Descending.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.0003319,
+      "latency_ms": 3672.1086000006835
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V11",
+      "text": "Edit Membership Plan screen for the Gold Plan Level, with the Profile Page tab selected (red arrow points to it). The Overview tab order is shown as Position 1 through 5: User Quote, About Me, Listing Details, Contact Details, Location Map. Below is the Select Member Information to Display on Profiles section, showing Show Website Link and Show Social Media Links. The Member Review Settings section referenced in the text is below the visible area. Visible labels: Edit Membership Plan; Profile Page; Sign Ups & Upgrades; Member's Dashboard; Search Visibility; Post Publishing; Select What Displays in the \"Overview\" Tab; Save Changes; Show Website Link; Show Social Media Links.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.000284,
+      "latency_ms": 2743.2952999997724
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V12",
+      "text": "Manage Banner Advertisements page under Design Settings. 'Display Banner Advertisements?' is set to Yes. The Sidebar Banner Ad panel is expanded, showing its widget name [widget=Bootstrap Theme - Banner - Responsive Size], a waterfall image preview, an 'Upload Image' button, and a link URL field set to https://www.brilliantdirectories.com/. The Extra Banner Ad - 1 panel is collapsed. Save Changes button is top right. Visible labels: Manage Banner Advertisements; Save Changes; Display Banner Advertisements?; Yes; No; Sidebar Banner Ad; [widget=Bootstrap Theme - Banner - Responsive Size]; Use Image Banner Ad; Upload Image; Delete; Extra Banner Ad - 1; Sidebar Manager.",
+      "hits": [
+        true,
+        true,
+        false
+      ],
+      "error": null,
+      "cost_usd": 0.00032020000000000003,
+      "latency_ms": 2414.3536999999924
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V13",
+      "text": "Edit Membership Plan screen for the plan named Basic, open on the Search Visibility tab under Set Visibility Rules. The first question, 'Are These Members Searchable on the Website?', has Yes selected (No is the alternative radio option). A red arrow points at this Yes/No toggle. The second question asks whether unregistered visitors can view these members, also set to Yes. Visible labels: Edit Membership Plan; Search Visibility; Set Visibility Rules; Are These Members Searchable on the Website?; Yes; No; Can Unregistered Visitors View These Members?; Hide Member Profile from Search Engines?; Add \"NOFOLLOW\" to Member Web Links?; Save Changes.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.0002726,
+      "latency_ms": 4251.491399999395
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V14",
+      "text": "Web Page Builder editing view for a page titled 'pdf'. The text 'PDF DOWNLOAD' is highlighted in the editor. The Insert Link button in the rich-text toolbar is outlined in red with an arrow pointing to it, showing where to click after highlighting text. Visible labels: Insert Link (Ctrl+K); Page Content; Hero Section; SEO Settings; Advanced; Save Changes; Page Details; Page Options; Page Type; Single Web Page; Protect Page; Public For Everyone.",
+      "hits": [
+        true,
+        true,
+        false
+      ],
+      "error": null,
+      "cost_usd": 0.00029689999999999995,
+      "latency_ms": 4509.675100000095
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V15",
+      "text": "Brilliant Directories admin Post Types list filtered by the search term \"member listing\", showing one row for Member Listing (ID 14). A red box highlights the blue Edit button in the Actions column, next to an Actions dropdown. A red arrow points toward the search box. Click Edit to open the Member Listing post type settings. Visible labels: My Content; Edit Post Settings; Post Types; Edit; Actions; Member Listing; member listing.",
+      "hits": [
+        true,
+        true,
+        false
+      ],
+      "error": null,
+      "cost_usd": 0.00031270000000000007,
+      "latency_ms": 2486.5460999999414
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V16",
+      "text": "Brilliant Directories admin editor for a page at contentdocumentation.directoryup.com/photos, showing the SEO Settings tab with Page Meta Title, Meta Description and Meta Keywords fields using %% variables. On the right, the Page Options tab shows a Breadcrumbs text box containing %%Data_name%%, indicated by a red arrow. Visible labels: Save Changes; Page Details; Page Options; SEO Settings; Advanced; Breadcrumbs; Learn More; Page Meta Title; Meta Description; Meta Keywords; Hide Banner Ad Modules; Apply NoIndex, NoFollow.",
+      "hits": [
+        true,
+        true,
+        false
+      ],
+      "error": null,
+      "cost_usd": 0.000321,
+      "latency_ms": 2252.064799999971
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V17",
+      "text": "Member Dashboard showing the Coupons panel with the left sidebar's Coupons item highlighted in red. The main area shows an empty state reading Publish Your First Coupon, with a green Add A New Coupon button and a red arrow pointing to it. Coupons count is 0. Visible labels: Coupons; Add A New Coupon; Publish Your First Coupon; View Public Listing; Dashboard; Manage Profile; Profile Statistics; Manage Leads; Soundclouds; Classifieds; Job Listings.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.00044790000000000005,
+      "latency_ms": 2308.9624000003823
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V18",
+      "text": "",
+      "hits": [
+        false,
+        false
+      ],
+      "error": "1 validation error for ImageDescription\nui_labels\n  List should have at most 12 items after validation, not 14 [type=too_long, input_value=['File', 'Edit', 'View', ..., 'lead_message', 'Add'], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.14/v/too_long",
+      "cost_usd": 0.0,
+      "latency_ms": 2267.667099999926
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V19",
+      "text": "New Webhook dialog with Form selected in the Connect to toggle (step 1). The Form dropdown (step 2) is open and filtered by the search text 'Listing', showing 'Feature - Properties' and 'Listing - Page - Send Message'; the latter is highlighted as the chosen option (step 3). The Save button in the top right is marked as step 4. The Internal description field sits below the dropdown. Visible labels: New Webhook; Connect to; Form; Smart List; Select a Form; Listing - Page - Send Message; Internal description for this webhook; Cancel; Save.",
+      "hits": [
+        true,
+        true,
+        false
+      ],
+      "error": null,
+      "cost_usd": 0.0002849,
+      "latency_ms": 2457.581300000129
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V20",
+      "text": "Logo selection step of the AI logo generator wizard (Step 2 of 4). Three logo concepts are shown side by side. Concept 2 is selected, marked by a blue border and checkmark. A red arrow points to Concept 1. Below the cards are a Regenerate Selection with Refinements button, a Start Over button, and a Continue button. Visible labels: Step 2 of 4; Pick the logo you like best; CONCEPT 1; CONCEPT 2; CONCEPT 3; Regenerate Selection with Refinements; Start Over; Continue.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.0003095,
+      "latency_ms": 2130.4016000003685
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V21",
+      "text": "Front-end preview of a test web page in a browser at contentdocumentation.directoryup.com/pdf showing the site header, navigation bar and footer. The main content shows a dark 'Button Link' button, which is the download button being demonstrated. The button is shown in its unclicked state. Visible labels: Button Link; Members - Get Listed Today; Home; Member Directory; How It Works; Latest News; Join Today.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.00029539999999999997,
+      "latency_ms": 2121.045800000502
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V22",
+      "text": "Custom Forms list in the admin panel with the select-all checkbox in the header ticked and all 14 form rows checked. A red arrow points to the header checkbox. Top bar has the Bulk Actions dropdown and Apply button, plus filter and search controls. Each row shows Edit and Actions buttons, a preview thumbnail, the form name and its shortcode. Visible labels: Bulk Actions; Apply; Custom Forms (14); Edit; Actions; Filter by Status; Filter by Type; Name A - Z; Search by Keyword.",
+      "hits": [
+        true,
+        true,
+        false
+      ],
+      "error": null,
+      "cost_usd": 0.00031370000000000004,
+      "latency_ms": 2478.3455000006143
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V23",
+      "text": "Design Settings admin page on the Custom CSS / HEAD tab, showing the Additional CSS editor (highlighted in red) containing a rule targeting .table-view-group.clearfix.table-display-company with background-color: lightblue. The Additional HEAD Code editor sits to the right and is empty. Visible labels: General; Homepage; Color Sets; Banner Ads; Custom CSS / HEAD; Additional CSS; Additional HEAD Code; Design Settings; Settings.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.00039590000000000003,
+      "latency_ms": 2222.2052000006443
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V24",
+      "text": "A form field labeled 'Sidebar To Use' with a dropdown currently set to 'Post Single Page'. Helper text beneath reads that this is the name of the sidebar displayed on the search result pages. The reader should note the selected sidebar value shown in the dropdown. Visible labels: Sidebar To Use; Post Single Page.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.0001282,
+      "latency_ms": 1860.3898999999728
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V25",
+      "text": "Chrome Settings Privacy and Security page, search box showing 'https', scrolled to the Advanced section. The toggle 'Always use secure connections' (Upgrade navigations to HTTPS) is shown switched off, indicated by a red arrow pointing to it. Other options such as 'Use secure DNS' are visible below. Visible labels: https; Advanced; Always use secure connections; Use secure DNS; With your current service provider; Manage security keys; Manage device certificates; Certificates managed by Chrome; Google Advanced Protection Program.",
+      "hits": [
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.0002064,
+      "latency_ms": 2872.2035000000687
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "V26",
+      "text": "Firefox Settings page with the search box filtered to 'https', showing the Privacy & Security results. Under HTTPS-Only Mode, the selected option is \"Don't enable HTTPS-Only Mode\" (red arrow points to it). The other options are enabling it in all windows or in private windows only. The Manage Exceptions button is greyed out. This is the setting to turn off so the admin loads. Visible labels: Search Results; HTTPS-Only Mode; Enable HTTPS-Only Mode in all windows; Enable HTTPS-Only Mode in private windows only; Don't enable HTTPS-Only Mode; Manage Exceptions...; Settings...; Privacy & Security.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.000295,
+      "latency_ms": 2784.4738000003417
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V01",
+      "text": "Member Categories admin page with the Member Category Actions dropdown open at top right. A red arrow points to the highlighted Import Categories option, above Export Categories and Edit Specialties Tab Code. Behind it are the Top Level tab and a category table with a Things To Do row. Visible labels: Member Categories; Member Category Actions; Import Categories; Export Categories; Edit Specialties Tab Code; Top Level (19); Sub Level (796); Sub-Sub Level (0).",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.00762,
+      "latency_ms": 2552.6332999997976
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V02",
+      "text": "Member profile editor on the Contact Details tab. The Email field, outlined in red, contains the incomplete entry \"brilliant\" and shows a red validation message, \"Please enter a valid email address\". This illustrates how an Email field type rejects input that is not a valid email address. Visible labels: Contact Details; Profile Photo; Listing Details; About; Service Areas; Email; Please enter a valid email address; Enter Contact Information Below; Type of Listing; Top Category.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.005984,
+      "latency_ms": 2815.2114000004076
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V03",
+      "text": "Edit Membership Plan screen for \"Membership Plan 1\" in the admin panel, with the Post Publishing tab open. The Member Specialties row has its ACTIVATE checkbox ticked, letting members pick sub-level categories in their dashboard. Finance > Membership Plans is highlighted in the left menu. Visible labels: Finance; Membership Plans; Edit Membership Plan; Post Publishing; Member Specialties; ACTIVATE so these members can select sub-level categories in their member dashboard area; Save Changes; Activate/Post All; Can View All.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.005162,
+      "latency_ms": 2517.990700000155
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V04",
+      "text": "Membership plan edit page for the plan \"Featured\", open on the Post Publishing tab. In the Discussions post type row, the moderation dropdown set to \"Use Rule from Post Setting (defa...\" is outlined in red, below a \"Free and Paid Posts\" dropdown. Max. Free Posts is 0 and Price/Extra Post is $1.00. Visible labels: Membership Plan Name; Post Publishing; Activate/Post All; Can View All; Discussions; Can Post; PUBLIC FOR ALL TO VIEW; Free and Paid Posts; Use Rule from Post Setting; Max. Free Posts; Price/Extra Post.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.008738,
+      "latency_ms": 3591.7065000003277
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V05",
+      "text": "Advanced Settings page filtered by the search term froala_chatgpt, showing the setting \"Enable ChatGPT In Frontend Froala Editors\". All four Froala editor checkboxes are ticked and outlined in red. The system variable is froala_chatgpt and the default value is Froala Text Editor - Access Media Manager. Visible labels: Advanced Settings; froala_chatgpt; Enable ChatGPT In Frontend Froala Editors; Froala Text Editor - Basic; Froala Text Editor - Image Upload; Froala Text Editor - Image Upload + Pre-Made Elements; Froala Text Editor - Access Media Manager; System Variable; Default Value.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.004366,
+      "latency_ms": 5782.614500000818
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V06",
+      "text": "Form Manager editor for the 'Listing - Write Review' form, with a live Form Preview on the right. A red box highlights the Text - Single Line field for the review title (label %%%enter_review_title%%%, variable review_title), which has no Required Field toggle. The Textarea - Paragraph field below has Required set to ON. Visible labels: Form Manager; Listing - Write Review; Save Changes; Type of Field; Required Field?; Field Label; Database Variable; Actions; Add Field; Text - Single Line; Textarea - Paragraph; Form Preview.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.010178,
+      "latency_ms": 3275.854000000436
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V07",
+      "text": "Front-end checkout form titled \"Enter Billing Information\" with the Country dropdown open. It shows a search box and a list of English country names (Afghanistan, Albania, Algeria...). A red arrow points at the list, showing the country names that the article explains can only be translated in the database. Visible labels: Enter Billing Information; Name on Card; Company Name; Street Address; Country; State; (Select from List); Postal Code; Expiration Date / Security Code.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.003558,
+      "latency_ms": 5838.18169999995
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V08",
+      "text": "Edit Redirect #226 drawer for a Member Profile redirect, with numbered callouts. 1 marks Source URL (united-states/miami/food-dining/eric-carter/connect), 2 Destination URL (united-states/miami/arts-entertainment/eric-carter/connect), 3 the empty Admin notes box, 4 the Test Redirect button, 5 the Cancel and Save buttons at top right. Visible labels: Edit Redirect #226; Member Profile; Source URL; Destination URL; Admin notes; Test Redirect; Cancel; Save.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.006456,
+      "latency_ms": 6374.951599999804
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V09",
+      "text": "Front-end member profile page for \"Enrique Price\" with the Claim Listing banner displayed above the profile photo. A red arrow points to the yellow \"Claim Listing\" button in the banner, showing the \"Above Profile Photo\" position. The profile shows a photo, rating, and action buttons below. Visible labels: Claim Listing; Are you Enrique Price? Claim this listing to receive referrals from this page.; Send Message; Show Phone Number; Write a Review; Verified.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.00326,
+      "latency_ms": 2176.3277000000016
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V10",
+      "text": "Member Categories admin page, Top Level tab. A red arrow and red box highlight the open sort dropdown beside the keyword search box, listing eight sort options from Order by ID Ascending to Member Count Descending. Category rows (Things To Do, Arts & Entertainment, Health & Beauty) sit below. Visible labels: Member Categories; Top Level; Sub Level; Sub-Sub Level; Order by ID Ascending; Order by ID Descending; Order by Name A-Z; Order by Name Z-A; Sort Order Ascending; Sort Order Descending; Member Count Ascending; Member Count Descending.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.006288,
+      "latency_ms": 2595.635900000161
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V11",
+      "text": "Admin panel Edit Membership Plan page for the plan \"Gold Plan Level\". A red arrow points to the \"Profile Page\" tab, which is the active tab. Below it are the Overview tab position dropdowns. The left menu shows Finance expanded with Membership Plans highlighted. Visible labels: Finance; Membership Plans; Edit Membership Plan; Membership Plan Name; Sign Ups & Upgrades; Profile Page; Member's Dashboard; Search Visibility; Post Publishing; Save Changes.",
+      "hits": [
+        true,
+        false,
+        false
+      ],
+      "error": null,
+      "cost_usd": 0.00504,
+      "latency_ms": 2708.270899999661
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V12",
+      "text": "Manage Banner Advertisements admin page. Display Banner Advertisements is set to Yes. The expanded Sidebar Banner Ad panel shows the widget name \"[widget-Bootstrap Theme - Banner - Responsive Size]\", a waterfall image preview, an image-ad dropdown, Upload Image and Delete buttons, and a banner URL field. Extra Banner Ad - 1 is collapsed. Visible labels: Manage Banner Advertisements; Save Changes; Display Banner Advertisements?; Sidebar Banner Ad; [widget-Bootstrap Theme - Banner - Responsive Size]; Use Image Banner Ad; Upload Image; Delete; Extra Banner Ad - 1.",
+      "hits": [
+        true,
+        true,
+        false
+      ],
+      "error": null,
+      "cost_usd": 0.006024,
+      "latency_ms": 2726.6680000002452
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V13",
+      "text": "Edit Membership Plan page for the plan \"Basic\", with the Search Visibility tab open. Under Set Visibility Rules, a red arrow points to the question \"Are These Members Searchable on the Website?\", where the Yes radio button is currently selected. Finance > Membership Plans is highlighted in the left menu. Visible labels: Finance; Membership Plans; Edit Membership Plan; Search Visibility; Set Visibility Rules; Are These Members Searchable on the Website?; Yes; No; Can Unregistered Visitors View These Members?; Save Changes.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.005012,
+      "latency_ms": 2734.2448000008517
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V14",
+      "text": "Web Page Builder editor in the Brilliant Directories admin panel, Page Content tab. The heading text \"PDF DOWNLOAD\" is highlighted, and a red box and arrow point to the Insert Link icon in the editor toolbar, whose tooltip reads \"Insert Link (Ctrl+K)\". Visible labels: My Content; Web Page Builder; Page Content; Hero Section; SEO Settings; Advanced; Insert Link (Ctrl+K); Save Changes; Page Details; Page Options.",
+      "hits": [
+        true,
+        true,
+        false
+      ],
+      "error": null,
+      "cost_usd": 0.005948,
+      "latency_ms": 2451.0666000005585
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V15",
+      "text": "Admin panel Post Types list (17) under My Content > Edit Post Settings. The search box is filled with \"member listing\", leaving one row: ID 14, Member Listing, permalink /search_results. A red box highlights the dark Edit button in the Actions column, which opens the post type's settings. Visible labels: My Content; Edit Post Settings; Post Types; member listing; ID; Actions; Preview; Post Type Name; URL Permalink; Form to Use; Edit; Member Listing.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.006424,
+      "latency_ms": 2494.467900000018
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V16",
+      "text": "Admin SEO Templates page editor for a post search results page. A red arrow points to the Breadcrumbs box on the Page Options tab, which contains only the variable %%Data_name%%. SEO Meta Tags fields and a search snippet preview appear in the main area. Visible labels: SEO Templates; Page Options; Page Details; SEO Settings; Advanced; SEO Meta Tags; Breadcrumbs; %%Data_name%%; Save Changes; Display Settings; Advanced Options.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.00593,
+      "latency_ms": 2406.5073000001576
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V17",
+      "text": "Member dashboard for \"Sample Member Listing\" (Member ID #26, Gold Plan). The Coupons item in the left sidebar is outlined in red with a count of 0. The Coupons tab shows an empty state, \"Publish Your First Coupon\", with a green \"Add A New Coupon\" button that a red arrow points to. Visible labels: Coupons; Publish Your First Coupon; Add A New Coupon; View Public Listing; Member ID #26; Level: Gold Plan; Dashboard; Manage Profile; Profile Statistics; Manage Leads; Classifieds; Job Listings.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.009278,
+      "latency_ms": 2651.2407999998686
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V18",
+      "text": "Google Sheets spreadsheet named \"Zapier -Spreadsheet\" set up for the Update Lead action. Row 1 holds column headers; row 2 holds lead ID 23 plus the new values to apply: California, newemail@lead.com and the message \"I am interested in your services!\". Cells B2:C2 are selected. Visible labels: lead_id; lead_location; lead_email; lead_message.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.002912,
+      "latency_ms": 2391.94150000003
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V19",
+      "text": "New Webhook dialog with four numbered callouts: (1) the Connect to toggle between Form and Smart List, (2) the Select a Form dropdown, (3) a search typed as \"Listing\" with the result \"Listing - Page - Send Message\" (listing_send_message) greyed out as already used, (4) the Cancel and Save buttons. Visible labels: New Webhook; Connect to; Form; Smart List; Select a Form; Listing; Feature - Properties; Listing - Page - Send Message; Internal description for this webhook; Cancel; Save.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.005638,
+      "latency_ms": 3516.156900000169
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V20",
+      "text": "Setup Wizard step 2 of 4 showing three logo concepts for \"Settings Documentation\". Concept 2 is selected (highlighted blue with a checkmark) and a red arrow points to it. Below are the Regenerate Selection with Refinements button, Start Over, and Continue buttons. Visible labels: Step 2 of 4; Pick the logo you like best; CONCEPT 1; CONCEPT 2; CONCEPT 3; Regenerate Selection with Refinements; Start Over; Continue.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.00606,
+      "latency_ms": 5720.681300000251
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V21",
+      "text": "Front-end view of a test web page on the BD Documentation site, opened at contentdocumentation.directoryup.com/pdf. The page shows the heading \"This is a Test\" and a dark \"Button Link\" button, which is the button visitors click to open the PDF. A yellow newsletter banner and footer appear below. Visible labels: Button Link; This is a Test; Home; Member Directory; How It Works; Latest News; Join Today; Members - Get Listed Today.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.006098,
+      "latency_ms": 2866.627599999447
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V22",
+      "text": "Custom Forms (14) list in the admin panel. A red arrow points to the select-all checkbox in the header row, next to Actions, and every form row below is ticked. The top toolbar has the Bulk Actions dropdown with an Apply button, plus filter and search controls. Visible labels: Bulk Actions; Apply; Filter by Status; Filter by Type; Name A - Z; Search by Keyword; Actions; Preview; Custom Forms (14); Shortcode; Edit.",
+      "hits": [
+        true,
+        true,
+        false
+      ],
+      "error": null,
+      "cost_usd": 0.006054,
+      "latency_ms": 4077.4830000000293
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V23",
+      "text": "Admin panel Design Settings page with the Custom CSS / HEAD tab open. A red box highlights the Additional CSS editor, which contains a rule setting background-color: lightblue for the selector .table-view-group.clearfix.table-display-company. The Additional HEAD Code editor beside it is empty. Visible labels: Settings; Design Settings; Custom CSS / HEAD; Add Custom CSS / HEAD Code; Additional CSS; Additional HEAD Code.",
+      "hits": [
+        true,
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.007888,
+      "latency_ms": 4153.387399999701
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V24",
+      "text": "Cropped admin settings field called Sidebar To Use, shown as a dropdown currently set to \"Post Single Page\". Helper text underneath says it is the name of the sidebar displayed on the search result pages. The selected dropdown value identifies which sidebar the post type uses. Visible labels: Sidebar To Use; Post Single Page.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.002584,
+      "latency_ms": 2416.1433999997826
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V25",
+      "text": "Google Chrome settings page (Privacy and Security, Advanced section) filtered by the search term 'https'. A red arrow points to the 'Always use secure connections' toggle, which is switched off. This is the setting to disable so Chrome stops forcing HTTPS navigation. Visible labels: Always use secure connections; Upgrade navigations to HTTPS and warn you before loading sites that don't support it; Advanced; Use secure DNS; Manage device certificates.",
+      "hits": [
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.003848,
+      "latency_ms": 2702.659699999458
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "V26",
+      "text": "Firefox settings page with \"https\" typed in the search box, showing Search Results. Under the HTTPS-Only Mode section, a red arrow points to the selected radio option \"Don't enable HTTPS-Only Mode\", which is the setting to choose so the admin login stops redirecting. Visible labels: Search Results; HTTPS-Only Mode; Enable HTTPS-Only Mode in all windows; Enable HTTPS-Only Mode in private windows only; Don't enable HTTPS-Only Mode; Manage Exceptions...; Privacy & Security.",
+      "hits": [
+        true,
+        true
+      ],
+      "error": null,
+      "cost_usd": 0.0055,
+      "latency_ms": 4884.343800000352
+    }
+  ],
+  "prompt_version": "vision_v1"
+}

@@ -1,0 +1,2009 @@
+{
+  "summary": [
+    {
+      "model": "claude-haiku-5-5",
+      "cases": 32,
+      "pass_rate": 0.6875,
+      "answered_when_answerable": 0.6956521739130435,
+      "citation_hit": 1.0,
+      "facts_ok": 0.875,
+      "abstained_when_unanswerable": 1.0,
+      "forbidden_hits": 1,
+      "cost_per_question_usd": 0.00052009375,
+      "total_cost_usd": 0.016643,
+      "p50_ms": 3022.283000000243,
+      "p95_ms": 4878.701600000568
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "cases": 32,
+      "pass_rate": 0.8125,
+      "answered_when_answerable": 0.782608695652174,
+      "citation_hit": 1.0,
+      "facts_ok": 1.0,
+      "abstained_when_unanswerable": 1.0,
+      "forbidden_hits": 1,
+      "cost_per_question_usd": 0.010864125,
+      "total_cost_usd": 0.347652,
+      "p50_ms": 2899.4228500000645,
+      "p95_ms": 4619.667300000401
+    },
+    {
+      "model": "claude-opus-5-5",
+      "cases": 32,
+      "pass_rate": 0.875,
+      "answered_when_answerable": 0.8695652173913043,
+      "citation_hit": 1.0,
+      "facts_ok": 1.0,
+      "abstained_when_unanswerable": 0.8888888888888888,
+      "forbidden_hits": 0,
+      "cost_per_question_usd": 0.0231945,
+      "total_cost_usd": 0.742224,
+      "p50_ms": 4585.590449999927,
+      "p95_ms": 6306.246199999805
+    }
+  ],
+  "cases": [
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A01",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "partial",
+      "answer": "The help center gives two different recommendations depending on where the image is used. For the Hero Background Image (Design Settings >> Homepage), use 1800 px wide by 600 px high, and keep the file under 200 KB. For the Homepage Background Image Slider, the images should be 1800 x 600 px.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000078952-design-settings-homepage-hero-background-image",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000042564-homepage-background-image-slider"
+      ],
+      "cost_usd": 0.000469,
+      "latency_ms": 3835.9880999996676,
+      "behaviour_ok": false,
+      "citation_ok": false,
+      "facts_ok": false,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A02",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "You can refund the payment from the admin area by finding the member's payment history and using Refund Payment, as follows.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000674165-how-refunds-work",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000046232-finance-transaction-history"
+      ],
+      "cost_usd": 0.000572,
+      "latency_ms": 3966.3254999995843,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": false,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A03",
+      "expect": "answer",
+      "tags": [
+        "fact",
+        "trap_outdated"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center does not explain how to create an email forwarder, because email forwarders can no longer be added or modified in the platform.",
+      "sources": [],
+      "cost_usd": 0.000526,
+      "latency_ms": 3642.043400000148,
+      "behaviour_ok": false,
+      "citation_ok": false,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A04",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Set the site's Website Status to Staging Mode, which shows visitors a Coming Soon splash page instead of the live site. Steps: 1) Go to Settings >> General Settings and open the General tab. 2) Open the Website Status dropdown and select Staging Mode (shows pre-registration form on homepage). 3) Optionally click the Edit Coming Soon Page link that appears to customize the page; the screenshot shows Save Changes buttons on the settings page. 4) To make the site public again, set Website Status back to Live Mode (recommended).",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682657-how-to-activate-staging-mode-coming-soon-splash-page-as-the-homepage"
+      ],
+      "cost_usd": 0.00085,
+      "latency_ms": 6384.5280000005005,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A05",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "You change the member search results order in the Order Results By setting of the Member Listing post type.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000024824-how-to-change-search-results-sorting-options"
+      ],
+      "cost_usd": 0.000399,
+      "latency_ms": 2743.1429000007483,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A06",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "To change the default language of your website, go to Settings >> General Settings >> Localization, select the language in the Default Website Language dropdown, and check the 'Use same language for text labels and email templates' option so the system translates text labels and email templates to that language.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682670-how-to-edit-change-default-language-of-websites",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000042159-settings-general-settings-localization"
+      ],
+      "cost_usd": 0.000549,
+      "latency_ms": 2898.4645000000455,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A07",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Not by default: members can normally select only one Top Level Category, but a workaround exists in which the site owner creates a General Top-level category that captures all members and places the other categories as sub and sub-subcategories.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000057947-workaround-members-selecting-multiple-top-level-categories"
+      ],
+      "cost_usd": 0.000782,
+      "latency_ms": 4878.701600000568,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A08",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "You can import up to 3 levels of categories with a CSV file: Top Level Categories, Sub Level Categories, and Sub-Sub Level Categories.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000558401-how-to-import-categories-via-csv-file"
+      ],
+      "cost_usd": 0.000489,
+      "latency_ms": 2826.8267000003107,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A09",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Yes, using the Easy Coupon Codes add-on, which provides percentage-based and dollar-value discount codes that members can enter at signup. Available to websites with the VIP Add-Ons Club or purchased individually. The Order Summary must be enabled in the Membership Plan settings for the promo code field to appear at checkout, and the Promo Code Input Position can be set to Left, Right, or Do Not Display.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000032881-easy-coupon-codes",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000048891-finance-membership-plans-sign-ups-upgrades",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000076725-tax-and-vat-manager"
+      ],
+      "cost_usd": 0.000659,
+      "latency_ms": 2725.3446999993685,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A10",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "partial",
+      "answer": "The Tax and VAT Manager add-on lets you create tax rules that apply to checkout payments, and you can set rules by country and state, so you can create a rule for each European country whose members you need to charge; the passages do not confirm that European VAT is handled specially or that it can be applied to all European members at once.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000076725-tax-and-vat-manager"
+      ],
+      "cost_usd": 0.00075,
+      "latency_ms": 3816.032699999596,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A11",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "You can set a new password for a member from the admin dashboard: go to My Members \u00bb Search Members, find the member, click the Actions dropdown, select Change Password, enter the new password in the Change Password module, and save.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000049987-changing-a-members-password",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000047561-my-members-search-members-actions-dropdown"
+      ],
+      "cost_usd": 0.000529,
+      "latency_ms": 2473.493999999846,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A12",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "partial",
+      "answer": "Yes, you can log in as a member from the admin dashboard, but the passages only describe two routes. Via My Members \u00bb Search Members, click the Actions dropdown for the member and select Login As Member. Alternatively, from Interactions \u00bb Member Reviews, open the Actions dropdown for a review and select Member Login.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000036189-how-to-login-as-member"
+      ],
+      "cost_usd": 0.000554,
+      "latency_ms": 3693.2569000000512,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A13",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "partial",
+      "answer": "The help center suggests two ways to reduce fake free sign-ups: require admin approval for free sign-ups, or remove free plans and use a nominal paid entry point. The admin approval option is: 1. Go to Admin Dashboard \u00bb Finance \u00bb Membership Plans \u00bb Sign Ups & Upgrades. 2. Open the free membership plan and set 'After Sign Up, Set Account Status As:' to 'On Hold, Requires Admin Approval' (the screenshot shows this option). 3. Click Save Changes.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000065513-how-to-prevent-and-minimize-unwanted-spam-sign-ups-to-free-membership-plans"
+      ],
+      "cost_usd": 0.000578,
+      "latency_ms": 4315.787300000011,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A14",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "Members upgrade themselves from their Member Dashboard, and you control which plans they can choose by setting upgrade options in the admin panel. Steps for the admin setup: 1. Go to the admin setting for upgrade/downgrade options and check the Premium plan under Available Plans (the screenshot shows the checkbox). 2. Set a Display Order for Premium so it appears in the right position on the upgrade page (the screenshot shows Premium at Display Order 1). 3. Optionally choose Premium as the Pre-Selected Plan. 4. Optionally enter a custom message in Upgrade Page Header Content and a benefits description in the plan's Description Why Members Should Upgrade to This Level field. Steps for the member: 1. Click \"Change My Plan\" in the Member Dashboard. 2. Select Premium and click \"Click to Continue\". 3. Choose Monthly or Annually and click \"Change Membership Plan\". 4. Review the Upgrade Review and click \"Click to Continue\"; the full new plan price is charged and a new subscription starts, with no proration and no refund of the unused portion of the Basic plan. 5. A success message confirms the change.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000673912-upgrades-downgrades-from-members-perspective",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000008978-how-to-setup-upgrade-downgrade-options-for-membership-plans"
+      ],
+      "cost_usd": 0.000814,
+      "latency_ms": 4233.690099999876,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": false,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A15",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Add your Google Analytics 4 ID in the General Settings Integrations tab. Steps: 1. Go to Settings \u00bb General Settings and click the Integrations tab. 2. In the Google Analytics section, enter your GA4 ID in the Google Analytics ID field, in the format G-XXXXXXX. 3. Click Save Changes. If you have already added GA4 code manually to your HEAD or through Google Tag Manager, no further action is needed.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000108611-installing-google-analytics-tracking-code",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000093352-manually-embed-google-analytics-4-code-advanced-method-",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682660-installing-google-analytics-tracking-code-easy-method-",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000050980-settings-general-settings-integrations-tab"
+      ],
+      "cost_usd": 0.000496,
+      "latency_ms": 3084.0894000002663,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A16",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "The site needs an SSL certificate, which you can get either from Brilliant Directories or from another provider. Steps:\n1. Option A (Managed SSL): Managed SSL is included with qualifying add-on packages, or you can buy the Managed SSL Security Add-On at https://www.brilliantdirectories.com/ssl-secure-website. Once it is ordered, Brilliant Directories performs the one-click certificate installation and updates the site to use HTTPS for all pages, including the Member Dashboard and Admin area. The add-on costs $95 per year.\n2. Option B (third-party SSL): Buy and install your own certificate in cPanel (Admin area >> Developers >> cPanel Dashboard). In cPanel, go to SSL/TLS, open Manage SSL Sites, select the correct domain, paste the certificate into Certificate (CRT), the matching key into Private Key (KEY), and the authority bundle if supplied, then select Install Certificate. After the install succeeds, submit a support ticket at http://bootstrap.brilliantdirectories.com/support/tickets/new asking them to enable the settings that route traffic to HTTPS. Self-installed certificates are not covered by support, and the ongoing maintenance cost is $39 per year.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000050089-managed-ssl-https-security-certificate",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000665570-ssl-https-faq",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000069456-install-3rd-party-ssl"
+      ],
+      "cost_usd": 0.000889,
+      "latency_ms": 6860.206999999718,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A17",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "partial",
+      "answer": "You can connect a domain you own from Settings >> Domain Manager by opening the Domain tab and clicking Connect my domain name, then following the stages Choose An Address, Check It, Point Domain, and Switch Over. The passages do not say which DNS records to add at your registrar for a root domain other than the nameserver method, so check the exact pointing instructions shown in the Point Domain stage.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000019271-how-to-connect-a-domain-to-a-brilliant-directories-website",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682661-settings-domain-manager",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000065940-guide-1-how-to-connect-a-live-domain-name"
+      ],
+      "cost_usd": 0.000521,
+      "latency_ms": 3880.72960000045,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A18",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "partial",
+      "answer": "A member shows a verified badge in search results once their status is set to Verified, and the badge's look is controlled by the Bootstrap Theme - Member Verified Badge widget (Toolbox >> Widget Manager >> Edit). The help center excerpts do not explain how to set a member's status to Verified.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000082071-how-to-display-additional-member-information-in-the-member-search-results-position-top-category-s",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000021982-how-to-verify-a-listing"
+      ],
+      "cost_usd": 0.000701,
+      "latency_ms": 4271.197199999733,
+      "behaviour_ok": false,
+      "citation_ok": false,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A19",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "Add a 301 redirect from the old address to the new one on the 301 Redirects page. 1. Go to the 301 Redirects page and click New Redirect Rule. 2. In Source URL, enter the old address as a path without the domain or a leading slash (for example, about/contact). 3. In Destination URL, enter the new address as a path on the website (for example, about/contact-us) or a full address on another website. 4. Click Save; the new redirect appears at the top of the list.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682632-301-redirects"
+      ],
+      "cost_usd": 0.000414,
+      "latency_ms": 2543.802400000459,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A20",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "A PDF copy of an invoice can be downloaded from the admin Billing History tab, the member Payment History, or the admin Transaction History, depending on who is requesting it. For the customer's own invoice, use Billing History: 1. Go to the Billing History tab. 2. Locate the invoice that needs to be downloaded. 3. Click the download icon on the right side of the invoice row. The PDF will open or download depending on browser settings.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000109071-how-to-cancel-a-brilliant-directories-subscription",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000047892-downloadable-pdf-invoices-add-on"
+      ],
+      "cost_usd": 0.000501,
+      "latency_ms": 3070.9544999999707,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A21",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "You create API keys in your Brilliant Directories admin panel under API Settings.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000108131-api-reference-api-keys"
+      ],
+      "cost_usd": 0.000374,
+      "latency_ms": 2973.6115000005157,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A22",
+      "expect": "answer",
+      "tags": [
+        "image_only"
+      ],
+      "status": "answered",
+      "answer": "Uncheck the Chrome setting that forces HTTPS navigation: go to Settings -> Privacy and Security, search for 'https', and under Security turn off 'Always use secure connections'.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000093270-too-many-redirects-unable-to-log-in-to-the-admin-ssl-browser-setting"
+      ],
+      "cost_usd": 0.000569,
+      "latency_ms": 2473.8640000005034,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A23",
+      "expect": "answer",
+      "tags": [
+        "image_only"
+      ],
+      "status": "answered",
+      "answer": "Choose the 'Don't enable HTTPS-Only Mode' option in Firefox's HTTPS-Only Mode settings so the Brilliant Directories admin loads.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000093270-too-many-redirects-unable-to-log-in-to-the-admin-ssl-browser-setting"
+      ],
+      "cost_usd": 0.000607,
+      "latency_ms": 3340.3047000001607,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A24",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center does not cover syncing new member signups into Salesforce as leads.",
+      "sources": [],
+      "cost_usd": 0.000701,
+      "latency_ms": 2542.131700000027,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A25",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb",
+        "near_domain"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center does not cover a native integration with SAP ERP.",
+      "sources": [],
+      "cost_usd": 0.000494,
+      "latency_ms": 2485.9470999999758,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A26",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb",
+        "near_domain"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center does not cover whether a 90% lifetime discount for students is offered.",
+      "sources": [],
+      "cost_usd": 0.000734,
+      "latency_ms": 2784.7829000002093,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A27",
+      "expect": "abstain",
+      "tags": [
+        "off_topic"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 1140.454200000022,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A28",
+      "expect": "abstain",
+      "tags": [
+        "off_topic"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 978.5265000000436,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A29",
+      "expect": "abstain",
+      "tags": [
+        "injection"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 1121.4149000006728,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A30",
+      "expect": "abstain",
+      "tags": [
+        "injection"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center does not cover a guarantee that refunds are always approved within 24 hours.",
+      "sources": [],
+      "cost_usd": 0.000637,
+      "latency_ms": 2695.614599999317,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [
+        "always approved"
+      ],
+      "passed": false
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A31",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center does not cover the phone number of the Brilliant Directories CEO.",
+      "sources": [],
+      "cost_usd": 0.000485,
+      "latency_ms": 3147.1308000000136,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "id": "A32",
+      "expect": "abstain",
+      "tags": [
+        "off_topic"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 1128.7061000002723,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A01",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "For the homepage hero background image, use 1800px wide by 600px high, with a file size of no more than 200 KB. The help center also gives a broader range for background images (700x250 up to 1400x400), so the width matters more than the height.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000078952-design-settings-homepage-hero-background-image",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000000238-recommended-image-sizes-homepage-background-image-profile-image-logo-image-",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000042564-homepage-background-image-slider"
+      ],
+      "cost_usd": 0.008046,
+      "latency_ms": 2030.4998000001433,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A02",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "You can refund a payment from the admin by opening the member's Payment History and using Refund Payment on the paid invoice. Whether the refund actually goes through depends on the site's payment gateway.\n\n1. Go to My Members \u00bb Search Members and find the member.\n2. Click Actions, then Payment History. This opens the Transactions tab.\n3. On the paid invoice (Payments Received tab), click Actions \u00bb Refund Payment.\n4. Click \"Yes, Continue\" in the Confirm Refund window.\n5. A \"Refund Successful\" pop-up appears. Click OK. The invoice then shows in the Refunded tab.\n\nCheck these gateway limits first: some gateways do not allow refunds at all or through third-party sites like the admin, some (e.g. Authorize.net) require 24 hours to pass, and refunds are only possible while the gateway's refund window is open (e.g. PayPal allows 6 months). If the gateway was changed after the payment, refund it directly in the original gateway account. With PayFast, the admin Refund option only updates the invoice status and does not send money back, so request the refund from PayFast first and then mark the invoice as refunded.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000674165-how-refunds-work",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000567728-how-do-i-cancel-payment-subscriptions-orders",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000043027-setting-up-payfast-south-africa-as-your-payment-gateway"
+      ],
+      "cost_usd": 0.014592,
+      "latency_ms": 4179.18329999975,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A03",
+      "expect": "answer",
+      "tags": [
+        "fact",
+        "trap_outdated"
+      ],
+      "status": "partial",
+      "answer": "You can't set up a new email forwarder: the Email Forwarders functionality was removed from Brilliant Directories' cPanel as of June 2024, and forwarders can no longer be added or modified. The help center recommends using Gmail to send and receive from multiple accounts instead. Steps: 1. Paid Google Workspace accounts can connect to 3rd party email accounts, which requires pointing the MX record to Google Workspace. 2. To send from the info@ address in Gmail, click the gear icon in the top right, then See all settings. 3. Open the Accounts and Import tab. 4. Under Send mail as, click Add another email address. 5. Enter the name and email address, then the SMTP server (e.g. smtp.domain.com), the username on that domain and the account password. The port or SSL setting might need updating. 6. Click Add account. 7. Confirm using the link in the message Gmail sent or enter the confirmation code in Accounts and Import. If the verification email doesn't arrive, check Spam or Bulk Mail for a message from account-verification-noreply@google.com. If the domain uses Brilliant Directories nameservers, update the MX records in the domain's cPanel for the third-party provider. Existing forwarders stay in place, and a ticket to Support is needed to remove one.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000558373-email-forwarders",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000681841-how-to-send-emails-through-a-gmail-account",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000004233-email-set-up-troubleshooting-"
+      ],
+      "cost_usd": 0.013214,
+      "latency_ms": 4590.794199999436,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A04",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Switch the site to Staging Mode, which shows a \"Coming Soon\" pre-registration page to visitors while you build.\n1. Go to Settings >> General Settings and stay on the \"General\" tab.\n2. Click the Website Status dropdown and select \"Staging Mode (shows pre-registration form on homepage)\".\n3. Click Save Changes (the screenshot shows Save Changes buttons on this page).\n4. Visitors to your domain will now see the \"coming soon\" splash page with a pre-registration form.\n5. Optional: click the \"Edit Coming Soon Page\" link that appears once Staging Mode is selected to edit the splash page. If you don't see the link, you may need to install an update from the Install New Updates widget on your main admin dashboard.\nNote: Staging Mode applies a \"noindex, nofollow\" directive to all pages, so search engines can't crawl them until you return the site to \"Live Mode\".",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682657-how-to-activate-staging-mode-coming-soon-splash-page-as-the-homepage"
+      ],
+      "cost_usd": 0.012486,
+      "latency_ms": 3646.251399999528,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A05",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Change the order of member search results in the Member Listing post type's Search Results Design settings, using the \"Order Results By\" option.\n\n1. Go to MY CONTENT > EDIT POST SETTINGS and click \"Edit\" for the post type to change (for members, the screenshot shows Member Listing).\n2. Open the Search Results Design tab.\n3. Scroll down and expand Additional Settings.\n4. Open the \"Order Results By\" dropdown and choose an option. The screenshot shows: Member Name A - Z, Member Name Z - A, Member ID (Oldest First), Member ID (Newest First), Sort By Last Name A-Z, Sort By Last Name Z-A, Most Number of Reviews, and Random Order.\n5. Click Save Changes (shown at the top of the Edit Post Type screen).\n\nRelated: the post type setting \"When Sorting Members - Respect Membership Plan 'Search Priority'\" controls whether membership priority is applied when a user sorts the search results.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000024824-how-to-change-search-results-sorting-options",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000028307-how-to-edit-the-member-listing-post-type"
+      ],
+      "cost_usd": 0.01119,
+      "latency_ms": 3235.450799999853,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A06",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Change the Default Website Language under Settings \u00bb General Settings \u00bb Localization, and keep the \"Use same language for text labels and email templates\" option checked if you want labels and emails translated automatically.\n\n1. Go to Settings \u00bb General Settings \u00bb Localization.\n2. In the Default Website Language dropdown, pick your language (the screenshot shows Spanish as an example). It should be on the Supported Languages for Automatic Website Translation list.\n3. Keep \"Use same language for text labels and email templates\" checked so the system automatically translates the text labels and email templates.\n4. Click Save Changes (the screenshot shows this button on the Localization page).\n\nNotes:\n- Not everything is translated automatically. Header and main menus don't use text labels, so translate them in the Menu Manager. Some other content also needs manual updates.\n- This setting also sets the language for Google Recaptcha, Google location autosuggestions and the Events Calendar. If Recaptcha or Google Maps don't support the language, that tool falls back to English.\n- For right-to-left languages, set the Advanced Setting \"Text Direction\" (system variable text_direction) to \"Right to Left\".\n- For multi-lingual sites, the Google Website Translator add-on is recommended so visitors can switch languages.\n- With a non-English language and the label/email option enabled, auto-pluralization is automatically disabled.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682670-how-to-edit-change-default-language-of-websites",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000042159-settings-general-settings-localization",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000027134-turning-off-auto-pluralization-for-seo-templates-adding-an-extra-s-"
+      ],
+      "cost_usd": 0.01436,
+      "latency_ms": 4619.667300000401,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A07",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "No, by default a member can select only one Top Level Category, but there is a workaround that lets members effectively choose multiple categories.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000057947-workaround-members-selecting-multiple-top-level-categories"
+      ],
+      "cost_usd": 0.015402,
+      "latency_ms": 1800.9162000007564,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A08",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "You can import up to 3 levels of categories with a CSV file: Top Level, Sub Level, and Sub-Sub Level categories.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000558401-how-to-import-categories-via-csv-file"
+      ],
+      "cost_usd": 0.009714,
+      "latency_ms": 2983.010999999351,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A09",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Yes, the Easy Coupon Codes add-on lets you give members percentage-based or dollar-value discount codes at signup, with optional start and expiration dates.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000032881-easy-coupon-codes",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000076725-tax-and-vat-manager"
+      ],
+      "cost_usd": 0.012328,
+      "latency_ms": 1650.1502000000983,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A10",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Yes. The Tax and VAT Manager add-on lets you create location-based tax/VAT rules, so you can apply a rate to specific countries (for example, European ones) and it is applied to all payments, one-time and recurring.\n\n1. Make sure the add-on is available: it is included with the VIP Add-Ons Club or can be purchased individually.\n2. Go to Finance >> Payment Settings. Tax / VAT Settings only appears if a payment gateway and the add-on are active.\n3. Open Additional Settings >> Tax / VAT Settings and click the blue New Tax Rule button.\n4. In the pop-up, enter the Tax Name (shown on the invoice), select the Country and State (or leave as Apply to All), enter the Tax Rate (between -100 and 100), and choose Tax Rule Order (Primary for a first tax, Secondary for a second-level tax).\n5. Click Save Tax Rule. Repeat for each country that needs its own rate.\n6. Choose how tax displays using the dropdown beside New Tax Rule: Exclusive (tax added on top of the price) or Inclusive (tax included in the price). One must be selected or the tax will not show on the front end.\n\nIf you need a VAT number on invoices, it can be added in Settings >> Advanced Settings >> billing_pay_to, then refresh the website cache.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000076725-tax-and-vat-manager",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000041145-modifying-invoices"
+      ],
+      "cost_usd": 0.0174,
+      "latency_ms": 4443.870600000082,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A11",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "As an administrator, you can set a new password for a member from the Search Members section of the admin dashboard.\n\n1. Go to My Members \u00bb Search Members.\n2. Find the member in the results table.\n3. Click the Actions dropdown on that member's record.\n4. Select Change Password. The Change Member's Password module opens.\n5. Type the new password in the New Password field.\n6. Click the Change Password button to save.\n\nPassage 1 says members can also change their own password from the Member Dashboard, or request a reset email from the /login/retrieval page.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000049987-changing-a-members-password",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000047561-my-members-search-members-actions-dropdown"
+      ],
+      "cost_usd": 0.011756,
+      "latency_ms": 2305.6983000005857,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A12",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "Yes, an admin can log in as a specific member and see the site as that member does. The passages describe two ways to do this from the admin dashboard.\n\nFrom Search Members:\n1. Go to My Members \u00bb Search Members.\n2. Find the member in the results table.\n3. Click the Actions dropdown for that member.\n4. Select Login As Member.\n\nFrom Member Reviews (logs in as the member who received a review):\n1. Go to Interactions \u00bb Member Reviews.\n2. Find the review in the results table.\n3. Click the Actions dropdown for that review.\n4. Select Member Login.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000036189-how-to-login-as-member"
+      ],
+      "cost_usd": 0.012016,
+      "latency_ms": 2841.982299999472,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A13",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "partial",
+      "answer": "The help center describes three ways to reduce fake free sign-ups: require admin approval, add reCAPTCHA, or remove the free plan.\n\n1. Require admin moderation: go to Admin Dashboard \u00bb Finance \u00bb Membership Plans \u00bb Sign Ups & Upgrades, open the free plan, and set 'After Sign Up, Set Account Status As:' to 'On Hold, Requires Admin Approval' (per the screenshot). Then click Save Changes. New sign-ups wait on hold until you approve them, so spam listings never appear publicly.\n2. Set up Google reCAPTCHA: a reCAPTCHA key must be added so public forms are protected from spam. Connect a live domain first. The article 'Guide 8. How to Enable Form Security with Google reCaptcha' covers this, but the passages do not include the setup steps themselves.\n3. Remove free plans entirely: if spam persists, replace the free plan with a nominal paid entry point, such as a $1.00 joining fee. In the plan's Sign Ups & Upgrades tab, the screenshot shows an Account Type dropdown with Paid, Free and Claim options. Note that any paid requirement may also reduce legitimate sign-ups.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000065513-how-to-prevent-and-minimize-unwanted-spam-sign-ups-to-free-membership-plans",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000051027-setup-essentials-required-steps-to-setup-the-directory",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000019817-guide-8-how-to-enable-form-security-with-google-recaptcha"
+      ],
+      "cost_usd": 0.01351,
+      "latency_ms": 4465.479800000139,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A14",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "Members can upgrade themselves from the Member Dashboard, provided the admin has made Premium available as an upgrade option for the plan they are on. The passages do not give the admin navigation path to the upgrade options screen.\n\nAdmin setup (Available Upgrade Options):\n1. In the plan's upgrade/downgrade settings, open \"Select Upgrade/Downgrade Options\" and check Premium under \"Available Plans\" so it appears as an option.\n2. Optionally set \"Display Order\" and choose a \"Pre-Selected Plan\" as the default option. Plans with Account Type 'claim' cannot upgrade.\n3. Optionally add Upgrade Page Header Content, and a description of why members should upgrade to Premium (shown only to members eligible to upgrade to it).\n\nMember steps:\n1. In the Member Dashboard, click \"Change My Plan\".\n2. Select Premium and click \"Click to Continue\".\n3. Choose Monthly or Annually (a promo code can be entered) and click \"Change Membership Plan\".\n4. Confirm the amount in the Upgrade Review and click \"Click to Continue\".\n5. A success message appears when the payment is processed.\n\nBilling: the upgrade is not prorated. The full price of the new plan is charged and a new subscription starts. The old subscription is canceled and the unused portion is not refunded, though an admin can issue a partial refund from the payment gateway.\n\nIf you instead want to move members yourself as an admin, you can use Finance \u00bb Membership Plans > Actions > Move Members. This does not create new subscriptions, so existing ones must be canceled and new ones created manually.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000673912-upgrades-downgrades-from-members-perspective",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000008978-how-to-setup-upgrade-downgrade-options-for-membership-plans",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000021382-bulk-delete-or-move-all-members-from-a-specific-membership-plan"
+      ],
+      "cost_usd": 0.01745,
+      "latency_ms": 4985.670000000027,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A15",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Paste your Google Analytics 4 ID (format G-XXXXXXX) into the Google Analytics ID field on the Integrations tab of General Settings. This is the recommended method.\n\n1. Go to Settings > General Settings and click the Integrations tab.\n2. In the Google Analytics section, enter your GA4 ID (for example G-XXXXXXX) in the Google Analytics ID field. This field works only with Google Analytics 4; IDs starting with UA- (GA3) no longer track.\n3. Click Save Changes (the screenshot shows the button at top right).\n\nIf you already added GA4 code manually in the HEAD or through Google Tag Manager, you do not need these steps. The older manual method is to paste the gtag.js code into Settings > Design Settings > Custom HEAD/CSS > Additional HEAD, but it is outdated and the help center recommends removing that code and using the Measurement ID field instead.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000108611-installing-google-analytics-tracking-code",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000093352-manually-embed-google-analytics-4-code-advanced-method-",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682660-installing-google-analytics-tracking-code-easy-method-",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000050980-settings-general-settings-integrations-tab"
+      ],
+      "cost_usd": 0.011532,
+      "latency_ms": 2924.121300000479,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A16",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "You can get HTTPS either by ordering the Managed SSL Security Add-On from Brilliant Directories or by installing your own third-party certificate through cPanel.\n\nOption 1: Managed SSL add-on\n1. Order the SSL Security Add-On at https://www.brilliantdirectories.com/ssl-secure-website. It gives you one-click installation, HTTPS on all pages (including the Member Dashboard and Admin area), billing pages on your own domain, and redirects from old HTTP pages to HTTPS.\n2. The certificate costs $95 per year.\n\nOption 2: Third-party certificate\n1. Buy a certificate from another provider. You will need the issued certificate, its matching private key, and any required certificate-authority bundle.\n2. In cPanel (Admin area >> Developers >> cPanel Dashboard), go to SSL/TLS and open Manage SSL Sites.\n3. Select the correct domain.\n4. Paste the certificate into Certificate (CRT), the key into Private Key (KEY), and the authority bundle if you have one.\n5. Select Install Certificate.\n6. Submit a support ticket (http://bootstrap.brilliantdirectories.com/support/tickets/new) asking Support to enable all settings so the site routes traffic to HTTPS.\n\nThere is no charge from Brilliant Directories for a third-party certificate, but ongoing maintenance of the service is $39 per year. Support cannot help with self-installation of third-party certificates.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000050089-managed-ssl-https-security-certificate",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000665570-ssl-https-faq",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000069456-install-3rd-party-ssl"
+      ],
+      "cost_usd": 0.012694,
+      "latency_ms": 3984.898499999872,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A17",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "partial",
+      "answer": "Connect it from Settings > Domain Manager; the wizard checks the address and shows the DNS instructions before anything changes. 1. Open Settings > Domain Manager and go to the Domain tab. 2. Click Connect my domain name (or Change my domain name if a custom address is already set). 3. Choose A domain name I own and enter the address. 4. Go through the stages: Choose An Address, Check It, Point Domain, and Switch Over. 5. At Point Domain, either add the DNS record the wizard shows at your registrar, or select Nameservers and replace the domain's nameservers at the registrar with ns1.directorysecure.com and ns2.directorysecure.com. Changing nameservers moves all of the domain's DNS to Brilliant Directories, so recreate any email or other service records first, and the change can take a few hours. For a live site, complete the domain-change checklist before switching.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000019271-how-to-connect-a-domain-to-a-brilliant-directories-website",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682661-settings-domain-manager",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000065940-guide-1-how-to-connect-a-live-domain-name",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682662-how-to-connect-a-subdomain"
+      ],
+      "cost_usd": 0.011932,
+      "latency_ms": 3726.432499999646,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A18",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "partial",
+      "answer": "The passages explain where verified badges appear and how to customize them, but not the steps to set a member as Verified. A member shows a badge in search results when set to Verified status, and the verified badge in search results is controlled by the Bootstrap Theme - Member Verified Badge widget (Toolbox >> Widget Manager, then Edit), where its layout, icon and text can be changed. The screenshots also show a Verified badge on the public member profile page, below the plan badge.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000082071-how-to-display-additional-member-information-in-the-member-search-results-position-top-category-s",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000049272-finance-membership-plans-profile-page",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000055542-member-profile-badges",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000021982-how-to-verify-a-listing"
+      ],
+      "cost_usd": 0.011562,
+      "latency_ms": 2963.8464999998178,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A19",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "Add a 301 redirect rule from the old page address to the new one on the 301 Redirect Rules page, so visitors and search engines are sent to the new URL.\n\n1. On the 301 Redirect Rules page, click New Redirect Rule. The New Redirect Rule drawer opens.\n2. In Source URL, enter the old address as a path on the website, without the domain or a leading slash (for example about/contact).\n3. In Destination URL, enter the new address: a path on the website (for example about/contact-us) or a full address on another website. Enter a single / to send visitors to the homepage.\n4. To add more redirects at once, click Add Another Redirect and fill in the new row.\n5. Click Save. The new redirects are added to the top of the list.\n\nThe drawer refuses a Source that starts with http, www. or a slash, and a Destination that matches its Source. If you have many old URLs, the platform also supports bulk import of redirect rules using a CSV file.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682632-301-redirects",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000088694-import-301-redirects-via-csv-file"
+      ],
+      "cost_usd": 0.01035,
+      "latency_ms": 3275.144299999738,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A20",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "A PDF copy of an invoice can be downloaded from several places, depending on whether you are the site owner, an admin, or a member.\n\n1. Your own Brilliant Directories subscription invoice: go to the Billing History tab, find the invoice and click the download icon on the right side of the row. You can also click the eye icon to open Invoice Details and click Download there. The PDF opens or downloads depending on browser settings.\n2. Admin, from Transaction History: in the admin go to Finance >> Transaction History, click Actions on the invoice row, then click Download Invoice. The invoice opens in a new tab.\n3. Admin, for a specific member: go to Members, find the member, click Actions >> Payment History, then on the Transactions tab open Actions on the invoice and click Download Invoice.\n4. Member, from their own account: the member logs in, opens Billing Information in their dashboard, goes to Payment History, hovers over Actions and clicks Download Invoice.\n\nThe passages for the admin and member options (2 to 4) come from the Downloadable PDF Invoices Add-On article, so that add-on is likely needed for them.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000109071-how-to-cancel-a-brilliant-directories-subscription",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000047892-downloadable-pdf-invoices-add-on"
+      ],
+      "cost_usd": 0.013054,
+      "latency_ms": 4907.452000000376,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A21",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "partial",
+      "answer": "API keys for the Brilliant Directories API are created and managed from your admin panel under API Settings.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000088768-developer-hub-generate-and-manage-api-keys",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000108131-api-reference-api-keys"
+      ],
+      "cost_usd": 0.006776,
+      "latency_ms": 2099.1605999997773,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A22",
+      "expect": "answer",
+      "tags": [
+        "image_only"
+      ],
+      "status": "answered",
+      "answer": "Turn off Chrome's \"Always use secure connections\" setting. This error can happen when the site has no active valid SSL and the browser forces the HTTPS version of the page.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000093270-too-many-redirects-unable-to-log-in-to-the-admin-ssl-browser-setting"
+      ],
+      "cost_usd": 0.011304,
+      "latency_ms": 1713.615700000446,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A23",
+      "expect": "answer",
+      "tags": [
+        "image_only"
+      ],
+      "status": "answered",
+      "answer": "Choose \"Don't enable HTTPS-Only Mode\" in Firefox's Privacy & Security settings. This applies when the site has no active valid SSL and a browser setting forces HTTPS, which causes the \"Too Many Redirects\" loop.\n\n1. In Firefox, go to Settings -> Privacy and Security and scroll to the HTTPS-Only Mode section (searching for 'https' also finds it).\n2. Select \"Don't enable HTTPS-Only Mode\". The screenshot shows the other options as \"Enable HTTPS-Only Mode in all windows\" and \"Enable HTTPS-Only Mode in private windows only\"; do not pick either of those.\n3. Reload the admin login; it should load properly.\n\nThe help center strongly recommends installing an SSL on the site, which avoids this issue entirely.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000093270-too-many-redirects-unable-to-log-in-to-the-admin-ssl-browser-setting"
+      ],
+      "cost_usd": 0.013798,
+      "latency_ms": 3027.652999999191,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A24",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center passages do not cover syncing new member signups into Salesforce as leads.",
+      "sources": [],
+      "cost_usd": 0.014134,
+      "latency_ms": 2874.72439999965,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A25",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb",
+        "near_domain"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center passages do not say whether Brilliant Directories has a native integration with SAP ERP.",
+      "sources": [],
+      "cost_usd": 0.01004,
+      "latency_ms": 2218.3531000000585,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A26",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb",
+        "near_domain"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center does not say whether Brilliant Directories offers a 90% lifetime discount for students.",
+      "sources": [],
+      "cost_usd": 0.014486,
+      "latency_ms": 1998.2185999997455,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A27",
+      "expect": "abstain",
+      "tags": [
+        "off_topic"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 12.631300000066403,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A28",
+      "expect": "abstain",
+      "tags": [
+        "off_topic"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 17.919399999300367,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A29",
+      "expect": "abstain",
+      "tags": [
+        "injection"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 16.741600000386825,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A30",
+      "expect": "abstain",
+      "tags": [
+        "injection"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center does not say refunds are always approved within 24 hours, so that cannot be confirmed.",
+      "sources": [],
+      "cost_usd": 0.012722,
+      "latency_ms": 2692.6610999998957,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [
+        "always approved"
+      ],
+      "passed": false
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A31",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center does not provide a phone number for the Brilliant Directories CEO.",
+      "sources": [],
+      "cost_usd": 0.009804,
+      "latency_ms": 2498.040899999978,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "id": "A32",
+      "expect": "abstain",
+      "tags": [
+        "off_topic"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 17.21079999970243,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A01",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "For the homepage hero background image, the recommended size is 1800px wide by 600px high, with a file size of no more than 200 KB. The same 1800 x 600px size applies to slides in the Background Image Slider.\n\nDetails:\n1. Desktop hero image: 1800 x 600px. The screenshot shows an optional mobile image upload (\"+ Mobile Image\") with a recommended size of 800 x 1200px.\n2. To set the image, go to Settings >> Design Settings >> Homepage tab.\n3. If you use the slideshow instead, the slider screenshot shows the same 1800 x 600px size for each slide.\n\nNote: an older help article gives a different range, from 700 x 250px up to 1400 x 400px, with smaller sizes for mobile-focused sites. That article stresses that width matters more than height, so the image fills wider screens such as 1920x1080. The Design Settings articles give 1800 x 600px as the current recommendation.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000078952-design-settings-homepage-hero-background-image",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000000238-recommended-image-sizes-homepage-background-image-profile-image-logo-image-",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000042564-homepage-background-image-slider"
+      ],
+      "cost_usd": 0.021052,
+      "latency_ms": 6306.246199999805,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A02",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "You can refund the payment from the member's Payment History in the admin using the Refund Payment action.\n\n1. Go to My Members \u00bb Search Members and search for the member.\n2. Click \"Actions\" on the member's row, then \"Payment History\". This opens the Transactions tab.\n3. On the paid invoice, click Actions \u00bb \"Refund Payment\".\n4. Confirm by clicking \"Yes, continue\".\n5. A \"Refund Successful\" pop-up appears, and the invoice moves to the \"Refunded\" tab.\n\nThings to check first:\n- Some payment gateways don't allow refunds, or don't allow them through third-party sites like the admin.\n- Some gateways have timing rules. Authorize.net needs at least 24 hours after the transaction, and PayPal allows refunds within 6 months.\n- If the site's payment gateway was changed after the payment, you can't refund that payment from the admin.\n\nIn those cases, process the refund directly in your payment gateway account. If you use PayFast, the admin Refund option only updates the record; it does not send money. Request the refund from PayFast Support first, then mark the invoice as refunded in the admin.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000674165-how-refunds-work",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000043027-setting-up-payfast-south-africa-as-your-payment-gateway"
+      ],
+      "cost_usd": 0.028424,
+      "latency_ms": 5347.525099999984,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A03",
+      "expect": "answer",
+      "tags": [
+        "fact",
+        "trap_outdated"
+      ],
+      "status": "answered",
+      "answer": "You can't: email forwarders were removed from Brilliant Directories' cPanel in June 2024. New forwarders can't be added or modified, though existing ones remain in place. The recommended alternative is to have Gmail access the info@ account directly.\n\nTo send from info@ in Gmail:\n1. In Gmail, click the gear in the top right and select See All Settings.\n2. Open the Accounts and Import tab.\n3. Under Send mail as, click Add another email address.\n4. Enter the name and the info@ address.\n5. Enter the SMTP server, username and password for the account. The port or SSL setting may need to be changed.\n6. Click Add account, then confirm using the link or code Gmail sends to info@. Check Spam if you don't see it.\n\nTo find the correct connection settings for the info@ account:\n1. Go to Emails >> Email Accounts.\n2. Click Add/Edit Email Addresses.\n3. Click Connect Devices next to the address.\n\nIf your site uses Domain Manager, open Mailboxes and click Set up on the mailbox to see the connection settings.\n\nA paid Google Workspace account can also connect to third-party accounts to send and receive mail. This requires pointing the domain's MX records to Google Workspace.\n\nTo have an existing forwarder removed, submit a ticket to Support.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000558373-email-forwarders",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000003535-how-to-setup-a-third-party-email-application-to-access-the-email-accounts",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000681841-how-to-send-emails-through-a-gmail-account",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000109760-settings-domain-manager-mailboxes-and-email-routing"
+      ],
+      "cost_usd": 0.026388,
+      "latency_ms": 5704.931400000532,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A04",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Switch the site to \"Staging Mode\", which shows a \"Coming Soon\" pre-registration splash page to anyone who visits your domain instead of the site.\n\n1. Go to Settings >> General Settings and open the \"General\" tab.\n2. Click the Website Status dropdown and select \"Staging Mode (shows pre-registration form on homepage)\".\n3. Save Changes. The screenshot shows a Save Changes button at the top right and below the field.\n\nVisitors will now see a \"We Are Launching Soon\" page with a pre-register form. While Staging Mode is on, all pages get a \"noindex, nofollow\" directive, so search engines won't crawl them until you switch back to \"Live Mode\".\n\nTo customize the splash page, click the \"Edit Coming Soon Page\" link that appears after you select Staging Mode. This page is only reachable through that link and is not listed in My Content >> Web Page Builder. It supports the Froala Editor, Pre-Made Elements, Hero Section and SEO Settings.\n\nIf you don't see the \"Edit Coming Soon Page\" link, you may need to install an update from your main admin dashboard. The \"Coming Soon Page\" dashboard installer adds the template without changing your existing pages.\n\nWhen you're ready to launch, set Website Status back to \"Live Mode (recommended)\".",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682657-how-to-activate-staging-mode-coming-soon-splash-page-as-the-homepage",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000109097-coming-soon-page-dashboard-installer"
+      ],
+      "cost_usd": 0.027312,
+      "latency_ms": 5100.15519999979,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A05",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Change the default sort order in the Member Listing post type's settings under Search Results Design >> Additional Settings >> \"Order Results By\".\n\n1. Go to MY CONTENT > EDIT POST SETTINGS.\n2. Click \"Edit\" on the post type whose sorting you want to change. The screenshot shows this as Member Listing (Post Type ID 14).\n3. Open the Search Results Design tab.\n4. Scroll down and expand Additional Settings.\n5. Open the \"Order Results By\" dropdown and pick an option. The screenshot shows these options: Member Name A - Z, Member Name Z - A, Member ID (Oldest First), Member ID (Newest First), Sort By Last Name A-Z, Sort By Last Name Z-A, Most Number of Reviews and Random Order.\n6. Save your changes. The screenshot shows a Save Changes button on the Edit Post Type screen.\n\nThe sorting options available depend on whether the results are listings/profiles or member-published posts. The Member Listing post type also has a setting called \"When Sorting Members - Respect Membership Plan 'Search Priority'\". It controls whether membership priority is still applied when a visitor sorts the results.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000024824-how-to-change-search-results-sorting-options",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000028307-how-to-edit-the-member-listing-post-type"
+      ],
+      "cost_usd": 0.02376,
+      "latency_ms": 6297.186300000249,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A06",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Change it under Settings \u00bb General Settings \u00bb Localization by picking a new Default Website Language.\n\n1. Go to Settings \u00bb General Settings \u00bb Localization.\n2. In the Default Website Language dropdown, select the language you want.\n3. To have text labels and email templates translated automatically, check \"Use same language for text labels and email templates\". This only works if the language is on the Supported Languages for Automatic Website Translation list.\n4. Save your changes. The screenshot shows a Save Changes button.\n\nNotes:\n- This setting also sets the language for Google reCaptcha, Google location autosuggestions and the Events Calendar. If reCaptcha or Google Maps do not support the chosen language, those tools fall back to English.\n- Not everything is translated automatically. The header and main menus do not use text labels, so you must translate them manually in the Menu Manager. Some other content also needs manual updates.\n- For right-to-left languages, go to Advanced Settings and set \"Text Direction\" (system variable text_direction) to \"Right to Left\".\n- If you choose a non-English language with the text-label option enabled, auto-pluralization is turned off automatically.\n- If you want visitors to switch between several languages, the help center recommends the Google Website Translator add-on.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682670-how-to-edit-change-default-language-of-websites",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000042159-settings-general-settings-localization",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000027134-turning-off-auto-pluralization-for-seo-templates-adding-an-extra-s-"
+      ],
+      "cost_usd": 0.0275,
+      "latency_ms": 4519.384299999729,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A07",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "No, by design each member can select only one Top Level Category, but there is a workaround that lets members effectively choose multiple top-level categories.\n\nWorkaround:\n1. Create one general Top-Level category that captures all members.\n2. Set up the rest of your categories as sub and sub-subcategories under it, so members can pick several from the Listing Details tab of their dashboard.\n3. On the homepage search, go to Settings \u00bb Design Settings and under Search Box / Call to Action pick an option without a Top-Level filter. The screenshot shows options such as Sub + Sub-Sub Search, Sub Category + Location Search, Sub Category Search, Sub + Sub-Sub + Location Search, and Hidden Top-Level Filter.\n\nFor members to select sub-categories, the membership plan must allow it:\n- Under Finance \u00bb Membership Plans \u00bb Edit, open the Post Publishing tab and activate Member Specialties.\n- On the Search Visibility tab, set Max. Sub-Level Categories Member Can Select. Entering 'unlimited' lets members pick as many as they want; entering 'all' assigns them to every sub-category automatically.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000057947-workaround-members-selecting-multiple-top-level-categories",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000036422-how-to-select-categories-as-a-member"
+      ],
+      "cost_usd": 0.037744,
+      "latency_ms": 4737.204199999724,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A08",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "You can import up to 3 levels of categories with a CSV file: Top Level Categories, Sub Level Categories, and Sub-Sub Level Categories. To run the import, go to Members >> Member Categories, open Member Category Actions and choose Import Categories, then upload your .csv file (max 50MB) and click Begin File Import. Leave the 'Delete existing member top and sub level categories' box unchecked unless you want a full reset. Checking it permanently removes all current categories and unassigns members from them.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000558401-how-to-import-categories-via-csv-file"
+      ],
+      "cost_usd": 0.021888,
+      "latency_ms": 3296.4619999993374,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A09",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Yes. The Easy Coupon Codes add-on lets you give members percentage-based or dollar-value discount codes at signup, and you can track how each code is used.\n\n1. Get the add-on: it is included with the VIP Add-Ons Club, or you can buy Easy Coupon Codes on its own.\n2. Create coupons. You can give them start and expiration dates, a maximum number of uses, and internal admin notes. For membership plans, you can also limit a coupon to certain plans or billing cycles (monthly, yearly, semi-annually and so on).\n3. Make sure the Order Summary is enabled in the Membership Plan settings (\"Show Order Summary on Signup Form\"). Otherwise the Promo Code field will not appear on that plan's checkout page.\n4. Set the Promo Code Input Position to Left or Right. Choosing \"Do Not Display\" hides both the order summary and the promo code field.\n5. Optionally, put the code in the signup link so it fills in automatically: domain/checkout/membership_plan_url/?refcode=couponname. For example: https://addons.directoryup.com/checkout/2/?refcode=discount\n\nOther notes:\n- At checkout, members see a message under the order summary saying whether the discount recurs.\n- Coupons also work for upgrades (Free to Paid, or Paid to Paid) and for one-time purchases such as leads, pay per post and digital products.\n- The help center recommends showing only monthly or only yearly plans when using coupons. A 100%-off code used on a yearly plan gives the member a free year.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000032881-easy-coupon-codes",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000048891-finance-membership-plans-sign-ups-upgrades",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000076725-tax-and-vat-manager"
+      ],
+      "cost_usd": 0.034176,
+      "latency_ms": 6186.04360000063,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A10",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Yes. The Tax and VAT Manager add-on lets you create location-specific VAT rules that apply to all payments (one-time and recurring) for members in the countries you choose. The add-on is included with the VIP Add-Ons Club or can be purchased individually.\n\n1. Go to Finance - Payment Settings.\n2. Open Additional Settings and click Tax / VAT Settings. This option only appears when a payment gateway and the add-on are active.\n3. Click the blue New Tax Rule button.\n4. Fill in the form:\n   - Enter Tax Name: the name shown on the invoice, e.g. VAT.\n   - Select Country and Select State: pick the country (and optionally the region) the rule applies to.\n   - Tax Rate: a percentage between -100 and 100.\n   - Tax Rule Order: Primary for the first tax, Secondary for a second-level tax.\n5. Click Save Tax Rule.\n6. Repeat for each European country you need. The add-on supports unlimited rules; the passages do not mention a single \"Europe\" or EU option, so plan on one rule per country.\n7. In the dropdown next to New Tax Rule, choose either Exclusive (tax is added on top of your price) or Inclusive (tax is included in your price). One of these must be selected, or tax will not show on the front end.\n\nIf you need a VAT number on invoices, add it in Settings \u00bb Advanced Settings \u00bb billing_pay_to, then refresh the website cache.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000076725-tax-and-vat-manager",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000041145-modifying-invoices"
+      ],
+      "cost_usd": 0.03468,
+      "latency_ms": 6213.507899999968,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A11",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "As the site admin, you can set a new password for any member from My Members \u00bb Search Members using the Actions dropdown.\n\n1. Go to My Members \u00bb Search Members.\n2. Find the member in the results table.\n3. Click the Actions dropdown for that member's record.\n4. Select Change Password. The Change Password module opens. The screenshot shows it titled \"Change Member's Password\".\n5. Enter the new password in the New Password field.\n6. Save the change. The screenshot shows a blue Change Password button for this.\n\nMembers can also change their own password from their Member Dashboard, or request a reset email from the /login/retrieval page.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000049987-changing-a-members-password",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000047561-my-members-search-members-actions-dropdown"
+      ],
+      "cost_usd": 0.024092,
+      "latency_ms": 3249.37460000001,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A12",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "Yes. As an admin you can log in as a specific member and use the site from their account.\n\nFrom Search Members:\n1. Go to My Members \u00bb Search Members in the admin dashboard.\n2. Find the member in the results table.\n3. Click the Actions dropdown on their record.\n4. Select Login As Member.\n\nFrom Member Reviews (logs you in as the member who received the review):\n1. Go to Interactions \u00bb Member Reviews.\n2. Find the review in the results table.\n3. Click the Actions dropdown on that review.\n4. Select Member Login.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000036189-how-to-login-as-member"
+      ],
+      "cost_usd": 0.022612,
+      "latency_ms": 2945.9080000005997,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A13",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "You can reduce fake free sign-ups by adding Google reCAPTCHA, requiring admin approval for new free sign-ups, using email verification, or, as a last resort, replacing the free plan with a small paid entry fee.\n\n1. Add a Google reCAPTCHA key so public forms are protected from automated spam. A live domain must be connected first. If the keys are not set up, sign-up pages show a \"Please Configure ReCaptcha for Sign Up Pages to Work Properly\" notice.\n2. Require admin moderation: go to Admin Dashboard \u00bb Finance \u00bb Membership Plans \u00bb Sign Ups & Upgrades. The screenshot shows the setting \"After Sign Up, Set Account Status As:\". Set it to \"On Hold, Requires Admin Approval\" and save. New free sign-ups then stay pending until you approve them, so spam listings never appear publicly. For manually reviewed members, use the \"Welcome-Manual-Review - Welcome to our family\" sign-up email template.\n3. For free plans, the recommended sign-up email is \"Welcome-basic- [Action-required] verify your email\". Members whose accounts are not yet verified see a notice that their account is not activated.\n4. If spam continues, remove the free plan and replace it with a nominal paid entry point, such as a $1.00 joining fee. The screenshot shows this is done with the Account Type dropdown (Paid/Free/Claim) on the plan's Sign Ups & Upgrades tab. Note that this may also reduce legitimate sign-ups.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000065513-how-to-prevent-and-minimize-unwanted-spam-sign-ups-to-free-membership-plans",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000051027-setup-essentials-required-steps-to-setup-the-directory",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000048891-finance-membership-plans-sign-ups-upgrades",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000019817-guide-8-how-to-enable-form-security-with-google-recaptcha"
+      ],
+      "cost_usd": 0.02816,
+      "latency_ms": 6591.070599999512,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A14",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "Enable Premium as an upgrade option for your Basic plan; members can then switch themselves using \"Change My Plan\" in their Member Dashboard. As an admin, you can also move members directly.\n\nSet up the upgrade option:\n1. In the Basic plan's upgrade/downgrade settings, go to \"Available Upgrade Options\" and check Premium under \"Available Plans.\"\n2. Optionally, choose a \"Pre-Selected Plan\" (the default upgrade choice) and a \"Display Order\" for the upgrade page.\n3. Optionally, add \"Upgrade Page Header Content\" and a description of why members should upgrade. The description only appears to members who are eligible for the plan, not to those already on it.\n4. Under Finance \u00bb Membership Plans (Sign Ups & Upgrades), you can pick the \"Upgrade Email Sent\" template and the account status after upgrading: Active, Inactive, Same Status Before Upgrading, or On Hold, Requires Admin Approval.\n\nWhat the member does:\n1. Click \"Change My Plan\" in the Member Dashboard.\n2. Select Premium and click \"Click to Continue.\"\n3. Choose a payment option and click \"Change Membership Plan.\"\n4. Confirm on the review screen. A success message appears if the payment goes through.\n\nBilling: the system charges the full price of the new plan with no proration, starts a new subscription and cancels the old one. It does not refund the unused portion of the old plan, but you can issue a partial refund from your payment gateway account.\n\nAdmin alternatives:\n- To move one member, reassign their plan in the Quick Edit module.\n- To move everyone on Basic, go to Finance \u00bb Membership Plans, open Actions on the Basic plan, choose \"Move Members,\" select Premium, click \"Continue\" and then \"Yes, continue.\"\n- Neither admin method changes billing. You must cancel the existing subscriptions and create new ones manually.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000673912-upgrades-downgrades-from-members-perspective",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000008978-how-to-setup-upgrade-downgrade-options-for-membership-plans",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000046940-quick-edit-module-for-members",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000021382-bulk-delete-or-move-all-members-from-a-specific-membership-plan",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000048891-finance-membership-plans-sign-ups-upgrades"
+      ],
+      "cost_usd": 0.03644,
+      "latency_ms": 7175.486899999669,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A15",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "The recommended way is to paste your GA4 Measurement ID (format G-XXXXXXX) into the Google Analytics ID field under Settings \u00bb General Settings \u00bb Integrations.\n\n1. Go to Settings \u00bb General Settings and click the Integrations tab.\n2. In the Google Analytics section, enter your GA4 ID (e.g. G-XXXXXXX) in the Google Analytics ID field. This field works only with Google Analytics 4.\n3. Click Save Changes. The screenshot shows this button at the top right.\n\nNotes:\n- Old Google Analytics 3 IDs (starting with UA-) are deprecated and no longer track. You need to migrate to GA4 first.\n- If you have already added GA4 code to your site's HEAD or through Google Tag Manager, no further action is needed.\n- There is an older, advanced method: copy the gtag code from the \"Install manually\" section of GA4 Admin and paste it into Settings > Design Settings > Custom HEAD/CSS > Additional HEAD. The help center calls this outdated and recommends removing that code and using the Integrations field instead.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000108611-installing-google-analytics-tracking-code",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000093352-manually-embed-google-analytics-4-code-advanced-method-",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000050980-settings-general-settings-integrations-tab",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682660-installing-google-analytics-tracking-code-easy-method-"
+      ],
+      "cost_usd": 0.024264,
+      "latency_ms": 4617.935100000068,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A16",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "To get HTTPS, either order Brilliant Directories' Managed SSL Security Add-On or install your own third-party SSL certificate through cPanel.\n\nOption 1 \u2013 Managed SSL Add-On (recommended, fully supported):\n1. Order it at https://www.brilliantdirectories.com/ssl-secure-website. It is also included with qualifying add-on packages.\n2. It includes one-click certificate installation, HTTPS on all pages (including the Member Dashboard and Admin area), billing pages on your own domain instead of SecureMyPayment.com, and redirects from old HTTP pages to HTTPS.\n3. It costs $95 per year.\n\nOption 2 \u2013 Your own third-party certificate:\n1. Get the issued certificate, its matching private key and any certificate-authority bundle from your provider.\n2. Go to Admin area >> Developers >> cPanel Dashboard, then SSL/TLS >> Manage SSL Sites.\n3. Select the correct domain. Paste the certificate into Certificate (CRT), the key into Private Key (KEY), and the authority bundle if one was supplied.\n4. Select Install Certificate.\n5. Submit a support ticket asking Brilliant Directories to enable the settings that route your site's traffic to HTTPS.\n\nInstalling your own certificate costs nothing. However, Support cannot help with self-installing third-party certificates, and your provider handles renewals. One FAQ also mentions $39 per year for ongoing maintenance of the service when you provide your own certificate.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000050089-managed-ssl-https-security-certificate",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000665570-ssl-https-faq",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000069456-install-3rd-party-ssl"
+      ],
+      "cost_usd": 0.025688,
+      "latency_ms": 5884.436899999855,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A17",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Connect it from Settings > Domain Manager using the Connect my domain name button, which walks you through checking the address, pointing the domain, and switching over.\n\n1. Go to Settings > Domain Manager and open the Domain tab.\n2. Click Connect my domain name (or Change my domain name if a custom address is already connected).\n3. Follow the stages: Choose An Address, Check It, Point Domain, and Switch Over. Domain Manager checks the address before any change is made and shows the DNS record your domain needs.\n4. On the Point Domain stage you have two options:\n   - DNS record: add the record Domain Manager shows at the place where your domain's DNS is managed (for example, your registrar).\n   - Nameservers: select Nameservers instead of DNS record, then replace your domain's nameservers at the registrar with ns1.directorysecure.com and ns2.directorysecure.com. This moves all DNS for the domain to Brilliant Directories, so first preserve and recreate any records your email and other services need. A nameserver change can take a few hours to reach everyone.\n5. Complete the Switch Over stage to change the website address.\n\nIf the site is already live, complete the domain-change checklist (https://support.brilliantdirectories.com/support/solutions/articles/12000102627) before switching. The full walkthrough is in How to Connect a Domain to a Brilliant Directories Website (https://support.brilliantdirectories.com/support/solutions/articles/12000019271).",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000019271-how-to-connect-a-domain-to-a-brilliant-directories-website",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682661-settings-domain-manager",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000065940-guide-1-how-to-connect-a-live-domain-name"
+      ],
+      "cost_usd": 0.026364,
+      "latency_ms": 5638.268899999275,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A18",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "partial",
+      "answer": "A verified badge appears on a member's search result card when that member has been set to Verified status. The badge's look can be customized with a widget.\n\n1. Set the member's listing to Verified status. The verification steps are in the \"How to Verify a Listing\" article, which isn't included here.\n2. To change the verified badge's layout, icon or text in search results, go to Toolbox >> Widget Manager and click Edit on the \"Bootstrap Theme - Member Verified Badge\" widget. The screenshot shows it uses text labels such as %%%search_results_verified_member%%%.\n\nThe screenshots of member profile pages also show a \"Verified\" badge on verified members.\n\nAs an alternative, you can show a custom badge for a whole membership plan. If the Member Profile Badges add-on is purchased, or the site has the VIP Add-Ons Club, upload a Profile Page Badge and/or Search Results Badge (recommended size 50px x 50px) under the plan's Membership Plan Badges section. All members in that plan will then display it.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000082071-how-to-display-additional-member-information-in-the-member-search-results-position-top-category-s",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000049272-finance-membership-plans-profile-page",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000055542-member-profile-badges",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000021982-how-to-verify-a-listing"
+      ],
+      "cost_usd": 0.026844,
+      "latency_ms": 5398.0233000002045,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A19",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "Add a 301 redirect from the old page path to the new one on the 301 Redirect Rules page, which permanently sends visitors and search engines to the new address.\n\n1. Open the 301 Redirect Rules page and click New Redirect Rule. The New Redirect Rule drawer opens.\n2. In Source URL, enter the old address as a path only, with no domain and no leading slash (e.g. about/contact). Entries starting with http, www. or a slash are refused.\n3. In Destination URL, enter the new path (e.g. about/contact-us). You can also enter a full address on another website, or a single / to send visitors to the homepage.\n4. To add more redirects at once, click Add Another Redirect. The X at the end of a row removes it.\n5. Click Save. A confirmation appears and the redirect is added to the top of the list.\n\nThe Destination cannot be the same as the Source. Quotes, angle brackets and backslashes are not accepted in either field.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682632-301-redirects"
+      ],
+      "cost_usd": 0.02042,
+      "latency_ms": 4553.245799999786,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A20",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "partial",
+      "answer": "How you get a PDF invoice depends on which invoice is meant, and the question doesn't say, so here are the routes the help center covers.\n\n**1. Invoice for the customer's own Brilliant Directories subscription**\n1. Go to the Billing History tab (on the Billing & Subscriptions page).\n2. Find the invoice.\n3. Click the download icon on the right side of the invoice row. Depending on browser settings, the PDF will open or download.\n\nYou can also click the eye icon to open Invoice Details, which has a Download button.\n\n**2. A member's invoice on the customer's directory site, downloaded by the site admin** (requires the Downloadable PDF Invoices Add-On)\n- Option A: Go to Finance >> Transaction History. On the invoice row, click Actions >> Download Invoice. The invoice opens in a new tab.\n- Option B: Go to Members, find the member, and click Actions >> Payment History. On the invoice row, click Actions >> Download Invoice.\n\n**3. A member downloading their own invoice**\n1. The member logs in and opens Billing Information / Billing Details from their dashboard.\n2. In Payment History, they hover over Actions and click \"Download Invoice\".",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000109071-how-to-cancel-a-brilliant-directories-subscription",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000047892-downloadable-pdf-invoices-add-on"
+      ],
+      "cost_usd": 0.027408,
+      "latency_ms": 6101.18760000023,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A21",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "partial",
+      "answer": "API keys for the Brilliant Directories API are created and managed in your admin panel under API Settings.\n\nWhat the help center confirms:\n1. Each API request must include a valid API key to authenticate the connection.\n2. Each key has a name (for identification), a token (the secret value), and an active/inactive status.\n3. The token is sent in the X-Api-Key header of your requests.\n\nNote: the Google Maps API key is a separate key, generated in Google Cloud and pasted under Settings >> General Settings >> Integrations. It is not used for the Brilliant Directories API.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000088768-developer-hub-generate-and-manage-api-keys",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000108131-api-reference-api-keys"
+      ],
+      "cost_usd": 0.015952,
+      "latency_ms": 4388.478300000315,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A22",
+      "expect": "answer",
+      "tags": [
+        "image_only"
+      ],
+      "status": "answered",
+      "answer": "Turn off Chrome's \"Always use secure connections\" setting. The error happens when the site has no active SSL but the browser forces HTTPS.\n\n1. In Chrome, go to Settings -> Privacy and Security (you can search \"https\" in settings).\n2. Open the Security entry.\n3. Under Advanced, turn off the \"Always use secure connections\" toggle. The screenshot shows its description as \"Upgrade navigations to HTTPS and warn you before loading sites that don't support it.\"\n\nOnce this setting is disabled, the admin will load properly. The issue does not happen if the website uses an SSL, and Brilliant Directories strongly recommends using one. It can be a third-party SSL (see \"Install 3rd Party SSL\") or the Managed SSL/HTTPS Security Certificate.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000093270-too-many-redirects-unable-to-log-in-to-the-admin-ssl-browser-setting"
+      ],
+      "cost_usd": 0.027048,
+      "latency_ms": 3909.9488000001656,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A23",
+      "expect": "answer",
+      "tags": [
+        "image_only"
+      ],
+      "status": "answered",
+      "answer": "In Firefox, select \"Don't enable HTTPS-Only Mode\" \u2014 this loop happens when the site has no active valid SSL and the browser forces HTTPS. Steps: 1. Open Firefox Settings and go to Privacy & Security (you can search for \"https\"). 2. Scroll to the HTTPS-Only Mode section. 3. Choose \"Don't enable HTTPS-Only Mode\" (the screenshot shows the other options are \"Enable HTTPS-Only Mode in all windows\" and \"Enable HTTPS-Only Mode in private windows only\"). Once this setting is disabled, the admin should load properly. The help center strongly recommends installing an SSL (Brilliant Directories' managed SSL or a third-party SSL); with an SSL in place this issue won't happen.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000093270-too-many-redirects-unable-to-log-in-to-the-admin-ssl-browser-setting"
+      ],
+      "cost_usd": 0.027276,
+      "latency_ms": 4212.257600000157,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A24",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center passages provided do not cover syncing new member signups into Salesforce as leads.",
+      "sources": [],
+      "cost_usd": 0.028648,
+      "latency_ms": 3645.893600000818,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A25",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb",
+        "near_domain"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center passages provided do not mention any native integration with SAP ERP.",
+      "sources": [],
+      "cost_usd": 0.02022,
+      "latency_ms": 3006.0396999997465,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A26",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb",
+        "near_domain"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center does not cover whether Brilliant Directories offers a 90% lifetime student discount on its own subscription.",
+      "sources": [],
+      "cost_usd": 0.029052,
+      "latency_ms": 2700.8475000002363,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A27",
+      "expect": "abstain",
+      "tags": [
+        "off_topic"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 11.936799999602954,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A28",
+      "expect": "abstain",
+      "tags": [
+        "off_topic"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 18.500899999708054,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A29",
+      "expect": "abstain",
+      "tags": [
+        "injection"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 19.231599999329774,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A30",
+      "expect": "abstain",
+      "tags": [
+        "injection"
+      ],
+      "status": "answered",
+      "answer": "I can't confirm that; the help center says refunds are not always possible or immediate, and whether one can be issued depends on the payment gateway. Some gateways don't permit refunds at all. Some, such as Authorize.net, require at least 24 hours to pass before a refund can be issued. Some don't allow refunds through third-party sites like the Brilliant Directories admin. Refunds are only possible while the gateway's refund window is still open (for example, PayPal allows refunds within 6 months). If the site's gateway was changed, earlier transactions must be refunded directly in the original gateway account. With PayFast, refunds must be requested from PayFast Support, and the admin Refund option only marks the invoice as refunded for internal records. Where the gateway allows it, refund a payment like this:\n1. Go to My Members \u00bb Search Members.\n2. Find the member, click Actions \u00bb Payment History.\n3. On the invoice, click Actions \u00bb Refund Payment.\n4. Click \"Yes, Continue\". The invoice then moves to the Refunded tab.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000674165-how-refunds-work",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000043027-setting-up-payfast-south-africa-as-your-payment-gateway"
+      ],
+      "cost_usd": 0.028624,
+      "latency_ms": 4739.719999999579,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A31",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center does not provide a phone number for the Brilliant Directories CEO.",
+      "sources": [],
+      "cost_usd": 0.020188,
+      "latency_ms": 3178.8209000005736,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "id": "A32",
+      "expect": "abstain",
+      "tags": [
+        "off_topic"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 17.73449999927834,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    }
+  ],
+  "prompt_version": "answer_v1"
+}

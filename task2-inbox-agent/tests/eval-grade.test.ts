@@ -52,3 +52,13 @@ describe("eval grading", () => {
     expect([quantile([1, 2, 3, 4, 100], 0.5), quantile([1, 2, 3, 4, 100], 0.95)]).toEqual([3, 100]);
   });
 });
+
+describe("classifier output normalisation", () => {
+  it("drops unknown or duplicate secondary categories and extra questions", async () => {
+    const { normalizeClassification } = await import("../src/llm/models.js");
+    const raw = { ...classification(), secondary: ["technical_issue", "how_to", "complaint", "complaint"], questions: ["a", " ", "b", "c", "d"] };
+    const c = normalizeClassification(raw);
+    expect(c.secondary).toEqual(["complaint"]);
+    expect(c.questions).toEqual(["a", "b", "c"]);
+  });
+});

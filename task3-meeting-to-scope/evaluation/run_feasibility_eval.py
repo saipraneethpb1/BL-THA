@@ -15,7 +15,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from evaluation.common import load_jsonl, p50_p95, save
+from evaluation.common import kb_key, load_jsonl, load_root_env, p50_p95, save
 from scope.agents.feasibility import FeasibilityAgent
 from scope.config import settings
 from scope.knowledge import HttpKnowledgeClient
@@ -38,7 +38,7 @@ def grade(case: dict[str, Any], verdict: str) -> dict[str, Any]:
 
 
 async def run(models: list[str], cases: list[dict[str, Any]]) -> dict[str, Any]:
-    kb = HttpKnowledgeClient(settings.kb_url, settings.kb_api_key)
+    kb = HttpKnowledgeClient(settings.kb_url, kb_key(settings.kb_api_key))
     summaries, rows = [], []
     for model in models:
         llm = ClaudeLLM()
@@ -98,6 +98,7 @@ def main() -> None:
     if not args.run:
         print("Dry run. Add --run to execute (needs ANTHROPIC_API_KEY and the Knowledge Brain).")
         return
+    load_root_env()
     result = asyncio.run(run(models, cases))
     print(
         "\n| model | accuracy | missed savings | false promises | KB down | $/requirement (excl. KB) | p50 s | p95 s |"

@@ -117,12 +117,13 @@ Claude is used everywhere. Each choice below must be justified by its eval (EVAL
 
 | Step | Default | Compared with | Result |
 |---|---|---|---|
-| Answering (Task 1) | Sonnet 5.5 | Haiku 5.5, Opus 5.5 | **TODO:** pass rate, abstention, $/answer, p95 |
-| Screenshot descriptions | Haiku 5.5 | Sonnet 5.5 | **TODO:** label recall on 26 images, projected cost for 5,040 |
-| Email classification | Haiku 5.5 | Sonnet 5.5 | **TODO:** category accuracy on 40 emails |
-| Drafting | Sonnet 5.5 | Opus 5.5 | **TODO:** must-include rate, unsafe auto-sends, $/email |
-| Feasibility | Haiku 5.5 | Sonnet 5.5 | **TODO:** accuracy, missed savings, false promises on 24 |
+| Answering (Task 1) | **Opus 5.5** | Haiku 5.5, Sonnet 5.5 | Pass rate 88% vs 81% (Sonnet) and 69% (Haiku); all cite the right source. Opus wrongly says "partial" less often, so fewer questions go to a human. It costs $0.023 vs $0.011 per question and is 1.6 s slower: worth it for an answer every other service relies on. |
+| Screenshot descriptions | Haiku 5.5 | Sonnet 5.5 | Same 92% of labels found; $1.51 vs $29.44 for all 5,040 images |
+| Email classification | Haiku 5.5 | Sonnet 5.5 | 90% category accuracy on the 10-email sample. **TODO:** Sonnet comparison on all 40 |
+| Drafting | Sonnet 5.5 | Opus 5.5 | 10-email sample: 70% vs 75% of checklist met, 0 vs 1 must-not violations, 0 unsafe auto-sends for both, $0.026 vs $0.041 per email |
+| Feasibility | Haiku 5.5 | Sonnet 5.5 | Both 96% on 24, no missed savings or false promises; $0.00023 vs $0.00465 per requirement |
 | Transcript analysis | Sonnet 5.5 | Haiku 5.5 | **TODO:** requirement recall on the recorded meetings |
+| Query rewriting (Task 1) | Haiku 5.5 | none (simplest model that worked) | Top-5 retrieval 88% → 98%, for $0.000023 and about 1.3 s per question |
 | Judge (evals only) | Opus 5.5 | none | A stronger, different model than the one being graded |
 
 Embeddings are local: bge-small, 384 dimensions. Claude has no embedding model, and running it locally needs no second key and costs nothing per query.

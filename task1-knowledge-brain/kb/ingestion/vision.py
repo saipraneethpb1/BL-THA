@@ -26,7 +26,9 @@ PROMPTS = Path(__file__).resolve().parent.parent / "prompts"
 class ImageDescription(BaseModel):
     kind: Literal["screenshot", "diagram", "photo", "decorative", "other"]
     description: str = Field(description="Up to 60 words")
-    ui_labels: list[str] = Field(default_factory=list, max_length=12)
+    # No hard limit in the schema: a model listing 14 labels instead of 12 used to make the
+    # whole description fail validation (found by the vision eval). Extra labels are dropped.
+    ui_labels: list[str] = Field(default_factory=list)
     legible: bool = True
 
     def as_text(self) -> str:
@@ -35,7 +37,7 @@ class ImageDescription(BaseModel):
             return ""
         text = self.description.strip()
         if self.ui_labels:
-            text += " Visible labels: " + "; ".join(self.ui_labels) + "."
+            text += " Visible labels: " + "; ".join(self.ui_labels[:12]) + "."
         if not self.legible:
             text += " (Parts of this image were not legible.)"
         return text

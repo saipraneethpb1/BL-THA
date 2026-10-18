@@ -156,3 +156,11 @@ async def test_refresh_reports_failure_instead_of_crashing(tmp_path: Path) -> No
     refresher = Refresher(settings, FakeEmbedder(), None, httpx.MockTransport(down))
     result = await refresher.run()
     assert result.status == "failed" and "FetchError" in (result.error or "")
+
+
+def test_long_label_lists_are_trimmed_not_rejected() -> None:
+    d = ImageDescription(
+        kind="screenshot", description="Sheet", ui_labels=[f"L{i}" for i in range(14)]
+    )
+    text = d.as_text()
+    assert "L11" in text and "L12" not in text

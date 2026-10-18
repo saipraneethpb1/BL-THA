@@ -1,6 +1,7 @@
 """Shared helpers for the Task 3 eval scripts."""
 
 import json
+import os
 import statistics
 from datetime import UTC, datetime
 from pathlib import Path
@@ -28,3 +29,20 @@ def load_jsonl(path: Path) -> list[dict[str, Any]]:
     return [
         json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
     ]
+
+
+def load_root_env() -> None:
+    """Read ANTHROPIC_API_KEY and KB_API_KEY from the repo's .env if unset (never printed)."""
+    env = Path(__file__).resolve().parents[2] / ".env"
+    if not env.exists():
+        return
+    for line in env.read_text(encoding="utf-8").splitlines():
+        for name in ("ANTHROPIC_API_KEY", "KB_API_KEY"):
+            if line.startswith(f"{name}=") and not os.environ.get(name):
+                value = line.split("=", 1)[1].strip()
+                if value:
+                    os.environ[name] = value
+
+
+def kb_key(configured: str | None) -> str | None:
+    return configured or os.environ.get("KB_API_KEY")

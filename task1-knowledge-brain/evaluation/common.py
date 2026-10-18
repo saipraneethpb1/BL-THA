@@ -1,6 +1,7 @@
 """Shared helpers for the eval scripts: timing stats, result files, markdown tables."""
 
 import json
+import os
 import statistics
 from datetime import UTC, datetime
 from pathlib import Path
@@ -35,3 +36,14 @@ def table(headers: list[str], rows: list[list[Any]]) -> str:
     lines = ["| " + " | ".join(headers) + " |", "|" + "---|" * len(headers)]
     lines += ["| " + " | ".join(cell(v) for v in r) + " |" for r in rows]
     return "\n".join(lines)
+
+
+def load_root_env() -> None:
+    """Read ANTHROPIC_API_KEY from the repo's .env when it isn't already set (never printed)."""
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        return
+    env = Path(__file__).resolve().parents[2] / ".env"
+    if env.exists():
+        for line in env.read_text(encoding="utf-8").splitlines():
+            if line.startswith("ANTHROPIC_API_KEY=") and line.split("=", 1)[1].strip():
+                os.environ["ANTHROPIC_API_KEY"] = line.split("=", 1)[1].strip()

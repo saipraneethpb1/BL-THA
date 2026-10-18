@@ -20,7 +20,7 @@ from contextlib import closing
 from pathlib import Path
 from typing import Any
 
-from evaluation.common import p50_p95, save, table
+from evaluation.common import load_root_env, p50_p95, save, table
 from kb.answer.llm import PRICES
 from kb.config import settings
 from kb.ingestion.vision import ClaudeImageDescriber, ImageJob
@@ -118,6 +118,7 @@ def main() -> None:
     if not args.run:
         print("Dry run. Add --run to execute.")
         return
+    load_root_env()
     result = asyncio.run(run(models, cases))
     path = save("vision", result)
     print(

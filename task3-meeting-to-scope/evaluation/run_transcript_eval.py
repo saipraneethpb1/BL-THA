@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from evaluation.common import save
+from evaluation.common import kb_key, load_root_env, save
 from scope.config import Settings, settings
 from scope.knowledge import HttpKnowledgeClient
 from scope.llm import ClaudeLLM
@@ -94,7 +94,7 @@ async def build(builder: ScopeBuilder, store: Store, pid: int) -> tuple[Any, flo
 
 async def run(models: list[str], gold: dict[str, dict[str, Any]]) -> dict[str, Any]:
     results = []
-    kb = HttpKnowledgeClient(settings.kb_url, settings.kb_api_key)
+    kb = HttpKnowledgeClient(settings.kb_url, kb_key(settings.kb_api_key))
     first_meetings = {k: g for k, g in gold.items() if not g.get("followup")}
     followups = {k: g for k, g in gold.items() if g.get("followup")}
     for model in models:
@@ -173,6 +173,7 @@ def main() -> None:
     if not args.run:
         print("Dry run. Add --run to execute (needs ANTHROPIC_API_KEY and the Knowledge Brain).")
         return
+    load_root_env()
     result = asyncio.run(run(models, gold))
     print(
         "\n| analyst model | meeting | requirements found | unmatched extracted | quotes verified | changes detected | $ build | s build |"

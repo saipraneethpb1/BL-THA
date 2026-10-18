@@ -14,6 +14,7 @@ import aiosqlite
 import numpy as np
 
 from kb.retrieval.embedder import Embedder, Vector
+from kb.retrieval.rewrite import QueryRewriter
 
 Mode = Literal["hybrid", "vector", "keyword"]
 
@@ -100,8 +101,11 @@ class Searcher:
         # really are about release notes.
         changelog_weight: float = 0.5,
         max_per_article: int | None = 2,
+        rewriter: QueryRewriter | None = None,
     ) -> None:
         self.embedder = embedder
+        # Optional: also search with the question rephrased in help-center vocabulary.
+        self.rewriter = rewriter
         self.vectors = VectorIndex()
         # Keyword hits count less than meaning hits in the merge: the retrieval eval
         # showed plain OR-matching drags in noise for conversational questions.
@@ -114,21 +118,38 @@ class Searcher:
     async def search(
         self, db: aiosqlite.Connection, question: str, k: int = 8, mode: Mode = "hybrid"
     ) -> list[SearchHit]:
-        ranked: list[tuple[float, list[int]]] = []
+        queries = [question]
+        if self.rewriter is not None and mode == "hybrid":
+            queries += [
+                q for q in await self.rewriter.rewrite(question) if q.lower() != question.lower()
+            ]
         vector_scores: dict[int, float] = {}
         if mode in ("hybrid", "vector"):
             await self.vectors.refresh(db)
-            hits = self.vectors.top(self.embedder.embed_query(question), CANDIDATES)
-            vector_scores = dict(hits)
-            ranked.append((1.0, [cid for cid, _ in hits]))
-        if mode in ("hybrid", "keyword"):
-            weight = self.keyword_weight if mode == "hybrid" else 1.0
-            ranked.append((weight, await self._keyword(db, question)))
-
-        fused: dict[int, float] = {}
-        for weight, ranking in ranked:
-            for rank, cid in enumerate(ranking):
-                fused[cid] = fused.get(cid, 0.0) + weight / (RRF_K + rank + 1)
+        # Fuse keyword + vector within each query, then keep each passage's BEST query.
+        # Summing across queries let passages that were mediocre for several queries beat
+        # the one that was clearly best for one rewrite ("Staging Mode coming soon page").
+        best: dict[int, float] = {}
+        total: dict[int, float] = {}
+        for q in queries:
+            ranked: list[tuple[float, list[int]]] = []
+            if mode in ("hybrid", "vector"):
+                hits = self.vectors.top(self.embedder.embed_query(q), CANDIDATES)
+                for cid, score in hits:  # keep each passage's best similarity for the gate
+                    vector_scores[cid] = max(score, vector_scores.get(cid, 0.0))
+                ranked.append((1.0, [cid for cid, _ in hits]))
+            if mode in ("hybrid", "keyword"):
+                weight = self.keyword_weight if mode == "hybrid" else 1.0
+                ranked.append((weight, await self._keyword(db, q)))
+            per_query: dict[int, float] = {}
+            for weight, ranking in ranked:
+                for rank, cid in enumerate(ranking):
+                    per_query[cid] = per_query.get(cid, 0.0) + weight / (RRF_K + rank + 1)
+            for cid, s in per_query.items():
+                best[cid] = max(s, best.get(cid, 0.0))
+                total[cid] = total.get(cid, 0.0) + s
+        # Best query decides; agreement across queries only breaks near-ties.
+        fused = {cid: best[cid] + 0.1 * total[cid] for cid in best}
         hits_by_id = await self._load(db, list(fused))
         for cid, loaded in hits_by_id.items():
             if loaded.source == "article" and is_changelog(loaded.title):

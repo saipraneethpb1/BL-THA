@@ -30,6 +30,24 @@ export const Classification = z.object({
 });
 export type Classification = z.infer<typeof Classification>;
 
+/**
+ * What the model may return. Optional fields are lenient on purpose: in the eval, a
+ * stray secondary category made the whole email fail. The primary category stays
+ * strict: a wrong one should fail loudly, not be guessed.
+ */
+const RawClassification = Classification.extend({
+  secondary: z.array(z.string()),
+  questions: z.array(z.string()),
+});
+
+export function normalizeClassification(raw: z.infer<typeof RawClassification>): Classification {
+  const valid = new Set<string>(CATEGORY_IDS);
+  const secondary = [...new Set(raw.secondary)].filter(
+    (c): c is Classification["category"] => valid.has(c) && c !== raw.category,
+  );
+  return { ...raw, secondary, questions: raw.questions.filter((q) => q.trim()).slice(0, 3) };
+}
+
 export const DraftOutput = z.object({
   subject: z.string(),
   body: z.string(),
@@ -129,12 +147,15 @@ export class ClaudeClassifier implements Classifier {
       max_tokens: 2000,
       system: [{ type: "text", text: this.system, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: renderEmail(email) }],
-      output_config: { effort: "low", format: zodOutputFormat(Classification) },
+      output_config: { effort: "low", format: zodOutputFormat(RawClassification) },
     });
     if (!response.parsed_output) {
       throw new Error(`classifier returned no result (stop_reason=${response.stop_reason})`);
     }
-    return { result: response.parsed_output, usage: usageOf(this.model, this.version, response.usage) };
+    return {
+      result: normalizeClassification(response.parsed_output),
+      usage: usageOf(this.model, this.version, response.usage),
+    };
   }
 }
 
