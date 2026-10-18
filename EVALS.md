@@ -210,4 +210,4 @@ This replaces the role-plays (see DESIGN.md §5). The meetings are ES2002b, ES20
   - the part of a demo build that ran before the credit ran out.
 
   The Anthropic Console is the authority on the exact total.
-- **Ongoing spend is capped:** each service has a budget ($3 / $3 / $4), each visitor is rate-limited, and the Anthropic account has a monthly spend limit.
+- **Ongoing spend is capped:** each service has a budget ($4.50 / $2.50 / $2.50), each visitor is rate-limited, and the Anthropic account has a monthly spend limit.

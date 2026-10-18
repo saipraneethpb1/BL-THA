@@ -16,6 +16,8 @@ export interface Config {
   readonly budgetUsd: number | null;
   /** Public demo: drafts per visitor per 10 minutes. */
   readonly draftLimitPer10Min: number;
+  /** Public demo: lesson checks per day for the whole site. */
+  readonly lessonChecksPerDay: number;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -32,6 +34,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     spotCheckRate: Number(env.INBOX_SPOT_CHECK_RATE ?? 0.2),
     budgetUsd: env.INBOX_BUDGET_USD ? Number(env.INBOX_BUDGET_USD) : null,
     draftLimitPer10Min: Number(env.INBOX_DRAFT_LIMIT_PER_10MIN ?? 15),
+    lessonChecksPerDay: Number(env.INBOX_LESSON_CHECKS_PER_DAY ?? 3),
   };
 }
 

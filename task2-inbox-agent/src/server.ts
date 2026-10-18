@@ -70,6 +70,9 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   // Public demo guards: per-visitor limits on what costs money, and a spending cap.
   const draftLimiter = new RateLimiter(deps.config.draftLimitPer10Min, 600, "drafts");
   const lessonLimiter = new RateLimiter(3, 3600, "lesson checks");
+  // A lesson check re-drafts past emails and its cost isn't recorded, so it is also
+  // limited for the whole site, not only per visitor.
+  const siteLessonChecks = new RateLimiter(deps.config.lessonChecksPerDay, 86400, "lesson checks on this demo today");
   const guardSpend = () => checkBudget(store.usage().total_usd, deps.config.budgetUsd);
 
   // Accept an empty body sent as JSON (browsers and curl often label body-less POSTs).
@@ -206,6 +209,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     async (req) => {
       const { actor } = Actor.parse(req.body);
       lessonLimiter.check(req); // a check re-drafts past emails: the costliest action here
+      siteLessonChecks.checkKey("site");
       guardSpend();
       return deps.learning.evaluate(kindParam(req.params.category), Number(req.params.version), actor);
     },

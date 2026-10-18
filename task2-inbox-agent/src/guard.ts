@@ -24,14 +24,21 @@ export class RateLimiter {
 
   check(req: FastifyRequest): void {
     const who = visitor(req);
-    if (!who) return;
+    if (who) this.checkKey(who);
+  }
+
+  /** The same limit for a fixed key, e.g. one shared by every visitor. */
+  checkKey(who: string): void {
     const t = this.now();
     const recent = (this.calls.get(who) ?? []).filter((c) => t - c < this.windowS * 1000);
     if (recent.length >= this.limit) {
       const wait = Math.ceil((this.windowS * 1000 - (t - recent[0]!)) / 1000);
       const per = this.windowS >= 3600 ? `${this.windowS / 3600} hour(s)` : `${Math.round(this.windowS / 60)} minutes`;
+      const later = wait > 7200 ? `in about ${Math.round(wait / 3600)} hour(s)` : `in about ${Math.max(1, Math.round(wait / 60))} minute(s)`;
       throw new GuardError(
-        `Too many ${this.what} from your connection in a short time (this public demo allows ${this.limit} per ${per}). Please try again in about ${Math.max(1, Math.round(wait / 60))} minute(s).`,
+        who === "site"
+          ? `This public demo allows ${this.limit} ${this.what}, and they're used up. Please try again ${later}.`
+          : `Too many ${this.what} from your connection in a short time (this public demo allows ${this.limit} per ${per}). Please try again ${later}.`,
         wait,
       );
     }

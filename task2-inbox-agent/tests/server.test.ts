@@ -139,3 +139,13 @@ describe("public demo guards", () => {
     expect((await capped.inject({ url: "/api/usage" })).json()).toMatchObject({ over_budget: true });
   });
 });
+
+describe("site-wide limit", () => {
+  it("applies one shared limit whatever the visitor", async () => {
+    const { RateLimiter } = await import("../src/guard.js");
+    const site = new RateLimiter(2, 86400, "lesson checks on this demo today");
+    site.checkKey("site");
+    site.checkKey("site");
+    expect(() => site.checkKey("site")).toThrow(/lesson checks on this demo today/);
+  });
+});

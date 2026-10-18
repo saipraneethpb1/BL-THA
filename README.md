@@ -35,8 +35,8 @@ After that, a daily refresh at 02:00 UTC fetches only pages that changed.
 One AWS EC2 t3.small (2 GB RAM plus 2 GB swap, Ubuntu 24.04) runs the same `docker-compose.yml`, plus an overlay, [`deploy/compose.prod.yml`](deploy/compose.prod.yml):
 - **Only [Caddy](deploy/Caddyfile) is reachable from the internet.** It serves HTTPS with automatic Let's Encrypt certificates on a free `sslip.io` hostname, with one subdomain per service (`kb.`, `inbox.`, `scope.`).
 - **Open to anyone, with spending guarded in the services:**
-  - each service caps its own recorded Claude spend: Knowledge Brain $3, Inbox Agent $3, Scope Builder $4 (`*_BUDGET_USD`);
-  - each visitor is rate-limited on the actions that cost money: questions, drafts, builds and lesson checks;
+  - each service caps its own recorded Claude spend: Knowledge Brain $4.50 (drafts and scope builds use it too), Inbox Agent $2.50, Scope Builder $2.50 (`*_BUDGET_USD`);
+  - each visitor is rate-limited on the actions that cost money: questions, drafts, builds and lesson checks. Lesson checks, whose cost isn't recorded, are also limited to 3 a day for the whole site;
   - when a cap is reached the service says so and stops calling Claude, and browsing keeps working.
 - **A spend limit on the Anthropic account** is the final backstop.
 - **Search engines are asked not to index it** (`X-Robots-Tag` and `robots.txt`).
