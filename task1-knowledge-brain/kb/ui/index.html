@@ -171,6 +171,8 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: v
 .mic-wrap > input + .mic-btn { top: 50%; bottom: auto; transform: translateY(-50%); width: 28px; height: 28px; }
 .mic-btn:hover { color: var(--text); border-color: var(--accent); }
 .mic-btn svg { width: 16px; height: 16px; }
+.mic-btn.busy { cursor: progress; border-color: var(--accent); }
+.mic-btn .spinner { width: 14px; height: 14px; }
 .mic-btn.on { background: var(--err); border-color: var(--err); color: #fff; animation: micpulse 1.4s ease-out infinite; }
 @keyframes micpulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--err) 55%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
 @media (prefers-reduced-motion: reduce) { .mic-btn.on { animation: none; } }
@@ -376,45 +378,104 @@ body.has-usage-bar { padding-bottom: 46px; }
     document.body.append(foot);
   }
 
-  // Voice input. Uses the browser's own speech recognition (Chrome, Edge, Safari): free,
-  // no API key. In Chrome and Edge the audio is processed by the browser vendor's service.
+  // Voice input. First choice: the browser's own live dictation (words appear as you speak).
+  // It sends audio to Google or Microsoft and fails behind many VPNs, in Brave and similar
+  // browsers, and doesn't exist in Firefox. Then we record and transcribe on our own server
+  // (Whisper, /_speech), which works in every browser. The switch is remembered per visit.
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const speechUrl = deployed ? "/_speech" : null; // locally the proxy (and so the fallback) isn't there
+  const canRecord = Boolean(speechUrl && navigator.mediaDevices?.getUserMedia && window.MediaRecorder);
+  const preferServer = () => { try { return sessionStorage.getItem("speech-mode") === "server"; } catch { return false; } };
+  const rememberServer = () => { try { sessionStorage.setItem("speech-mode", "server"); } catch {} };
   const MIC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>`;
-  let active = null;
+  let active = null; // { stop(), field }
+
+  function insert(field, text, base) {
+    field.value = (base ?? (field.value && !/\s$/.test(field.value) ? field.value + " " : field.value)) + text;
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  function setState(btn, state) {
+    btn.classList.toggle("on", state === "listening");
+    btn.classList.toggle("busy", state === "busy");
+    btn.innerHTML = state === "busy" ? `<span class="spinner"></span>` : MIC;
+    btn.title = { listening: "Listening… click to stop", busy: "Turning your speech into text…" }[state] || "Speak instead of typing";
+  }
+
+  function startBrowser(field, btn) {
+    const rec = new Recognition();
+    rec.lang = field.dataset.micLang || navigator.language || "en-US";
+    rec.continuous = true; rec.interimResults = true;
+    const base = field.value && !/\s$/.test(field.value) ? field.value + " " : field.value;
+    let finalText = "", failedOver = false;
+    rec.onresult = (e) => {
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalText += t; else interim += t;
+      }
+      insert(field, finalText + interim, base);
+    };
+    rec.onerror = (e) => {
+      if (["network", "service-not-allowed", "language-not-supported", "audio-capture"].includes(e.error) && canRecord) {
+        failedOver = true; rememberServer();
+        suite.toast("Your browser's dictation isn't available here; using the server's speech recognition instead.", 4500);
+      } else {
+        const msg = { "not-allowed": "Microphone access was blocked. Allow it in the address bar to use voice input.", "no-speech": "Didn't hear anything. Try again.", "network": "Your browser's dictation service can't be reached (a VPN or browser setting may block it)." }[e.error];
+        if (msg) suite.toast(msg, 4500);
+      }
+    };
+    rec.onend = () => {
+      setState(btn, "idle"); if (active?.rec === rec) active = null;
+      if (failedOver) startServer(field, btn);
+    };
+    try { rec.start(); } catch { return; }
+    active = { rec, field, stop: () => rec.stop() };
+    setState(btn, "listening"); field.focus();
+  }
+
+  async function startServer(field, btn) {
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch { suite.toast("Microphone access was blocked. Allow it in the address bar to use voice input.", 4500); return; }
+    const type = ["audio/webm;codecs=opus", "audio/ogg;codecs=opus", "audio/mp4", "audio/webm"].find((t) => MediaRecorder.isTypeSupported(t)) || "";
+    const recorder = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
+    const chunks = [];
+    recorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+    const limit = setTimeout(() => recorder.state === "recording" && recorder.stop(), 60000);
+    recorder.onstop = async () => {
+      clearTimeout(limit); stream.getTracks().forEach((t) => t.stop());
+      if (active?.recorder === recorder) active = null;
+      const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
+      if (blob.size < 1000) { setState(btn, "idle"); suite.toast("Didn't hear anything. Try again."); return; }
+      setState(btn, "busy");
+      try {
+        const r = await fetch(speechUrl, { method: "POST", headers: { "content-type": blob.type }, body: blob });
+        const body = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(body.detail || `Error ${r.status}`);
+        if (body.text) insert(field, body.text); else suite.toast("Didn't catch any words. Try again, a little closer to the mic.");
+      } catch (err) { suite.toast(`Couldn't turn the recording into text: ${err.message}`, 5000); }
+      finally { setState(btn, "idle"); field.focus(); }
+    };
+    recorder.start();
+    active = { recorder, field, stop: () => recorder.state === "recording" && recorder.stop() };
+    setState(btn, "listening"); btn.title = "Recording… click to stop (up to 1 minute)";
+  }
+
   function attachMic(field) {
-    if (!Recognition || field.dataset.micReady) return;
+    if ((!Recognition && !canRecord) || field.dataset.micReady) return;
     field.dataset.micReady = "1";
     const wrap = Object.assign(document.createElement("div"), { className: "mic-wrap" });
     if (field.style.flex) { wrap.style.flex = field.style.flex; wrap.style.minWidth = field.style.minWidth; field.style.flex = ""; }
     if (field.style.marginTop) { wrap.style.marginTop = field.style.marginTop; field.style.marginTop = "0"; }
     field.replaceWith(wrap); wrap.append(field);
-    const btn = Object.assign(document.createElement("button"), { type: "button", className: "mic-btn", innerHTML: MIC, title: "Speak instead of typing" });
+    const btn = Object.assign(document.createElement("button"), { type: "button", className: "mic-btn" });
     btn.setAttribute("aria-label", "Speak instead of typing");
+    setState(btn, "idle");
     wrap.append(btn);
     btn.onclick = () => {
-      if (active) { const was = active.field; active.rec.stop(); if (was === field) return; }
-      const rec = new Recognition();
-      rec.lang = field.dataset.micLang || navigator.language || "en-US";
-      rec.continuous = true; rec.interimResults = true;
-      const start = field.value && !/\s$/.test(field.value) ? field.value + " " : field.value;
-      let finalText = "";
-      rec.onresult = (e) => {
-        let interim = "";
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          const t = e.results[i][0].transcript;
-          if (e.results[i].isFinal) finalText += t; else interim += t;
-        }
-        field.value = start + finalText + interim;
-        field.dispatchEvent(new Event("input", { bubbles: true }));
-      };
-      rec.onerror = (e) => {
-        const msg = { "not-allowed": "Microphone access was blocked. Allow it in the address bar to use voice input.", "no-speech": "Didn't hear anything. Try again.", "network": "Voice input needs an internet connection." }[e.error];
-        if (msg) suite.toast(msg, 4000);
-      };
-      rec.onend = () => { btn.classList.remove("on"); btn.title = "Speak instead of typing"; if (active?.rec === rec) active = null; };
-      try { rec.start(); } catch { return; }
-      active = { rec, field };
-      btn.classList.add("on"); btn.title = "Listening… click to stop"; field.focus();
+      if (btn.classList.contains("busy")) return;
+      if (active) { const was = active.field; active.stop(); if (was === field) return; }
+      if (Recognition && !preferServer()) startBrowser(field, btn); else startServer(field, btn);
     };
   }
   const scanMics = () => document.querySelectorAll("[data-mic]").forEach(attachMic);

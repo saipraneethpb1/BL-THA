@@ -46,6 +46,14 @@ class Settings(BaseSettings):
     seed_url: str | None = None
     bootstrap_crawl: bool = True
 
+    # Speech to text for the mic buttons (kb/speech.py): a local Whisper model, no external
+    # service. `base` is multilingual (Hindi works) and fast enough on 2 vCPUs.
+    speech_enabled: bool = True
+    whisper_model: str = "base"
+    # Load the model in the background at start-up, so the first dictation isn't a 20 s wait.
+    speech_preload: bool = True
+    max_audio_bytes: int = 10_000_000
+
     # Shared secret for callers (Tasks 2 and 3). None = no auth, for local development only.
     api_key: str | None = None
 

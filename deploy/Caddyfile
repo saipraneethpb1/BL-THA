@@ -10,9 +10,18 @@
 	}
 }
 
-# Claude usage from all three services, reachable on every host so the usage bar at the
-# bottom of each page can show site-wide totals without cross-origin requests.
-(usage) {
+# Shared routes on every host, so any page can use them without cross-origin requests:
+# Claude usage from all three services (the usage bar), and speech to text (the mic buttons).
+(suite_routes) {
+	handle_path /_speech {
+		request_body {
+			max_size 12MB
+		}
+		rewrite * /transcribe
+		reverse_proxy knowledge-brain:8001 {
+			header_up X-API-Key {$KB_API_KEY}
+		}
+	}
 	handle_path /_usage/kb {
 		rewrite * /usage
 		reverse_proxy knowledge-brain:8001 {
@@ -36,7 +45,7 @@
 # Hub page: what each service does and what to try first.
 {$DOMAIN} {
 	import protected
-	import usage
+	import suite_routes
 	handle {
 		root * /srv/site
 		file_server
@@ -45,7 +54,7 @@
 
 kb.{$DOMAIN} {
 	import protected
-	import usage
+	import suite_routes
 	handle {
 		reverse_proxy knowledge-brain:8001 {
 			# Visitors have already passed the login above, so the browser UI shouldn't ask for
@@ -58,7 +67,7 @@ kb.{$DOMAIN} {
 
 inbox.{$DOMAIN} {
 	import protected
-	import usage
+	import suite_routes
 	handle {
 		reverse_proxy inbox-agent:8002
 	}
@@ -66,7 +75,7 @@ inbox.{$DOMAIN} {
 
 scope.{$DOMAIN} {
 	import protected
-	import usage
+	import suite_routes
 	handle {
 		reverse_proxy scope-builder:8003
 	}

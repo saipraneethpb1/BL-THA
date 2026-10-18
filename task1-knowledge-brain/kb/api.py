@@ -28,6 +28,7 @@ from kb.refresh import Refresher, daily_loop, seconds_until
 from kb.retrieval.embedder import FastEmbedder
 from kb.retrieval.rewrite import ClaudeQueryRewriter
 from kb.retrieval.search import Searcher
+from kb.speech import Transcriber, WhisperTranscriber
 
 UI_FILE = Path(__file__).parent / "ui" / "index.html"
 
@@ -54,6 +55,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             if os.environ.get("ANTHROPIC_API_KEY")
             else None
         )
+    if not hasattr(app.state, "transcriber"):
+        app.state.transcriber = (
+            WhisperTranscriber(settings.whisper_model, settings.model_cache_dir)
+            if settings.speech_enabled
+            else None
+        )
+        if app.state.transcriber is not None and settings.speech_preload:
+            app.state.speech_warmup = asyncio.create_task(
+                asyncio.to_thread(app.state.transcriber.warm)
+            )
     if not hasattr(app.state, "refresher"):
         describer = (
             ClaudeImageDescriber(settings.vision_model)
@@ -160,6 +171,28 @@ async def health() -> Health:
     async with connect(settings.db_path) as db:
         rows = list(await db.execute_fetchall("SELECT count(*) AS n FROM articles"))
     return Health(status="ok", articles=rows[0]["n"])
+
+
+@app.post("/transcribe", dependencies=[Protected])
+async def transcribe(request: Request, language: str | None = None) -> dict[str, Any]:
+    """Speech to text for the mic buttons. Send the recorded audio as the raw request body
+    (webm/ogg/mp4/wav). Runs a local Whisper model: nothing leaves the server."""
+    transcriber: Transcriber | None = request.app.state.transcriber
+    if transcriber is None:
+        raise HTTPException(503, "speech to text is disabled (KB_SPEECH_ENABLED=false)")
+    if language is not None and not (len(language) == 2 and language.isalpha()):
+        raise HTTPException(422, "language must be a two-letter code such as en or hi")
+    audio = await request.body()
+    if not audio:
+        raise HTTPException(422, "no audio received")
+    if len(audio) > settings.max_audio_bytes:
+        raise HTTPException(413, "recording too long: keep it under about a minute")
+    started = time.perf_counter()
+    try:
+        text, detected = await asyncio.to_thread(transcriber.transcribe, audio, language)
+    except Exception as exc:  # undecodable or corrupt audio
+        raise HTTPException(422, f"could not read the recording ({type(exc).__name__})") from exc
+    return {"text": text, "language": detected, "seconds": round(time.perf_counter() - started, 2)}
 
 
 @app.get("/usage", dependencies=[Protected])

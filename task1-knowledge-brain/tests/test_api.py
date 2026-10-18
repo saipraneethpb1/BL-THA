@@ -19,6 +19,7 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClie
     api.app.state.searcher = Searcher(FakeEmbedder())
     monkeypatch.setattr(api.settings, "refresh_enabled", False)
     monkeypatch.setattr(api.settings, "bootstrap_crawl", False)  # never crawl from tests
+    monkeypatch.setattr(api.settings, "speech_preload", False)  # never download Whisper in tests
     api.app.state.answerer = None
     api.app.state.refresher = Refresher(api.settings, FakeEmbedder(), None)
     with TestClient(api.app) as c:
@@ -143,3 +144,34 @@ def test_usage_sums_recorded_spend_and_remembers_claude_errors(
 
     test_claude_failure_is_a_clear_502(client, monkeypatch)
     assert "credit balance" in client.get("/usage", headers=H).json()["last_error"]["message"]
+
+
+class FakeTranscriber:
+    def __init__(self) -> None:
+        self.calls: list[tuple[int, str | None]] = []
+
+    def transcribe(self, audio: bytes, language: str | None) -> tuple[str, str]:
+        self.calls.append((len(audio), language))
+        if audio == b"garbage":
+            raise ValueError("cannot decode")
+        return "how do I hide my site", language or "en"
+
+
+def test_transcribe_turns_audio_into_text_and_validates(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake = FakeTranscriber()
+    api.app.state.transcriber = fake
+    audio = b"\x1aE\xdf\xa3" + b"\x00" * 100  # webm magic bytes; the fake doesn't decode it
+    assert client.post("/transcribe", content=audio).status_code == 401
+    r = client.post("/transcribe?language=hi", content=audio, headers=H)
+    assert r.status_code == 200 and r.json()["text"] == "how do I hide my site"
+    assert r.json()["language"] == "hi" and fake.calls == [(len(audio), "hi")]
+    assert client.post("/transcribe", content=b"", headers=H).status_code == 422
+    assert client.post("/transcribe?language=english", content=audio, headers=H).status_code == 422
+    assert client.post("/transcribe", content=b"garbage", headers=H).status_code == 422
+    monkeypatch.setattr(api.settings, "max_audio_bytes", 10)
+    assert client.post("/transcribe", content=audio, headers=H).status_code == 413
+    api.app.state.transcriber = None
+    assert client.post("/transcribe", content=audio, headers=H).status_code == 503
+    del api.app.state.transcriber

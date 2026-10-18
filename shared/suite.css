@@ -147,6 +147,8 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: v
 .mic-wrap > input + .mic-btn { top: 50%; bottom: auto; transform: translateY(-50%); width: 28px; height: 28px; }
 .mic-btn:hover { color: var(--text); border-color: var(--accent); }
 .mic-btn svg { width: 16px; height: 16px; }
+.mic-btn.busy { cursor: progress; border-color: var(--accent); }
+.mic-btn .spinner { width: 14px; height: 14px; }
 .mic-btn.on { background: var(--err); border-color: var(--err); color: #fff; animation: micpulse 1.4s ease-out infinite; }
 @keyframes micpulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--err) 55%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
 @media (prefers-reduced-motion: reduce) { .mic-btn.on { animation: none; } }
