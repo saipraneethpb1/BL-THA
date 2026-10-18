@@ -29,6 +29,8 @@ DOMAIN=$domain
 EOF
 
 sudo docker compose -f docker-compose.yml -f deploy/compose.prod.yml up -d --build
+# Caddy reads its config only at start: restart it so Caddyfile changes always apply.
+sudo docker compose -f docker-compose.yml -f deploy/compose.prod.yml restart caddy
 echo
 echo "Starting. In 2-5 minutes, open https://$domain (user: $user)."
 echo "API key for the Knowledge Brain's /docs (X-API-Key header): see KB_API_KEY in .env"

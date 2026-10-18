@@ -42,7 +42,11 @@ One AWS EC2 t3.small (2 GB RAM plus 2 GB swap, Ubuntu 24.04) runs the same `dock
 To redeploy:
 1. `bash deploy/setup-vm.sh` (once per VM: Docker and swap).
 2. Copy the repo over.
-3. Run `bash deploy/set-secrets.sh`.
+3. Run `bash deploy/set-secrets.sh` (first time), or for code-only updates:
+   `docker compose -f docker-compose.yml -f deploy/compose.prod.yml up -d --build && docker compose -f docker-compose.yml -f deploy/compose.prod.yml restart caddy`.
+   Caddy only reads its config at start, so restart it whenever `deploy/Caddyfile` changes.
+
+**Voice input.** The mic buttons use the browser's own dictation when it works. Behind many VPNs, in Brave-like browsers and in Firefox, they record instead and transcribe on the server, using an open-source Whisper model inside the Knowledge Brain: no third-party service, no per-use cost.
 
 ## Run tests and checks
 
