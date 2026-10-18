@@ -9,6 +9,7 @@
   --radius: 12px; --radius-sm: 8px;
   color-scheme: light;
 }
+/* Dark: follows the system unless the toggle chose a theme (data-theme on <html>). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0d0f12; --panel: #15181d; --panel-2: #1b1f26; --text: #e7e9ed; --muted: #98a0ad;
@@ -18,6 +19,14 @@
     --kb: #3cc9b4; --inbox: #8d96ff; --scope: #f3a75c;
     color-scheme: dark;
   }
+}
+:root[data-theme="dark"] {
+  --bg: #0d0f12; --panel: #15181d; --panel-2: #1b1f26; --text: #e7e9ed; --muted: #98a0ad;
+  --line: #252a32; --line-strong: #333a45; --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+  --ok-bg: #12301f; --ok: #86d9a6; --warn-bg: #362810; --warn: #f2c56b;
+  --info-bg: #19244a; --info: #a9bbff; --err-bg: #3b1714; --err: #ff9f94;
+  --kb: #3cc9b4; --inbox: #8d96ff; --scope: #f3a75c;
+  color-scheme: dark;
 }
 body[data-app="kb"] { --accent: var(--kb); }
 body[data-app="inbox"] { --accent: var(--inbox); }
@@ -81,6 +90,7 @@ textarea { resize: vertical; }
 .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; border: 0; border-radius: var(--radius-sm);
        padding: 9px 16px; font: inherit; font-weight: 650; cursor: pointer; text-decoration: none; white-space: nowrap; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn:not(.secondary):not(.ghost) { color: #0d0f12; } }
+:root[data-theme="dark"] .btn:not(.secondary):not(.ghost) { color: #0d0f12; }
 .btn:hover { filter: brightness(1.06); }
 .btn.secondary { background: var(--panel); color: var(--text); border: 1px solid var(--line-strong); }
 .btn.secondary:hover { background: var(--panel-2); filter: none; }
@@ -119,3 +129,28 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: v
 .lightbox img { max-width: 100%; max-height: 100%; border-radius: 10px; box-shadow: 0 10px 40px rgba(0, 0, 0, .5); background: #fff; }
 .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 60; background: var(--text); color: var(--bg);
          padding: 10px 16px; border-radius: 10px; font-weight: 600; box-shadow: 0 6px 24px rgba(0, 0, 0, .25); max-width: calc(100% - 32px); }
+
+/* Theme toggle and other icon buttons in the bar */
+.s-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); cursor: pointer; }
+.s-icon:hover { color: var(--text); background: var(--panel-2); }
+.s-icon svg { width: 17px; height: 17px; }
+.s-icon .sun { display: none; }
+:root[data-theme="dark"] .s-icon .sun { display: block; } :root[data-theme="dark"] .s-icon .moon { display: none; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .s-icon .sun { display: block; } :root:not([data-theme="light"]) .s-icon .moon { display: none; } }
+
+/* Voice input: a mic button inside any field marked data-mic */
+.mic-wrap { position: relative; }
+.mic-wrap > textarea { padding-right: 48px; }
+.mic-wrap > input { padding-right: 44px; }
+.mic-btn { position: absolute; right: 8px; bottom: 8px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line-strong);
+           background: var(--panel); color: var(--muted); display: grid; place-items: center; cursor: pointer; }
+.mic-wrap > input + .mic-btn { top: 50%; bottom: auto; transform: translateY(-50%); width: 28px; height: 28px; }
+.mic-btn:hover { color: var(--text); border-color: var(--accent); }
+.mic-btn svg { width: 16px; height: 16px; }
+.mic-btn.on { background: var(--err); border-color: var(--err); color: #fff; animation: micpulse 1.4s ease-out infinite; }
+@keyframes micpulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--err) 55%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
+@media (prefers-reduced-motion: reduce) { .mic-btn.on { animation: none; } }
+
+/* Footer links on every page */
+.s-foot { max-width: 1320px; margin: 8px auto 28px; padding: 0 16px; display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 13px; }
+.s-foot a { color: var(--muted); } .s-foot a:hover { color: var(--text); }

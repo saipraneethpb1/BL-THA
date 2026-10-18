@@ -3,6 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- suite:head -->
+<script>
+// Runs in <head> before the page draws, so a chosen theme never flashes the wrong colours.
+(function () {
+  let t = "";
+  try { t = (document.cookie.match(/(?:^|; )theme=(light|dark)/) || [])[1] || localStorage.getItem("theme") || ""; } catch {}
+  if (t) document.documentElement.dataset.theme = t;
+})();
+</script>
+<!-- /suite:head -->
 <title>Scope Builder</title>
 <!-- suite:css -->
 <style>
@@ -17,6 +27,7 @@
   --radius: 12px; --radius-sm: 8px;
   color-scheme: light;
 }
+/* Dark: follows the system unless the toggle chose a theme (data-theme on <html>). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0d0f12; --panel: #15181d; --panel-2: #1b1f26; --text: #e7e9ed; --muted: #98a0ad;
@@ -26,6 +37,14 @@
     --kb: #3cc9b4; --inbox: #8d96ff; --scope: #f3a75c;
     color-scheme: dark;
   }
+}
+:root[data-theme="dark"] {
+  --bg: #0d0f12; --panel: #15181d; --panel-2: #1b1f26; --text: #e7e9ed; --muted: #98a0ad;
+  --line: #252a32; --line-strong: #333a45; --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+  --ok-bg: #12301f; --ok: #86d9a6; --warn-bg: #362810; --warn: #f2c56b;
+  --info-bg: #19244a; --info: #a9bbff; --err-bg: #3b1714; --err: #ff9f94;
+  --kb: #3cc9b4; --inbox: #8d96ff; --scope: #f3a75c;
+  color-scheme: dark;
 }
 body[data-app="kb"] { --accent: var(--kb); }
 body[data-app="inbox"] { --accent: var(--inbox); }
@@ -89,6 +108,7 @@ textarea { resize: vertical; }
 .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; border: 0; border-radius: var(--radius-sm);
        padding: 9px 16px; font: inherit; font-weight: 650; cursor: pointer; text-decoration: none; white-space: nowrap; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn:not(.secondary):not(.ghost) { color: #0d0f12; } }
+:root[data-theme="dark"] .btn:not(.secondary):not(.ghost) { color: #0d0f12; }
 .btn:hover { filter: brightness(1.06); }
 .btn.secondary { background: var(--panel); color: var(--text); border: 1px solid var(--line-strong); }
 .btn.secondary:hover { background: var(--panel-2); filter: none; }
@@ -127,6 +147,31 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: v
 .lightbox img { max-width: 100%; max-height: 100%; border-radius: 10px; box-shadow: 0 10px 40px rgba(0, 0, 0, .5); background: #fff; }
 .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 60; background: var(--text); color: var(--bg);
          padding: 10px 16px; border-radius: 10px; font-weight: 600; box-shadow: 0 6px 24px rgba(0, 0, 0, .25); max-width: calc(100% - 32px); }
+
+/* Theme toggle and other icon buttons in the bar */
+.s-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); cursor: pointer; }
+.s-icon:hover { color: var(--text); background: var(--panel-2); }
+.s-icon svg { width: 17px; height: 17px; }
+.s-icon .sun { display: none; }
+:root[data-theme="dark"] .s-icon .sun { display: block; } :root[data-theme="dark"] .s-icon .moon { display: none; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .s-icon .sun { display: block; } :root:not([data-theme="light"]) .s-icon .moon { display: none; } }
+
+/* Voice input: a mic button inside any field marked data-mic */
+.mic-wrap { position: relative; }
+.mic-wrap > textarea { padding-right: 48px; }
+.mic-wrap > input { padding-right: 44px; }
+.mic-btn { position: absolute; right: 8px; bottom: 8px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line-strong);
+           background: var(--panel); color: var(--muted); display: grid; place-items: center; cursor: pointer; }
+.mic-wrap > input + .mic-btn { top: 50%; bottom: auto; transform: translateY(-50%); width: 28px; height: 28px; }
+.mic-btn:hover { color: var(--text); border-color: var(--accent); }
+.mic-btn svg { width: 16px; height: 16px; }
+.mic-btn.on { background: var(--err); border-color: var(--err); color: #fff; animation: micpulse 1.4s ease-out infinite; }
+@keyframes micpulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--err) 55%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
+@media (prefers-reduced-motion: reduce) { .mic-btn.on { animation: none; } }
+
+/* Footer links on every page */
+.s-foot { max-width: 1320px; margin: 8px auto 28px; padding: 0 16px; display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 13px; }
+.s-foot a { color: var(--muted); } .s-foot a:hover { color: var(--text); }
 </style>
 <!-- /suite:css -->
 <style>
@@ -176,7 +221,12 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: v
     <a class="s-app" data-suite-link="inbox"><span class="s-dot"></span>Inbox Agent <span class="s-task">Task 2</span></a>
     <a class="s-app" data-suite-link="scope"><span class="s-dot"></span>Scope Builder <span class="s-task">Task 3</span></a>
   </nav>
-  <div class="s-right" id="s-right"></div>
+  <div class="s-right"><span id="s-right"></span>
+    <button class="s-icon" id="s-theme" type="button" aria-label="Switch between light and dark mode" title="Light / dark mode">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
 </div></header>
 <!-- /suite:bar -->
 
@@ -198,6 +248,8 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: v
         <input id="p-name" placeholder="Project name">
         <input id="p-client" placeholder="Client" style="margin-top:8px">
         <div class="row"><button class="btn secondary" id="p-create">Create</button></div>
+        <h3 class="label">Or</h3>
+        <button class="btn secondary" id="p-demo" style="width:100%;justify-content:center">Try a demo from a real meeting</button>
       </div>
     </aside>
     <section id="main"></section>
@@ -223,6 +275,73 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: v
   });
   const home = document.querySelector("[data-suite-home]");
   if (home) home.href = deployed ? `${protocol}//${base}/` : urlFor("kb");
+
+  // Light / dark toggle. The choice is shared by all three services: a cookie on the
+  // parent host when deployed (subdomains share it), localStorage as a fallback.
+  const root = document.documentElement;
+  const effective = () => root.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const themeBtn = document.getElementById("s-theme");
+  if (themeBtn) themeBtn.onclick = () => {
+    const next = effective() === "dark" ? "light" : "dark";
+    root.dataset.theme = next;
+    try { localStorage.setItem("theme", next); } catch {}
+    document.cookie = `theme=${next}; path=/; max-age=31536000; SameSite=Lax${deployed ? `; domain=${base}` : ""}`;
+  };
+
+  // Footer with the documents reviewers usually want next to the running app.
+  const repo = "https://github.com/saipraneethpb1/BL-THA";
+  if (current !== "hub") {
+    const foot = Object.assign(document.createElement("footer"), { className: "s-foot" });
+    foot.innerHTML = `<span>AI Tech Consultant</span><a href="${repo}" target="_blank" rel="noopener">Code</a><a href="${repo}/blob/main/EVALS.md" target="_blank" rel="noopener">Evals</a><a href="${repo}/blob/main/DESIGN.md" target="_blank" rel="noopener">Design</a>`;
+    document.body.append(foot);
+  }
+
+  // Voice input. Uses the browser's own speech recognition (Chrome, Edge, Safari): free,
+  // no API key. In Chrome and Edge the audio is processed by the browser vendor's service.
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const MIC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>`;
+  let active = null;
+  function attachMic(field) {
+    if (!Recognition || field.dataset.micReady) return;
+    field.dataset.micReady = "1";
+    const wrap = Object.assign(document.createElement("div"), { className: "mic-wrap" });
+    if (field.style.flex) { wrap.style.flex = field.style.flex; wrap.style.minWidth = field.style.minWidth; field.style.flex = ""; }
+    if (field.style.marginTop) { wrap.style.marginTop = field.style.marginTop; field.style.marginTop = "0"; }
+    field.replaceWith(wrap); wrap.append(field);
+    const btn = Object.assign(document.createElement("button"), { type: "button", className: "mic-btn", innerHTML: MIC, title: "Speak instead of typing" });
+    btn.setAttribute("aria-label", "Speak instead of typing");
+    wrap.append(btn);
+    btn.onclick = () => {
+      if (active) { const was = active.field; active.rec.stop(); if (was === field) return; }
+      const rec = new Recognition();
+      rec.lang = field.dataset.micLang || navigator.language || "en-US";
+      rec.continuous = true; rec.interimResults = true;
+      const start = field.value && !/\s$/.test(field.value) ? field.value + " " : field.value;
+      let finalText = "";
+      rec.onresult = (e) => {
+        let interim = "";
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const t = e.results[i][0].transcript;
+          if (e.results[i].isFinal) finalText += t; else interim += t;
+        }
+        field.value = start + finalText + interim;
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+      };
+      rec.onerror = (e) => {
+        const msg = { "not-allowed": "Microphone access was blocked. Allow it in the address bar to use voice input.", "no-speech": "Didn't hear anything. Try again.", "network": "Voice input needs an internet connection." }[e.error];
+        if (msg) suite.toast(msg, 4000);
+      };
+      rec.onend = () => { btn.classList.remove("on"); btn.title = "Speak instead of typing"; if (active?.rec === rec) active = null; };
+      try { rec.start(); } catch { return; }
+      active = { rec, field };
+      btn.classList.add("on"); btn.title = "Listening… click to stop"; field.focus();
+    };
+  }
+  const scanMics = () => document.querySelectorAll("[data-mic]").forEach(attachMic);
+  scanMics();
+  new MutationObserver(scanMics).observe(document.body, { childList: true, subtree: true });
+
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   window.suite = {
     toast(msg, ms = 2600) {
       const t = Object.assign(document.createElement("div"), { className: "toast", textContent: msg, role: "status" });
@@ -236,9 +355,18 @@ th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: v
       const onKey = (e) => { if (e.key === "Escape") close(); };
       box.onclick = close; document.addEventListener("keydown", onKey);
     },
+    // Turns a raw error from the Claude API into one sentence a reviewer can act on.
+    friendlyError(text) {
+      const raw = String(text ?? "");
+      if (/credit balance is too low/i.test(raw)) return "The Claude API account is out of credit, so AI features are paused. Everything else still works.";
+      if (/overloaded|529/i.test(raw)) return "The Claude API is busy right now. Please try again in a minute.";
+      if (/rate.?limit|429/i.test(raw)) return "Too many requests to the Claude API right now. Please try again in a minute.";
+      if (/authentication|invalid x-api-key|401/i.test(raw) && /claude|anthropic|api/i.test(raw)) return "The Claude API key was rejected, so AI features are paused.";
+      const m = raw.match(/['"]message['"]\s*:\s*['"]([^'"]{4,300})['"]/);
+      return m ? m[1] : raw;
+    },
     // Small, safe Markdown subset for model answers: paragraphs, numbered and bullet lists, **bold**.
     md(text) {
-      const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
       const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
       const out = []; let list = null;
       const flush = () => { if (list) { out.push(`<${list.tag}>${list.items.join("")}</${list.tag}>`); list = null; } };
@@ -306,6 +434,7 @@ function welcome(projects) {
   </div>`;
   $("#demo").onclick = createDemo;
 }
+$("#p-demo").onclick = () => { clearInterval(poll); state.pid = null; loadProjects(); welcome([]); };
 
 async function createDemo() {
   const b = $("#demo"); b.disabled = true; b.innerHTML = `<span class="spinner" style="border-top-color:currentColor"></span>Creating…`;
@@ -324,7 +453,6 @@ async function addSample(pid, name) {
 function nextStep(p) {
   const latest = p.versions[0];
   const approved = p.versions.find((v) => v.status === "approved");
-  const flow = (now) => ["Add meeting", "Build", "Review", "Approve", "Follow-up"].map((s, i) => `<span class="${i < now ? "done" : i === now ? "now" : ""}">${s}</span>`).join("");
   if (!p.meetings.length) return [0, "Add a meeting transcript below: paste, upload, or pick a sample."];
   if (!latest) return [1, "Click <b>Build scope</b>. It takes about 2 minutes for a 40-minute meeting."];
   if (latest.status === "building") return [1, "Building… the agents are reading the transcript."];
@@ -355,7 +483,7 @@ async function openProject(pid, version = null) {
       <details class="addbox" ${p.meetings.length ? "" : "open"}><summary style="cursor:pointer;font-weight:600">+ Add a meeting transcript</summary>
         ${unused.length ? `<div class="row"><select id="m-sample" style="flex:1;min-width:220px"><option value="">Pick a sample meeting…</option>${unused.map((s) => `<option value="${esc(s.name)}">${esc(s.title)}</option>`).join("")}</select><button class="btn secondary" id="m-add-sample">Add sample</button></div><div class="meta" style="margin-top:8px">or paste / upload your own:</div>` : ""}
         <div class="row"><input id="m-title" placeholder="Meeting title, e.g. Kickoff call" style="flex:2;min-width:180px"><input id="m-date" type="date" style="flex:1;min-width:140px"></div>
-        <textarea id="m-text" style="margin-top:8px" placeholder="[00:00:05] Sam: Thanks for joining...&#10;[00:00:12] Priya: The search is bad..."></textarea>
+        <textarea id="m-text" data-mic style="margin-top:8px" placeholder="Paste a transcript, or dictate meeting notes with the mic, e.g.&#10;[00:00:05] Sam: Thanks for joining...&#10;[00:00:12] Priya: The search is bad..."></textarea>
         <div class="row"><input type="file" id="m-file" accept=".txt,.vtt,.md" style="flex:1;min-width:200px"><button class="btn secondary" id="m-add">Add meeting</button><span class="meta" id="m-note"></span></div>
       </details>
       <div class="row">
@@ -398,7 +526,7 @@ async function loadVersion() {
     poll = setInterval(async () => { render(); if (++n % 3) return; const x = await api(`/api/projects/${state.pid}/versions/${state.version}`).catch(() => null); if (x && x.status !== "building") { clearInterval(poll); suite.toast(x.status === "failed" ? "Build failed" : `Version ${x.number} is ready`); openProject(state.pid, state.version); } }, 1000);
     return;
   }
-  if (v.status === "failed") { box.innerHTML = `<div class="panel"><span class="badge err">failed</span> ${esc(v.error)}</div>`; return; }
+  if (v.status === "failed") { box.innerHTML = `<div class="panel"><div class="banner warn" style="margin:0"><b>This build failed.</b>&nbsp;${esc(suite.friendlyError(v.error))}</div><details style="margin-top:10px"><summary class="meta" style="cursor:pointer">Technical details</summary><pre class="meta" style="white-space:pre-wrap">${esc(v.error)}</pre></details></div>`; return; }
   const d = v.data;
   const blocking = v.issues.filter((i) => i.severity === "block").length;
   const tabs = [["requirements", `Requirements (${d.analysis.requirements.length})`], ["feasibility", "Product check"], ["scope", "Scope"], ["estimate", "Estimate"], ...(d.diff ? [["changes", `Changes (${d.diff.changes.filter((c) => c.change !== "unchanged").length})`]] : []), ["proposal", "Proposal"], ["approve", v.status === "approved" ? "Approved ✓" : `Review & approve${blocking ? ` (${blocking} to fix)` : ""}`]];
@@ -430,7 +558,7 @@ const render = {
   proposal: (v, d) => `<div class="doc">${markdown(d.proposal_md)}</div>`,
   approve: (v) => `${v.issues.length ? v.issues.map((i) => `<div class="issue ${i.severity}">${i.severity === "block" ? "Must fix" : "Check"}: ${esc(i.message)}</div>`).join("") : `<div class="banner ok">The automatic review found no issues.</div>`}
     ${v.status === "approved" ? `<div class="banner ok">Approved by <b>${esc(v.approved_by)}</b> at ${esc(v.approved_at)}${v.approval_note ? ` · note: ${esc(v.approval_note)}` : ""}</div><div class="row"><button class="btn" id="export">Download proposal for the client</button></div>`
-      : v.status === "draft" ? `<h3 class="label">Approve</h3><p class="meta">Approving makes this the baseline later meetings are compared against, and unlocks the client proposal download. ${v.issues.some((i) => i.severity === "block") ? "There are blocking issues, so a note explaining your decision is required." : ""}</p><div class="row"><input id="a-name" placeholder="Your name" value="${esc(actor())}" style="max-width:220px"><input id="a-note" placeholder="Note${v.issues.some((i) => i.severity === "block") ? " (required)" : " (optional)"}" style="flex:1;min-width:200px"></div><div class="row"><button class="btn" id="approve">Approve version ${v.number}</button><button class="btn secondary" disabled title="Only an approved version can be exported">Download proposal (after approval)</button><span class="meta" id="a-msg"></span></div>`
+      : v.status === "draft" ? `<h3 class="label">Approve</h3><p class="meta">Approving makes this the baseline later meetings are compared against, and unlocks the client proposal download. ${v.issues.some((i) => i.severity === "block") ? "There are blocking issues, so a note explaining your decision is required." : ""}</p><div class="row"><input id="a-name" placeholder="Your name" value="${esc(actor())}" style="max-width:220px"><input id="a-note" data-mic placeholder="Note${v.issues.some((i) => i.severity === "block") ? " (required)" : " (optional)"}" style="flex:1;min-width:200px"></div><div class="row"><button class="btn" id="approve">Approve version ${v.number}</button><button class="btn secondary" disabled title="Only an approved version can be exported">Download proposal (after approval)</button><span class="meta" id="a-msg"></span></div>`
       : `<p class="meta">This version is ${esc(v.status)} and can no longer be approved.</p>`}`,
 };
 

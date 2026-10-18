@@ -12,8 +12,9 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Any, Literal
 
+import anthropic
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 from kb.answer import escalations as esc
@@ -84,6 +85,23 @@ app = FastAPI(
     "with citations. Used by the Inbox Agent and the Meeting-to-Scope service.\n\n"
     "All endpoints except `/health` need the header `X-API-Key`.",
 )
+
+
+def claude_error_message(exc: anthropic.APIError) -> str:
+    """Anthropic's own one-line reason (e.g. out of credit), not the whole error body."""
+    body = exc.body if isinstance(exc.body, dict) else {}
+    inner = body.get("error")
+    message = inner.get("message") if isinstance(inner, dict) else None
+    return str(message or exc.message)
+
+
+@app.exception_handler(anthropic.APIError)
+async def claude_unavailable(_request: Request, exc: anthropic.APIError) -> JSONResponse:
+    # The model call failed (no credit, overloaded, network). Say so plainly instead of a 500:
+    # search, the expert queue and status keep working.
+    return JSONResponse(
+        status_code=502, content={"detail": f"Claude API error: {claude_error_message(exc)}"}
+    )
 
 
 def require_api_key(x_api_key: Annotated[str | None, Header()] = None) -> None:

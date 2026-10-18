@@ -1,6 +1,7 @@
 /** HTTP API and review screen for the Inbox Agent. */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import Anthropic from "@anthropic-ai/sdk";
 import Fastify, { type FastifyInstance } from "fastify";
 import { z } from "zod";
 import { loadConfig, type Config } from "./config.js";
@@ -50,6 +51,12 @@ export function defaultDeps(config = loadConfig()): AppDeps {
   return { config, store, agent, learning: new LearningService(store, miner, drafter) };
 }
 
+/** Anthropic's own one-line reason (e.g. out of credit), not the whole error body. */
+export function claudeMessage(err: InstanceType<typeof Anthropic.APIError>): string {
+  const inner = (err.error as { error?: { message?: unknown } } | undefined)?.error;
+  return typeof inner?.message === "string" ? inner.message : err.message;
+}
+
 /** Drop undefined keys so the parsed body fits ReviewAction under exactOptionalPropertyTypes. */
 function compact<T extends object>(o: T): T {
   return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as T;
@@ -76,6 +83,9 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     if (err instanceof ReviewError) return reply.status(409).send({ error: err.message });
     if (err instanceof LearningUnavailableError) return reply.status(503).send({ error: err.message });
     if (err instanceof LearningError) return reply.status(409).send({ error: err.message });
+    // A failed model call (no credit, overloaded, network) is the provider's problem, not a bug:
+    // say so plainly. Browsing and reviewing keep working.
+    if (err instanceof Anthropic.APIError) return reply.status(502).send({ error: `Claude API error: ${claudeMessage(err)}` });
     return reply.status(500).send({ error: err instanceof Error ? err.message : String(err) });
   });
 

@@ -67,3 +67,23 @@ describe("HTTP API", () => {
     expect(auto.threshold).toBe(2);
   });
 });
+
+describe("when the Claude API fails", () => {
+  it("answers 502 with Anthropic's one-line reason, not a 500", async () => {
+    const Anthropic = (await import("@anthropic-ai/sdk")).default;
+    const msg = "Your credit balance is too low to access the Anthropic API.";
+    class BrokeDrafter extends FakeDrafter {
+      override async draft(): Promise<never> {
+        throw new Anthropic.BadRequestError(400, { type: "error", error: { type: "invalid_request_error", message: msg } }, msg, new Headers());
+      }
+    }
+    const config = { ...loadConfig({}), autonomyThreshold: 2 };
+    const store = new InboxStore(":memory:");
+    const agent = new InboxAgent(store, new FakeClassifier(), new BrokeDrafter(), new FakeKnowledge(), config, () => 1);
+    const a = buildApp({ config, store, agent, learning: new LearningService(store, null, null) });
+    await a.inject({ method: "POST", url: "/api/emails", payload: email });
+    const r = await a.inject({ method: "POST", url: "/api/emails/X1/process" });
+    expect(r.statusCode).toBe(502);
+    expect(r.json()).toEqual({ error: `Claude API error: ${msg}` });
+  });
+});

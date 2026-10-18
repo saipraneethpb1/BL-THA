@@ -101,3 +101,19 @@ def test_manual_refresh_conflict(client: TestClient) -> None:
         assert client.post("/ingestion/run", headers=H).status_code == 409
     finally:
         refresher._lock.release()
+
+
+def test_claude_failure_is_a_clear_502(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    import anthropic
+    import httpx
+
+    msg = "Your credit balance is too low to access the Anthropic API."
+
+    async def out_of_credit(*_args: object, **_kwargs: object) -> None:
+        response = httpx.Response(400, request=httpx.Request("POST", "https://api.anthropic.com"))
+        raise anthropic.BadRequestError(msg, response=response, body={"error": {"message": msg}})
+
+    api.app.state.answerer = FakeAnswerer()
+    monkeypatch.setattr(api, "answer_question", out_of_credit)
+    r = client.post("/query", json={"question": "refund a member"}, headers=H)
+    assert r.status_code == 502 and r.json() == {"detail": f"Claude API error: {msg}"}

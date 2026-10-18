@@ -25,7 +25,9 @@ def blocks() -> dict[str, str]:
     css = (SHARED / "suite.css").read_text(encoding="utf-8").strip()
     js = (SHARED / "suite.js").read_text(encoding="utf-8").strip()
     bar = (SHARED / "suite-bar.html").read_text(encoding="utf-8").strip()
+    head = (SHARED / "suite-head.js").read_text(encoding="utf-8").strip()
     return {
+        "head": f"<script>\n{head}\n</script>",
         "css": f"<style>\n{css}\n</style>",
         "bar": bar,
         "js": f"<script>\n{js}\n</script>",
