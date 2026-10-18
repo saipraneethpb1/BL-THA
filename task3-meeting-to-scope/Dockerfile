@@ -5,6 +5,7 @@ ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy PYTHONUNBUFFERED=1 SCOPE_DB_PATH=/da
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 COPY scope ./scope
+COPY transcripts ./transcripts
 EXPOSE 8003
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=5 \
   CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8003/health')"

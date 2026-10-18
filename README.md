@@ -48,9 +48,12 @@ To redeploy:
 cd task1-knowledge-brain && uv run pytest && uv run mypy && uv run ruff check .
 cd task2-inbox-agent && npm ci && npm test && npm run typecheck
 cd task3-meeting-to-scope && uv run pytest && uv run mypy && uv run ruff check .
+python scripts/sync_suite.py --check   # the three UIs share one look (shared/)
 ```
 
 Tests use scripted fake models, so they need no API key and cost nothing.
+
+**Shared UI.** The three services and the hub page share one design and top bar. These live in `shared/` and are copied into each page by `python scripts/sync_suite.py`, because each service is its own Docker image.
 
 ## Run a service without Docker
 

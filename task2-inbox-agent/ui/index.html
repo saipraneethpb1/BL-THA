@@ -4,117 +4,303 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Inbox Agent</title>
+<!-- suite:css -->
 <style>
-  :root {
-    --bg: #f7f7f5; --panel: #fff; --text: #1d1d1b; --muted: #6b6b66; --line: #e4e3df;
-    --accent: #2f5bd3; --accent-ink: #fff; --sel: #eef2fd;
-    --ok-bg: #e5f4ea; --ok: #1d6b3a; --warn-bg: #fdf1dc; --warn: #8a5a00;
-    --info-bg: #e8eefc; --info: #2a4aa8; --err-bg: #fde8e6; --err: #a8261b;
+/* Shared look for the three services and the hub page. Edit here, then run
+   python scripts/sync_suite.py   (copies this into each page between suite markers). */
+:root {
+  --bg: #f5f6f8; --panel: #ffffff; --panel-2: #f0f2f5; --text: #15171c; --muted: #5d6470;
+  --line: #e2e5ea; --line-strong: #cfd4dc; --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 2px 8px rgba(16, 24, 40, .04);
+  --ok-bg: #e3f5ea; --ok: #17663a; --warn-bg: #fdf0d8; --warn: #7d5200;
+  --info-bg: #e7edfd; --info: #2747a3; --err-bg: #fde6e4; --err: #a3231a;
+  --kb: #0e8a7a; --inbox: #4c55d4; --scope: #b8600f;
+  --radius: 12px; --radius-sm: 8px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d0f12; --panel: #15181d; --panel-2: #1b1f26; --text: #e7e9ed; --muted: #98a0ad;
+    --line: #252a32; --line-strong: #333a45; --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+    --ok-bg: #12301f; --ok: #86d9a6; --warn-bg: #362810; --warn: #f2c56b;
+    --info-bg: #19244a; --info: #a9bbff; --err-bg: #3b1714; --err: #ff9f94;
+    --kb: #3cc9b4; --inbox: #8d96ff; --scope: #f3a75c;
+    color-scheme: dark;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #151514; --panel: #1f1f1d; --text: #ecebe7; --muted: #a09f98; --line: #34332f;
-      --accent: #7b9cff; --accent-ink: #10131c; --sel: #232b40;
-      --ok-bg: #173323; --ok: #8fd8a8; --warn-bg: #3a2c10; --warn: #f0c46b;
-      --info-bg: #1b2645; --info: #a9bdff; --err-bg: #3d1915; --err: #ff9d92;
-    }
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  header { background: var(--panel); border-bottom: 1px solid var(--line); }
-  .bar { display: flex; gap: 20px; align-items: center; height: 54px; padding: 0 16px; max-width: 1280px; margin: 0 auto; }
-  .brand { font-weight: 650; }
-  nav button { background: none; border: 0; padding: 7px 12px; border-radius: 8px; color: var(--muted); font: inherit; cursor: pointer; }
-  nav button[aria-selected="true"] { background: var(--bg); color: var(--text); font-weight: 600; }
-  .layout { display: grid; grid-template-columns: 340px 1fr; gap: 16px; max-width: 1280px; margin: 16px auto; padding: 0 16px; }
-  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
-  .list { max-height: calc(100vh - 110px); overflow: auto; }
-  .item { padding: 10px 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
-  .item:hover, .item.sel { background: var(--sel); }
-  .item .who { font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
-  .item .subj { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .meta { color: var(--muted); font-size: 13px; }
-  .badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; margin-right: 4px; background: var(--bg); color: var(--muted); }
-  .b-critical, .b-block, .b-failed { background: var(--err-bg); color: var(--err); }
-  .b-high, .b-warn, .b-drafted { background: var(--warn-bg); color: var(--warn); }
-  .b-sent, .b-autonomous, .b-archived { background: var(--ok-bg); color: var(--ok); }
-  .b-escalated, .b-new { background: var(--info-bg); color: var(--info); }
-  .detail { padding: 18px; }
-  h2 { font-size: 17px; margin: 0 0 6px; } h3 { font-size: 14px; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
-  .mail { white-space: pre-wrap; background: var(--bg); border-radius: 8px; padding: 12px; }
-  details { margin-bottom: 8px; } summary { cursor: pointer; color: var(--muted); font-size: 13px; }
-  .ev { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
-  .ev a { color: var(--accent); }
-  .flag { padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; }
+}
+body[data-app="kb"] { --accent: var(--kb); }
+body[data-app="inbox"] { --accent: var(--inbox); }
+body[data-app="scope"] { --accent: var(--scope); }
+body[data-app="hub"] { --accent: var(--inbox); }
+:root { --accent: var(--inbox); }
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text);
+       font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: var(--accent); }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+/* Suite bar: the same on every page */
+.s-bar { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--panel) 88%, transparent);
+         backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.s-bar-in { max-width: 1320px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; gap: 14px; }
+.s-brand { display: flex; align-items: center; gap: 9px; font-weight: 700; color: var(--text); text-decoration: none; white-space: nowrap; }
+.s-mark { width: 26px; height: 26px; border-radius: 8px; flex: none;
+          background: conic-gradient(from 210deg, var(--kb), var(--inbox), var(--scope), var(--kb)); }
+.s-apps { display: flex; gap: 4px; margin-left: 8px; overflow-x: auto; scrollbar-width: none; }
+.s-app { display: flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; color: var(--muted);
+         text-decoration: none; font-weight: 550; font-size: 14px; white-space: nowrap; }
+.s-app:hover { background: var(--panel-2); color: var(--text); }
+.s-app[aria-current="page"] { background: var(--panel-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
+.s-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.s-app[data-suite-link="kb"] .s-dot { background: var(--kb); }
+.s-app[data-suite-link="inbox"] .s-dot { background: var(--inbox); }
+.s-app[data-suite-link="scope"] .s-dot { background: var(--scope); }
+.s-task { color: var(--muted); font-weight: 500; font-size: 12px; }
+.s-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+@media (max-width: 760px) { .s-brand span, .s-task { display: none; } .s-apps { margin-left: 0; } }
+
+/* App sub-header: title + sub-tabs */
+.app-head { max-width: 1320px; margin: 0 auto; padding: 18px 16px 0; display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.app-title { margin: 0; font-size: 22px; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; }
+.app-title::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.app-sub { color: var(--muted); margin: 2px 0 0; font-size: 14px; }
+.subtabs { display: flex; gap: 2px; margin-left: auto; background: var(--panel-2); padding: 3px; border-radius: 10px; border: 1px solid var(--line); }
+.subtabs button { background: none; border: 0; padding: 6px 14px; border-radius: 8px; color: var(--muted); font: inherit; font-size: 14px; font-weight: 550; cursor: pointer; display: flex; gap: 6px; align-items: center; }
+.subtabs button[aria-selected="true"] { background: var(--panel); color: var(--text); box-shadow: var(--shadow); }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 16px; }
+
+/* Building blocks */
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.panel + .panel { margin-top: 16px; }
+.panel.flush { padding: 0; }
+h2 { font-size: 17px; margin: 0 0 4px; letter-spacing: -.005em; }
+h3.label { font-size: 12px; margin: 20px 0 8px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 650; }
+.muted, .meta { color: var(--muted); }
+.meta { font-size: 13px; }
+.sub { color: var(--muted); margin: 0 0 14px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+.spacer { flex: 1; }
+input, textarea, select { width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line-strong);
+                          border-radius: var(--radius-sm); padding: 9px 12px; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+textarea { resize: vertical; }
+.btn { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; border: 0; border-radius: var(--radius-sm);
+       padding: 9px 16px; font: inherit; font-weight: 650; cursor: pointer; text-decoration: none; white-space: nowrap; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn:not(.secondary):not(.ghost) { color: #0d0f12; } }
+.btn:hover { filter: brightness(1.06); }
+.btn.secondary { background: var(--panel); color: var(--text); border: 1px solid var(--line-strong); }
+.btn.secondary:hover { background: var(--panel-2); filter: none; }
+.btn.ghost { background: none; color: var(--muted); padding: 6px 10px; }
+.btn.ghost:hover { color: var(--text); background: var(--panel-2); filter: none; }
+.btn.small { padding: 6px 12px; font-size: 13px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; filter: none; }
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 650;
+         background: var(--panel-2); color: var(--muted); white-space: nowrap; border: 1px solid transparent; }
+.badge.ok { background: var(--ok-bg); color: var(--ok); } .badge.warn { background: var(--warn-bg); color: var(--warn); }
+.badge.info { background: var(--info-bg); color: var(--info); } .badge.err { background: var(--err-bg); color: var(--err); }
+.badge.accent { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+.chip { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; background: var(--panel);
+        border: 1px solid var(--line-strong); border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 14px; color: var(--text); cursor: pointer; }
+.chip small { color: var(--muted); font-size: 12px; }
+.chip:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--panel)); }
+.banner { padding: 10px 14px; border-radius: 10px; margin-bottom: 12px; display: flex; gap: 10px; align-items: flex-start; }
+.banner.err { background: var(--err-bg); color: var(--err); } .banner.info { background: var(--info-bg); color: var(--info); }
+.banner.ok { background: var(--ok-bg); color: var(--ok); } .banner.warn { background: var(--warn-bg); color: var(--warn); }
+.empty { color: var(--muted); text-align: center; padding: 32px 20px; }
+.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; counter-reset: s; }
+.steps li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; counter-increment: s; }
+.steps li::before { content: counter(s); width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700;
+                    background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+.kbd { font: 12px ui-monospace, Consolas, monospace; padding: 1px 6px; border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: 5px; color: var(--muted); }
+.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--accent) 25%, transparent);
+           border-top-color: var(--accent); animation: spin .8s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; vertical-align: top; padding: 10px; border-bottom: 1px solid var(--line); font-size: 14px; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 650; }
+.table-wrap { overflow-x: auto; }
+.md p { margin: 0 0 10px; } .md ol, .md ul { margin: 0 0 10px; padding-left: 22px; } .md li { margin: 3px 0; }
+.lightbox { position: fixed; inset: 0; z-index: 50; background: rgba(5, 7, 10, .82); display: grid; place-items: center; padding: 24px; cursor: zoom-out; }
+.lightbox img { max-width: 100%; max-height: 100%; border-radius: 10px; box-shadow: 0 10px 40px rgba(0, 0, 0, .5); background: #fff; }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 60; background: var(--text); color: var(--bg);
+         padding: 10px 16px; border-radius: 10px; font-weight: 600; box-shadow: 0 6px 24px rgba(0, 0, 0, .25); max-width: calc(100% - 32px); }
+</style>
+<!-- /suite:css -->
+<style>
+  .layout { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  .listpanel { position: sticky; top: 72px; display: flex; flex-direction: column; max-height: calc(100vh - 88px); }
+  @media (max-width: 900px) { .listpanel { position: static; max-height: 60vh; } }
+  .listhead { padding: 12px; border-bottom: 1px solid var(--line); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .filters { display: flex; gap: 2px; background: var(--panel-2); padding: 3px; border-radius: 9px; border: 1px solid var(--line); }
+  .filters button { border: 0; background: none; font: inherit; font-size: 13px; font-weight: 600; color: var(--muted); padding: 4px 10px; border-radius: 7px; cursor: pointer; }
+  .filters button[aria-pressed="true"] { background: var(--panel); color: var(--text); box-shadow: var(--shadow); }
+  .list { overflow: auto; }
+  .item { display: block; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 11px 14px; cursor: pointer; font: inherit; color: inherit; position: relative; }
+  .item:hover { background: var(--panel-2); }
+  .item.sel { background: color-mix(in srgb, var(--accent) 9%, var(--panel)); }
+  .item.sel::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+  .item .who { display: flex; justify-content: space-between; gap: 8px; font-weight: 650; }
+  .item .subj { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 5px; }
+  .item .tags { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+  .st { font-size: 12px; font-weight: 650; display: inline-flex; gap: 5px; align-items: center; color: var(--muted); }
+  .st::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .st.new { color: var(--info); } .st.drafted { color: var(--warn); } .st.sent, .st.archived { color: var(--ok); } .st.escalated { color: var(--accent); } .st.failed { color: var(--err); }
+  .mail { white-space: pre-wrap; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  .ev { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; background: var(--bg); }
+  .flag { padding: 9px 12px; border-radius: 9px; margin-bottom: 6px; }
   .flag.block { background: var(--err-bg); color: var(--err); } .flag.warn { background: var(--warn-bg); color: var(--warn); } .flag.info { background: var(--info-bg); color: var(--info); }
-  input, textarea, select { width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; }
-  textarea { min-height: 220px; resize: vertical; }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
-  .row > input { flex: 1; min-width: 160px; }
-  .btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 9px 16px; font: inherit; font-weight: 600; cursor: pointer; }
-  .btn.secondary { background: var(--bg); color: var(--text); border: 1px solid var(--line); }
-  .btn:disabled { opacity: .5; cursor: default; }
-  .empty { color: var(--muted); padding: 28px; text-align: center; }
-  .banner { padding: 10px 14px; border-radius: 8px; margin: 12px auto 0; max-width: 1248px; }
-  .banner.err { background: var(--err-bg); color: var(--err); } .banner.info { background: var(--info-bg); color: var(--info); }
-  table { width: 100%; border-collapse: collapse; } td, th { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; font-size: 14px; }
-  .meter { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; min-width: 120px; }
+  #body { min-height: 240px; }
+  details summary { cursor: pointer; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+  .try { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+  .try .chip { width: 100%; }
+  .meter { height: 8px; background: var(--panel-2); border-radius: 4px; overflow: hidden; min-width: 120px; }
   .meter > div { height: 100%; background: var(--accent); }
-  [hidden] { display: none !important; }
+  .actions { position: sticky; bottom: 0; background: var(--panel); padding-top: 4px; }
 </style>
 </head>
-<body>
-<header><div class="bar">
-  <div class="brand">Inbox Agent</div>
-  <nav>
-    <button data-tab="inbox" aria-selected="true">Inbox</button>
-    <button data-tab="autonomy" aria-selected="false">Autonomy</button>
-    <button data-tab="learning" aria-selected="false">Learning</button>
+<body data-app="inbox">
+<!-- suite:bar -->
+<header class="s-bar"><div class="s-bar-in">
+  <a class="s-brand" data-suite-home><span class="s-mark" aria-hidden="true"></span><span>AI Tech Consultant</span></a>
+  <nav class="s-apps" aria-label="Services">
+    <a class="s-app" data-suite-link="kb"><span class="s-dot"></span>Knowledge Brain <span class="s-task">Task 1</span></a>
+    <a class="s-app" data-suite-link="inbox"><span class="s-dot"></span>Inbox Agent <span class="s-task">Task 2</span></a>
+    <a class="s-app" data-suite-link="scope"><span class="s-dot"></span>Scope Builder <span class="s-task">Task 3</span></a>
   </nav>
-  <span class="meta" id="mode"></span>
+  <div class="s-right" id="s-right"></div>
 </div></header>
-<div id="banner" class="banner err" hidden></div>
+<!-- /suite:bar -->
 
-<section id="tab-inbox" class="layout">
-  <div class="panel list" id="list"></div>
-  <div class="panel detail" id="detail"><div class="empty">Pick an email on the left.</div></div>
-</section>
-
-<section id="tab-autonomy" class="layout" style="grid-template-columns:1fr" hidden>
-  <div class="panel detail">
-    <h2>Which emails can go out on their own</h2>
-    <p class="meta">A category earns auto-send after <b id="threshold">20</b> drafts in a row are sent without any change. One edit, rejection or failed spot check sends it back to zero. Refunds, complaints, quotes, project work, follow-ups and account access always need a person.</p>
-    <table><thead><tr><th>Category</th><th>Status</th><th>Clean approvals in a row</th><th></th></tr></thead><tbody id="auto-rows"></tbody></table>
-    <h3>Spot checks waiting</h3><div id="spots"></div>
-    <h3>Recent changes</h3><div id="events"></div>
+<div class="app-head">
+  <div>
+    <h1 class="app-title">Inbox Agent</h1>
+    <p class="app-sub">Sorts customer emails and drafts replies from the Knowledge Brain. A person approves every draft until a kind of email earns trust.</p>
   </div>
-</section>
-
-<section id="tab-learning" class="layout" style="grid-template-columns:1fr" hidden>
-  <div class="panel detail">
-    <h2>What the agent has learned from your edits</h2>
-    <p class="meta">When you edit drafts, the agent can propose lessons for that kind of email. A lesson only goes live after a check: past emails are re-drafted with and without it, and both are compared with what you actually sent. Every change can be rolled back in one click, and changing lessons resets that category's auto-send counter.</p>
-    <div id="learning"></div>
-    <h3>History</h3><div id="lesson-events"></div>
+  <div class="subtabs" role="tablist">
+    <button role="tab" data-tab="inbox" aria-selected="true">Inbox</button>
+    <button role="tab" data-tab="autonomy" aria-selected="false">Autonomy</button>
+    <button role="tab" data-tab="learning" aria-selected="false">Learning</button>
   </div>
-</section>
+</div>
 
+<main class="wrap">
+  <div id="banner" class="banner err" hidden></div>
+
+  <section id="tab-inbox" class="layout">
+    <div class="panel flush listpanel">
+      <div class="listhead">
+        <div class="filters" role="group" aria-label="Filter">
+          <button data-f="todo" aria-pressed="true">To do</button><button data-f="done" aria-pressed="false">Done</button><button data-f="all" aria-pressed="false">All</button>
+        </div>
+        <span class="meta" id="list-count"></span>
+      </div>
+      <div class="list" id="list"></div>
+    </div>
+    <div class="panel" id="detail"></div>
+  </section>
+
+  <section id="tab-autonomy" hidden>
+    <div class="panel">
+      <h2>Which emails can go out on their own</h2>
+      <p class="sub">A kind of email earns auto-send after <b id="threshold">20</b> drafts in a row are sent without any change. One edit, rejection or failed spot check resets it to zero. Refunds, complaints, quotes, project work, follow-ups and account access always need a person.</p>
+      <div class="table-wrap"><table><thead><tr><th>Kind of email</th><th>Status</th><th>Clean approvals in a row</th><th></th></tr></thead><tbody id="auto-rows"></tbody></table></div>
+      <h3 class="label">Spot checks waiting</h3><div id="spots"></div>
+      <h3 class="label">Recent changes</h3><div id="events"></div>
+    </div>
+  </section>
+
+  <section id="tab-learning" hidden>
+    <div class="panel">
+      <h2>What the agent has learned from your edits</h2>
+      <p class="sub">After a few edits to the same kind of email, the agent can propose lessons. A lesson goes live only after a check: past emails are re-drafted with and without it and compared with what you actually sent. Every change can be rolled back in one click.</p>
+      <div id="learning"></div>
+      <h3 class="label">History</h3><div id="lesson-events"></div>
+    </div>
+  </section>
+</main>
+
+<!-- suite:js -->
+<script>
+// Shared behaviour for the suite bar. Edit here, then run  python scripts/sync_suite.py
+// Links between the three services work both locally (ports 8001-8003) and deployed
+// (kb. / inbox. / scope. subdomains of one host, with the hub page on the bare host).
+(function () {
+  const ports = { kb: 8001, inbox: 8002, scope: 8003 };
+  const { protocol, hostname } = location;
+  const sub = hostname.match(/^(kb|inbox|scope)\.(.+)$/);
+  const base = sub ? sub[2] : hostname;
+  const deployed = !location.port && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(hostname);
+  const urlFor = (app) => deployed ? `${protocol}//${app}.${base}/` : `${protocol}//${hostname}:${ports[app]}/`;
+  const current = document.body.dataset.app;
+  document.querySelectorAll("[data-suite-link]").forEach((a) => {
+    a.href = urlFor(a.dataset.suiteLink);
+    if (a.dataset.suiteLink === current) a.setAttribute("aria-current", "page");
+  });
+  const home = document.querySelector("[data-suite-home]");
+  if (home) home.href = deployed ? `${protocol}//${base}/` : urlFor("kb");
+  window.suite = {
+    toast(msg, ms = 2600) {
+      const t = Object.assign(document.createElement("div"), { className: "toast", textContent: msg, role: "status" });
+      document.body.append(t); setTimeout(() => t.remove(), ms);
+    },
+    lightbox(src, alt) {
+      const box = Object.assign(document.createElement("div"), { className: "lightbox", title: "Click or press Esc to close" });
+      const img = Object.assign(document.createElement("img"), { src, alt: alt || "" });
+      box.append(img); document.body.append(box);
+      const close = () => { box.remove(); document.removeEventListener("keydown", onKey); };
+      const onKey = (e) => { if (e.key === "Escape") close(); };
+      box.onclick = close; document.addEventListener("keydown", onKey);
+    },
+    // Small, safe Markdown subset for model answers: paragraphs, numbered and bullet lists, **bold**.
+    md(text) {
+      const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+      const out = []; let list = null;
+      const flush = () => { if (list) { out.push(`<${list.tag}>${list.items.join("")}</${list.tag}>`); list = null; } };
+      for (const raw of String(text ?? "").split("\n")) {
+        const line = raw.trimEnd();
+        const num = line.match(/^\s*\d+[.)]\s+(.*)$/), bul = line.match(/^\s*[-*•]\s+(.*)$/);
+        if (num || bul) {
+          const tag = num ? "ol" : "ul";
+          if (!list || list.tag !== tag) { flush(); list = { tag, items: [] }; }
+          list.items.push(`<li>${inline((num || bul)[1])}</li>`);
+        } else { flush(); if (line.trim()) out.push(`<p>${inline(line)}</p>`); }
+      }
+      flush();
+      return `<div class="md">${out.join("")}</div>`;
+    },
+  };
+})();
+</script>
+<!-- /suite:js -->
 <script>
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-let selected = null;
-let draftingOn = false;
+const CAT = { how_to: "How-to", troubleshooting: "Something's broken", billing_question: "Billing", refund_cancellation: "Refund / cancel", complaint: "Complaint", project_request: "Project request", quote_request: "Quote request", follow_up: "Follow-up", account_access: "Account access", feedback: "Feedback", not_actionable: "No reply needed" };
+const STATUS = { new: "New", drafted: "Draft ready", sent: "Sent", archived: "Archived", escalated: "Escalated", failed: "Failed" };
+const URG = { critical: "err", high: "warn", low: "" };
+const TRY = [
+  ["E008", "Misspelled how-to question", "Answered from the help center, with sources"],
+  ["E011", "Admin login redirect loop", "The fix exists only in a screenshot"],
+  ["E009", "URGENT: site down", "Critical: always goes to a person"],
+  ["E019", "Refund request with a hidden instruction", "Prompt injection is ignored; refunds need a person"],
+  ["E035", "Locked out, password pasted in", "The password is removed before drafting"],
+  ["E024", "Complaint in Hindi", "Classified and answered in Hindi"],
+];
+let selected = null, draftingOn = false, emails = [], filter = "todo";
 
-function reviewer() { try { return localStorage.getItem("reviewer") || ""; } catch { return ""; } }
+function reviewer() { try { return localStorage.getItem("reviewer") || "Reviewer"; } catch { return "Reviewer"; } }
 function saveReviewer(v) { try { localStorage.setItem("reviewer", v); } catch {} }
 
 async function api(path, options = {}) {
   let res;
-  // Only label JSON when there is a body: Fastify rejects an empty body marked as JSON.
   const headers = options.body ? { "content-type": "application/json" } : {};
   try { res = await fetch(path, { ...options, headers }); }
-  catch { banner("Inbox Agent is not reachable."); throw new Error("offline"); }
+  catch { banner("The Inbox Agent isn't reachable."); throw new Error("offline"); }
   const body = await res.json().catch(() => ({}));
   if (!res.ok) { const e = new Error(body.error || `Error ${res.status}`); e.status = res.status; throw e; }
   $("#banner").hidden = true;
@@ -122,29 +308,55 @@ async function api(path, options = {}) {
 }
 function banner(msg, kind = "err") { const b = $("#banner"); b.className = `banner ${kind}`; b.textContent = msg; b.hidden = false; }
 
-document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => {
-  document.querySelectorAll("nav button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
-  for (const t of ["inbox", "autonomy", "learning"]) $(`#tab-${t}`).hidden = b.dataset.tab !== t;
-  if (b.dataset.tab === "autonomy") loadAutonomy();
-  if (b.dataset.tab === "learning") loadLearning();
-}));
+function showTab(tab) {
+  document.querySelectorAll(".subtabs button").forEach((x) => x.setAttribute("aria-selected", String(x.dataset.tab === tab)));
+  for (const t of ["inbox", "autonomy", "learning"]) $(`#tab-${t}`).hidden = tab !== t;
+  if (tab === "autonomy") loadAutonomy();
+  if (tab === "learning") loadLearning();
+}
+document.querySelectorAll(".subtabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+document.querySelectorAll(".filters button").forEach((b) => b.onclick = () => {
+  filter = b.dataset.f; document.querySelectorAll(".filters button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); renderList();
+});
 
+const isDone = (e) => ["sent", "archived", "escalated"].includes(e.status);
 async function loadList() {
-  const emails = await api("/api/emails").catch(() => null);
-  if (!emails) return;
+  const r = await api("/api/emails").catch(() => null);
+  if (!r) return;
+  emails = r; renderList();
+  if (!selected) renderWelcome();
+}
+function renderList() {
   const list = $("#list");
   if (!emails.length) {
     list.innerHTML = `<div class="empty">The inbox is empty.<br><br><button class="btn" id="seed">Load the 40 sample emails</button></div>`;
     $("#seed").onclick = async () => { await api("/api/seed/dev", { method: "POST" }); loadList(); };
-    return;
+    $("#list-count").textContent = ""; return;
   }
-  list.innerHTML = emails.map((e) => `
-    <div class="item ${e.id === selected ? "sel" : ""}" data-id="${esc(e.id)}">
-      <div class="who"><span>${esc(e.from_name)}</span><span class="badge b-${esc(e.status)}">${esc(e.status)}</span></div>
+  const shown = emails.filter((e) => filter === "all" || (filter === "done" ? isDone(e) : !isDone(e)));
+  $("#list-count").textContent = `${shown.length} of ${emails.length}`;
+  list.innerHTML = shown.length ? shown.map((e) => `
+    <button class="item ${e.id === selected ? "sel" : ""}" data-id="${esc(e.id)}">
+      <div class="who"><span>${esc(e.from_name)}</span><span class="st ${esc(e.status)}">${esc(STATUS[e.status] || e.status)}</span></div>
       <div class="subj">${esc(e.subject)}</div>
-      <div class="meta">${e.category ? `<span class="badge">${esc(e.category)}</span>` : ""}${e.urgency && e.urgency !== "normal" ? `<span class="badge b-${esc(e.urgency)}">${esc(e.urgency)}</span>` : ""}${esc(e.id)}</div>
-    </div>`).join("");
+      <div class="tags">${e.category ? `<span class="badge">${esc(CAT[e.category] || e.category)}</span>` : ""}${e.urgency && URG[e.urgency] !== undefined && e.urgency !== "low" ? `<span class="badge ${URG[e.urgency]}">${esc(e.urgency)}</span>` : ""}<span class="meta">${esc(e.id)}</span></div>
+    </button>`).join("") : `<div class="empty">Nothing here.</div>`;
   list.querySelectorAll(".item").forEach((el) => el.onclick = () => openEmail(el.dataset.id));
+}
+
+function renderWelcome() {
+  const known = new Set(emails.map((e) => e.id));
+  $("#detail").innerHTML = `
+    <h2>Start here</h2>
+    <p class="sub">Pick an email, click <b>Draft a reply</b>, then review: send it, edit it, or escalate. Every action is recorded and feeds the learning and autonomy tabs.</p>
+    <ol class="steps" style="margin-bottom:18px">
+      <li><div><b>Draft</b><span class="meta"> sorts the email, asks the Knowledge Brain, and writes a reply (about 10–15 s).</span></div></li>
+      <li><div><b>Check</b><span class="meta"> the sources it used and any warnings: code blocks promises of refunds, prices or deadlines.</span></div></li>
+      <li><div><b>Decide</b><span class="meta"> Send as is, edit and send (the edit becomes a lesson), or escalate.</span></div></li>
+    </ol>
+    <h3 class="label">Good emails to try</h3>
+    <div class="try">${TRY.filter(([id]) => known.has(id)).map(([id, title, why]) => `<button class="chip" data-open="${id}"><span><b>${id}</b> · ${esc(title)}</span><small>${esc(why)}</small></button>`).join("")}</div>`;
+  $("#detail").querySelectorAll("[data-open]").forEach((b) => b.onclick = () => openEmail(b.dataset.open));
 }
 
 async function openEmail(id) {
@@ -152,64 +364,70 @@ async function openEmail(id) {
   document.querySelectorAll(".item").forEach((el) => el.classList.toggle("sel", el.dataset.id === id));
   const { email, draft, reviews } = await api(`/api/emails/${encodeURIComponent(id)}`);
   const d = $("#detail");
-  const thread = email.thread.length ? `<details><summary>${email.thread.length} earlier message(s)</summary>${email.thread.map((t) => `<div class="mail" style="margin-top:6px"><span class="meta">${esc(t.from)} · ${esc(t.date)}</span>\n${esc(t.body)}</div>`).join("")}</details>` : "";
-  let html = `<h2>${esc(email.subject)}</h2><div class="meta">${esc(email.from_name)} &lt;${esc(email.from_email)}&gt; · ${esc(email.received_at)}</div>
-    <h3>Customer email</h3>${thread}<div class="mail">${esc(email.body)}</div>`;
+  const thread = email.thread.length ? `<details><summary>${email.thread.length} earlier message(s) in this thread</summary>${email.thread.map((t) => `<div class="mail" style="margin-bottom:6px"><span class="meta">${esc(t.from)} · ${esc(t.date)}</span>\n${esc(t.body)}</div>`).join("")}</details>` : "";
+  let html = `<div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">${esc(email.subject)}</h2><span class="st ${esc(email.status)}">${esc(STATUS[email.status] || email.status)}</span></div>
+    <div class="meta">${esc(email.from_name)} &lt;${esc(email.from_email)}&gt; · ${esc(email.received_at)} · ${esc(email.id)}</div>
+    <h3 class="label">Customer email</h3>${thread}<div class="mail">${esc(email.body)}</div>`;
   if (!draft) {
-    html += `<div class="row"><button class="btn" id="process" ${draftingOn ? "" : "disabled"}>Draft a reply</button>${draftingOn ? "" : `<span class="meta">Drafting is off until the Claude API key is set.</span>`}</div>`;
+    html += `<div class="row"><button class="btn" id="process" ${draftingOn ? "" : "disabled"}>Draft a reply</button><span class="meta" id="pmeta">${draftingOn ? "Usually 10–15 seconds." : "Drafting is off until the Claude API key is set."}</span></div>`;
     d.innerHTML = html;
     if (draftingOn) $("#process").onclick = () => runProcess(id);
     return;
   }
   const c = draft.classification;
-  html += `<h3>Triage</h3><div><span class="badge">${esc(c.category)}</span>${c.secondary.map((s) => `<span class="badge">+${esc(s)}</span>`).join("")}<span class="badge b-${esc(c.urgency)}">${esc(c.urgency)}</span><span class="badge">${esc(c.sentiment)}</span><span class="badge">${esc(c.language)}</span></div><p class="meta">${esc(c.summary)}</p>`;
+  html += `<h3 class="label">Triage</h3><div class="row" style="margin-top:0"><span class="badge accent">${esc(CAT[c.category] || c.category)}</span>${c.secondary.map((s) => `<span class="badge">+ ${esc(CAT[s] || s)}</span>`).join("")}<span class="badge ${URG[c.urgency] ?? ""}">${esc(c.urgency)}</span><span class="badge">${esc(c.sentiment)}</span><span class="badge">${esc(c.language)}</span></div><p class="meta" style="margin:8px 0 0">${esc(c.summary)}</p>`;
   if (draft.evidence.length) {
-    html += `<h3>What the Knowledge Brain said</h3>` + draft.evidence.map((e) => `<div class="ev"><b>[${e.number}] ${esc(e.question)}</b> <span class="badge ${e.status === "answered" ? "b-sent" : "b-drafted"}">${esc(e.status)}</span><div style="white-space:pre-wrap">${esc(e.answer)}</div><div class="meta">${e.sources.map((s) => s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>` : esc(s.title)).join(" · ")}</div></div>`).join("");
+    html += `<h3 class="label">What the Knowledge Brain said</h3>` + draft.evidence.map((e) => `<details class="ev" ${draft.evidence.length === 1 ? "open" : ""}><summary><b style="color:var(--text)">[${e.number}] ${esc(e.question)}</b> <span class="badge ${e.status === "answered" ? "ok" : "warn"}">${esc(e.status === "insufficient_evidence" ? "not covered" : e.status)}</span></summary>${suite.md(e.answer)}<div class="meta">${e.sources.map((s) => s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>` : esc(s.title)).join(" · ")}</div></details>`).join("");
   }
   const flags = [
-    ...draft.violations.map((v) => `<div class="flag ${v.severity}">${v.severity === "block" ? "Blocked" : "Check"}: ${esc(v.message)}</div>`),
+    ...draft.violations.map((v) => `<div class="flag ${v.severity}">${v.severity === "block" ? "Blocked from auto-send" : "Check"}: ${esc(v.message)}</div>`),
     draft.note_for_reviewer ? `<div class="flag info">Note from the agent: ${esc(draft.note_for_reviewer)}</div>` : "",
-    draft.secrets_found ? `<div class="flag warn">Secrets (card or password) were removed before drafting. Don't paste them back.</div>` : "",
+    draft.secrets_found ? `<div class="flag warn">A card number or password was removed before drafting. Don't paste it back.</div>` : "",
   ].join("");
-  if (flags) html += `<h3>Before you send</h3>${flags}`;
+  if (flags) html += `<h3 class="label">Before you send</h3>${flags}`;
   const done = email.status !== "drafted";
-  html += `<h3>${done ? "Reply" : "Draft reply"}</h3>
-    <input id="subj" value="${esc(draft.subject)}" ${done ? "disabled" : ""}>
-    <textarea id="body" style="margin-top:8px" ${done ? "disabled" : ""}>${esc(draft.body)}</textarea>
-    <div class="meta">${esc(Object.values(draft.models).join(" · "))} · ${(draft.latency_ms / 1000).toFixed(1)}s · $${draft.cost_usd.toFixed(4)}${draft.auto_send_blocker ? ` · not auto-sent: ${esc(draft.auto_send_blocker)}` : ""}</div>`;
+  html += `<h3 class="label">${done ? "Reply" : "Draft reply"}</h3>
+    <input id="subj" value="${esc(draft.subject)}" ${done ? "disabled" : ""} aria-label="Subject">
+    <textarea id="body" style="margin-top:8px" ${done ? "disabled" : ""} aria-label="Reply">${esc(draft.body)}</textarea>
+    <div class="meta">${esc(Object.values(draft.models).join(" · "))} · ${(draft.latency_ms / 1000).toFixed(1)} s · $${draft.cost_usd.toFixed(4)}${draft.auto_send_blocker ? ` · not auto-sent: ${esc(draft.auto_send_blocker)}` : ""}</div>`;
   if (!done) {
-    html += `<div class="row"><input id="who" placeholder="Your name" value="${esc(reviewer())}"><input id="why" placeholder="Reason (needed to reject or escalate)"></div>
+    html += `<div class="actions"><div class="row"><input id="who" placeholder="Your name" value="${esc(reviewer())}" style="max-width:180px"><input id="why" placeholder="Reason (needed to reject or escalate)" style="flex:1;min-width:200px"></div>
       <div class="row">
         <button class="btn" id="send">Send</button>
-        <button class="btn secondary" id="reject">Send as my own reply</button>
+        <button class="btn secondary" id="reject" title="The draft was wrong: send your text instead and record why">Send my own reply</button>
         <button class="btn secondary" id="escalate">Escalate</button>
-        <button class="btn secondary" id="archive">Archive</button>
+        <button class="btn ghost" id="archive">Archive</button>
         <span class="meta" id="note"></span>
-      </div>`;
+      </div></div>`;
   }
-  if (reviews.length) html += `<h3>History</h3>` + reviews.map((r) => `<div class="meta">${esc(r.created_at)} · ${esc(r.outcome)} by ${esc(r.reviewer || "?")}${r.reason ? ` · ${esc(r.reason)}` : ""}${r.spot_check ? " · picked for spot check" : ""}</div>`).join("");
+  if (reviews.length) html += `<h3 class="label">History</h3>` + reviews.map((r) => `<div class="meta">${esc(r.created_at)} · ${esc(r.outcome)} by ${esc(r.reviewer || "?")}${r.reason ? ` · ${esc(r.reason)}` : ""}${r.spot_check ? " · picked for spot check" : ""}</div>`).join("");
   d.innerHTML = html;
   if (done) return;
   const body = $("#body"), original = draft.body;
   body.oninput = () => { $("#send").textContent = body.value.trim() === original.trim() ? "Send" : "Send edited"; };
-  const act = async (payload) => {
+  const act = async (payload, done) => {
     const who = $("#who").value.trim();
     if (!who) { $("#note").textContent = "Add your name first."; return; }
     saveReviewer(who);
-    try { await api(`/api/emails/${encodeURIComponent(id)}/review`, { method: "POST", body: JSON.stringify({ reviewer: who, ...payload }) }); await loadList(); openEmail(id); }
+    try { await api(`/api/emails/${encodeURIComponent(id)}/review`, { method: "POST", body: JSON.stringify({ reviewer: who, ...payload }) }); suite.toast(done); await loadList(); openEmail(id); }
     catch (e) { $("#note").textContent = e.message; }
   };
   const why = () => $("#why").value.trim();
-  $("#send").onclick = () => act({ action: "send", subject: $("#subj").value, body: body.value, ...(why() ? { reason: why() } : {}) });
-  $("#reject").onclick = () => why() ? act({ action: "reject", subject: $("#subj").value, body: body.value, reason: why() }) : ($("#note").textContent = "Say why the draft was wrong.");
-  $("#escalate").onclick = () => why() ? act({ action: "escalate", reason: why() }) : ($("#note").textContent = "Say why it needs escalating.");
-  $("#archive").onclick = () => act({ action: "archive", ...(why() ? { reason: why() } : {}) });
+  const need = (what) => { $("#note").textContent = what; $("#why").focus(); };
+  $("#send").onclick = () => act({ action: "send", subject: $("#subj").value, body: body.value, ...(why() ? { reason: why() } : {}) }, body.value.trim() === original.trim() ? "Sent unchanged: counts towards autonomy" : "Sent with your edits: recorded as a correction");
+  $("#reject").onclick = () => why() ? act({ action: "reject", subject: $("#subj").value, body: body.value, reason: why() }, "Sent your reply; the draft is marked wrong") : need("Say why the draft was wrong.");
+  $("#escalate").onclick = () => why() ? act({ action: "escalate", reason: why() }, "Escalated") : need("Say why it needs escalating.");
+  $("#archive").onclick = () => act({ action: "archive", ...(why() ? { reason: why() } : {}) }, "Archived");
 }
 
 async function runProcess(id) {
-  $("#process").disabled = true; $("#process").textContent = "Drafting…";
-  try { const r = await api(`/api/emails/${encodeURIComponent(id)}/process`, { method: "POST" }); if (r.autoSent) banner("Sent automatically: this category has earned autonomy.", "info"); }
+  const btn = $("#process"); btn.disabled = true;
+  const started = Date.now();
+  const tick = () => { const s = Math.round((Date.now() - started) / 1000); btn.innerHTML = `<span class="spinner" style="border-top-color:currentColor"></span>Drafting… ${s} s`; $("#pmeta").textContent = s < 4 ? "Sorting the email…" : s < 9 ? "Asking the Knowledge Brain…" : "Writing and checking the reply…"; };
+  tick(); const timer = setInterval(tick, 1000);
+  try { const r = await api(`/api/emails/${encodeURIComponent(id)}/process`, { method: "POST" }); if (r.autoSent) suite.toast("Sent automatically: this kind of email has earned autonomy"); }
   catch (e) { banner(e.message); }
+  clearInterval(timer);
   await loadList(); openEmail(id);
 }
 
@@ -220,23 +438,23 @@ async function loadAutonomy() {
   $("#auto-rows").innerHTML = a.categories.map((c) => {
     const never = !c.eligible;
     const pct = Math.min(100, (c.streak / a.threshold) * 100);
-    return `<tr><td>${esc(c.kind)}</td><td><span class="badge b-${c.status}">${never ? "always human" : esc(c.status)}</span></td>
-      <td>${never ? `<span class="meta">n/a</span>` : `<div class="meter"><div style="width:${pct}%"></div></div><span class="meta">${c.streak}/${a.threshold}</span>`}</td>
-      <td>${c.status === "autonomous" ? `<button class="btn secondary" data-revoke="${esc(c.kind)}">Revoke</button>` : ""}</td></tr>`;
+    return `<tr><td>${esc(CAT[c.kind] || c.kind)}</td><td><span class="badge ${never ? "" : c.status === "autonomous" ? "ok" : "info"}">${never ? "always a person" : esc(c.status)}</span></td>
+      <td>${never ? `<span class="meta">n/a</span>` : `<div class="meter"><div style="width:${pct}%"></div></div><span class="meta">${c.streak} / ${a.threshold}</span>`}</td>
+      <td>${c.status === "autonomous" ? `<button class="btn secondary small" data-revoke="${esc(c.kind)}">Revoke</button>` : ""}</td></tr>`;
   }).join("");
   document.querySelectorAll("[data-revoke]").forEach((b) => b.onclick = async () => {
-    const reason = prompt("Why revoke auto-send for this category?");
+    const reason = prompt("Why revoke auto-send for this kind of email?");
     if (reason) { await api(`/api/autonomy/${b.dataset.revoke}/revoke`, { method: "POST", body: JSON.stringify({ reason }) }); loadAutonomy(); }
   });
-  $("#spots").innerHTML = a.pending_spot_checks.length ? a.pending_spot_checks.map((s) => `<div class="row"><span>${esc(s.email_id)} · ${esc(s.category)} · auto-sent ${esc(s.created_at)}</span><button class="btn secondary" data-open="${esc(s.email_id)}">Read</button><button class="btn secondary" data-spot="${esc(s.email_id)}" data-ok="1">Looks right</button><button class="btn secondary" data-spot="${esc(s.email_id)}" data-ok="0">Wrong: revoke</button></div>`).join("") : `<div class="meta">None.</div>`;
+  $("#spots").innerHTML = a.pending_spot_checks.length ? a.pending_spot_checks.map((s) => `<div class="row"><span>${esc(s.email_id)} · ${esc(CAT[s.category] || s.category)} · auto-sent ${esc(s.created_at)}</span><button class="btn secondary small" data-open="${esc(s.email_id)}">Read</button><button class="btn secondary small" data-spot="${esc(s.email_id)}" data-ok="1">Looks right</button><button class="btn secondary small" data-spot="${esc(s.email_id)}" data-ok="0">Wrong: revoke</button></div>`).join("") : `<div class="meta">None.</div>`;
   document.querySelectorAll("[data-spot]").forEach((b) => b.onclick = async () => {
     const ok = b.dataset.ok === "1"; const reason = ok ? "" : prompt("What was wrong?") || "";
-    const who = reviewer() || prompt("Your name?") || "reviewer"; saveReviewer(who);
+    const who = reviewer(); saveReviewer(who);
     await api(`/api/emails/${encodeURIComponent(b.dataset.spot)}/review`, { method: "POST", body: JSON.stringify({ action: "spot_check", ok, reviewer: who, ...(reason ? { reason } : {}) }) });
     loadAutonomy();
   });
-  document.querySelectorAll("[data-open]").forEach((b) => b.onclick = () => { document.querySelector('nav button[data-tab="inbox"]').click(); openEmail(b.dataset.open); });
-  $("#events").innerHTML = a.events.length ? a.events.map((e) => `<div class="meta">${esc(e.created_at)} · ${esc(e.kind)} · ${esc(e.event)} · ${esc(e.detail)}${e.email_id ? ` (${esc(e.email_id)})` : ""}</div>`).join("") : `<div class="meta">Nothing yet.</div>`;
+  document.querySelectorAll("#spots [data-open]").forEach((b) => b.onclick = () => { showTab("inbox"); openEmail(b.dataset.open); });
+  $("#events").innerHTML = a.events.length ? a.events.map((e) => `<div class="meta">${esc(e.created_at)} · ${esc(CAT[e.kind] || e.kind)} · ${esc(e.event)} · ${esc(e.detail)}${e.email_id ? ` (${esc(e.email_id)})` : ""}</div>`).join("") : `<div class="meta">Nothing yet.</div>`;
 }
 
 const pct = (x) => `${Math.round(x * 100)}%`;
@@ -249,19 +467,19 @@ async function loadLearning() {
     const candidate = c.versions.find((v) => v.status === "candidate");
     const ev = candidate?.evaluation;
     return `<div class="ev" data-cat="${esc(c.category)}">
-      <div class="row" style="margin:0;justify-content:space-between"><b>${esc(c.category)}</b><span class="meta">lessons v${c.active.version} active · ${c.corrections_since_active} correction(s) since</span></div>
+      <div class="row" style="margin:0;justify-content:space-between"><b>${esc(CAT[c.category] || c.category)}</b><span class="meta">lessons v${c.active.version} live · ${c.corrections_since_active} correction(s) since</span></div>
       ${c.active.lessons.length ? `<ul>${c.active.lessons.map((l) => `<li>${esc(l.text)}</li>`).join("")}</ul>` : `<div class="meta">No lessons yet: drafts follow the base prompt.</div>`}
-      ${c.metrics.length ? `<table style="margin-top:8px"><thead><tr><th>Lessons</th><th>Drafts reviewed</th><th>Sent without changes</th><th>Closeness to what was sent</th></tr></thead><tbody>${c.metrics.map((m) => `<tr><td>v${m.version}</td><td>${m.reviewed}</td><td>${pct(m.unchanged_rate)}</td><td>${pct(m.mean_similarity)}</td></tr>`).join("")}</tbody></table>` : ""}
-      ${candidate ? `<h3>Proposed lessons v${candidate.version}</h3><ul>${candidate.lessons.map((l) => `<li>${esc(l.text)} <span class="meta">(from ${l.review_ids.length} correction(s))</span></li>`).join("")}</ul>
+      ${c.metrics.length ? `<div class="table-wrap"><table style="margin-top:8px"><thead><tr><th>Lessons</th><th>Drafts reviewed</th><th>Sent without changes</th><th>Closeness to what was sent</th></tr></thead><tbody>${c.metrics.map((m) => `<tr><td>v${m.version}</td><td>${m.reviewed}</td><td>${pct(m.unchanged_rate)}</td><td>${pct(m.mean_similarity)}</td></tr>`).join("")}</tbody></table></div>` : ""}
+      ${candidate ? `<h3 class="label">Proposed lessons v${candidate.version}</h3><ul>${candidate.lessons.map((l) => `<li>${esc(l.text)} <span class="meta">(from ${l.review_ids.length} correction(s))</span></li>`).join("")}</ul>
         ${ev ? `<div class="flag ${ev.recommended ? "info" : "warn"}">${esc(ev.verdict)}<br><span class="meta">Unseen emails: ${pct(ev.unseen_before)} → ${pct(ev.unseen_after)} close to what was sent (${ev.unseen_n} emails). All: ${pct(ev.mean_before)} → ${pct(ev.mean_after)}. Policy violations: ${ev.violations_before} → ${ev.violations_after}.</span></div>` : `<div class="meta">Not checked yet.</div>`}
-        <div class="row"><button class="btn secondary" data-act="evaluate" data-v="${candidate.version}">${ev ? "Check again" : "Run the check"}</button>${ev ? `<button class="btn" data-act="promote" data-v="${candidate.version}">Make live</button>` : ""}<button class="btn secondary" data-act="reject" data-v="${candidate.version}">Reject</button></div>`
-      : `<div class="row">${c.corrections_since_active >= 3 ? `<button class="btn secondary" data-act="propose">Propose lessons from my edits</button>` : `<span class="meta">Needs 3 corrections to propose lessons.</span>`}${c.active.version ? `<button class="btn secondary" data-act="rollback">Roll back to the previous lessons</button>` : ""}</div>`}
+        <div class="row"><button class="btn secondary" data-act="evaluate" data-v="${candidate.version}">${ev ? "Check again" : "Run the check"}</button>${ev ? `<button class="btn" data-act="promote" data-v="${candidate.version}">Make live</button>` : ""}<button class="btn ghost" data-act="reject" data-v="${candidate.version}">Reject</button></div>`
+      : `<div class="row">${c.corrections_since_active >= 3 ? `<button class="btn secondary" data-act="propose">Propose lessons from my edits</button>` : `<span class="meta">Needs 3 corrections to propose lessons.</span>`}${c.active.version ? `<button class="btn ghost" data-act="rollback">Roll back to the previous lessons</button>` : ""}</div>`}
       <div class="meta" data-note></div>
     </div>`;
-  }).join("") : `<div class="meta">Nothing yet. Lessons appear after you've edited a few drafts of the same kind.</div>`;
+  }).join("") : `<div class="empty">Nothing yet. Edit a few drafts of the same kind before sending them, and lessons can be proposed here.</div>`;
   document.querySelectorAll("#learning [data-act]").forEach((b) => b.onclick = async () => {
     const card = b.closest("[data-cat]"); const cat = card.dataset.cat; const note = $("[data-note]", card);
-    const who = reviewer() || prompt("Your name?") || ""; if (!who) return; saveReviewer(who);
+    const who = reviewer(); saveReviewer(who);
     const act = b.dataset.act; const v = b.dataset.v;
     let body = { actor: who };
     if (act === "reject" || act === "rollback") { const r = prompt(act === "reject" ? "Why reject these lessons?" : "Why roll back?"); if (!r) return; body.note = r; }
@@ -274,13 +492,13 @@ async function loadLearning() {
     try { await api(path, { method: "POST", body: JSON.stringify(body) }); loadLearning(); }
     catch (e) { note.textContent = e.message; b.disabled = false; }
   });
-  $("#lesson-events").innerHTML = data.events.length ? data.events.map((e) => `<div class="meta">${esc(e.created_at)} · ${esc(e.category)} v${e.version} · ${esc(e.event)} by ${esc(e.actor)}${e.detail ? ` · ${esc(e.detail)}` : ""}</div>`).join("") : `<div class="meta">Nothing yet.</div>`;
+  $("#lesson-events").innerHTML = data.events.length ? data.events.map((e) => `<div class="meta">${esc(e.created_at)} · ${esc(CAT[e.category] || e.category)} v${e.version} · ${esc(e.event)} by ${esc(e.actor)}${e.detail ? ` · ${esc(e.detail)}` : ""}</div>`).join("") : `<div class="meta">Nothing yet.</div>`;
 }
 
 (async () => {
   const h = await api("/health").catch(() => null);
   draftingOn = Boolean(h?.drafting_enabled);
-  $("#mode").textContent = draftingOn ? "Drafting on" : "Drafting off (no Claude API key)";
+  $("#s-right").innerHTML = h ? `<span class="badge ${draftingOn ? "ok" : "warn"}">${draftingOn ? "Drafting on" : "Drafting off"}</span>` : "";
   if (h && !draftingOn) banner("Drafting is off until ANTHROPIC_API_KEY is set. You can still browse the inbox.", "info");
   loadList();
 })();

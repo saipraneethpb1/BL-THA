@@ -19,6 +19,16 @@ from scope.store import StateError, Store, Version
 from scope.transcript import TranscriptError, parse_transcript
 
 UI = Path(__file__).parent / "ui" / "index.html"
+SAMPLES_DIR = Path(
+    os.environ.get("SCOPE_SAMPLES_DIR", Path(__file__).parent.parent / "transcripts")
+)
+# Real recorded meetings from the AMI corpus (CC BY 4.0, see transcripts/AMI_ATTRIBUTION.md),
+# so a reviewer can try the Scope Builder without writing a transcript.
+SAMPLES = {
+    "ami_ES2002b": ("Remote control: functional design (AMI ES2002b)", "2026-10-05"),
+    "ami_ES2002c": ("Remote control: conceptual design (AMI ES2002c)", "2026-10-12"),
+    "ami_ES2002d": ("Remote control: follow-up, detailed design (AMI ES2002d)", "2026-10-19"),
+}
 
 
 @asynccontextmanager
@@ -78,6 +88,23 @@ async def ui() -> FileResponse:
 @app.get("/health")
 async def health(request: Request) -> dict[str, Any]:
     return {"status": "ok", "building_enabled": request.app.state.builder is not None}
+
+
+@app.get("/api/samples")
+async def list_samples() -> list[dict[str, str]]:
+    return [
+        {"name": name, "title": title, "date": date}
+        for name, (title, date) in SAMPLES.items()
+        if (SAMPLES_DIR / f"{name}.txt").exists()
+    ]
+
+
+@app.get("/api/samples/{name}", response_class=PlainTextResponse)
+async def get_sample(name: str) -> str:
+    path = SAMPLES_DIR / f"{name}.txt"
+    if name not in SAMPLES or not path.exists():
+        raise HTTPException(404, "sample not found")
+    return path.read_text(encoding="utf-8")
 
 
 @app.get("/api/projects")

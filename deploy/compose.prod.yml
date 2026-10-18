@@ -13,12 +13,14 @@ services:
     image: caddy:2.8.4-alpine
     environment:
       DOMAIN: ${DOMAIN:?set DOMAIN in .env, e.g. 3-110-25-7.sslip.io}
+      KB_API_KEY: ${KB_API_KEY:-change-me}
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./deploy/auth.caddy:/etc/caddy/auth.caddy:ro
+      - ./deploy/site:/srv/site:ro
       - caddy-data:/data
       - caddy-config:/config
     depends_on:

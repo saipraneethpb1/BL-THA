@@ -10,21 +10,21 @@
 	}
 }
 
+# Hub page: what each service does and what to try first.
 {$DOMAIN} {
 	import protected
-	header Content-Type "text/html; charset=utf-8"
-	respond `<!doctype html><title>AI Tech Consultant</title><body style="font:16px system-ui;max-width:40em;margin:3em auto;padding:0 1em">
-<h1>AI Tech Consultant: three services</h1>
-<ul>
-<li><a href="https://kb.{$DOMAIN}">Knowledge Brain</a> (Task 1)</li>
-<li><a href="https://inbox.{$DOMAIN}">Inbox Agent</a> (Task 2)</li>
-<li><a href="https://scope.{$DOMAIN}">Scope Builder</a> (Task 3)</li>
-</ul></body>`
+	root * /srv/site
+	file_server
 }
 
 kb.{$DOMAIN} {
 	import protected
-	reverse_proxy knowledge-brain:8001
+	reverse_proxy knowledge-brain:8001 {
+		# Visitors have already passed the login above, so the browser UI shouldn't ask for
+		# the API key as well: the proxy adds it. Through the proxy, the login guards the API;
+		# the key still guards the service from anything else on the server's network.
+		header_up X-API-Key {$KB_API_KEY}
+	}
 }
 
 inbox.{$DOMAIN} {

@@ -4,88 +4,274 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Scope Builder</title>
+<!-- suite:css -->
 <style>
-  :root {
-    --bg: #f7f7f5; --panel: #fff; --text: #1d1d1b; --muted: #6b6b66; --line: #e4e3df;
-    --accent: #2f5bd3; --accent-ink: #fff; --sel: #eef2fd;
-    --ok-bg: #e5f4ea; --ok: #1d6b3a; --warn-bg: #fdf1dc; --warn: #8a5a00;
-    --info-bg: #e8eefc; --info: #2a4aa8; --err-bg: #fde8e6; --err: #a8261b;
+/* Shared look for the three services and the hub page. Edit here, then run
+   python scripts/sync_suite.py   (copies this into each page between suite markers). */
+:root {
+  --bg: #f5f6f8; --panel: #ffffff; --panel-2: #f0f2f5; --text: #15171c; --muted: #5d6470;
+  --line: #e2e5ea; --line-strong: #cfd4dc; --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 2px 8px rgba(16, 24, 40, .04);
+  --ok-bg: #e3f5ea; --ok: #17663a; --warn-bg: #fdf0d8; --warn: #7d5200;
+  --info-bg: #e7edfd; --info: #2747a3; --err-bg: #fde6e4; --err: #a3231a;
+  --kb: #0e8a7a; --inbox: #4c55d4; --scope: #b8600f;
+  --radius: 12px; --radius-sm: 8px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d0f12; --panel: #15181d; --panel-2: #1b1f26; --text: #e7e9ed; --muted: #98a0ad;
+    --line: #252a32; --line-strong: #333a45; --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+    --ok-bg: #12301f; --ok: #86d9a6; --warn-bg: #362810; --warn: #f2c56b;
+    --info-bg: #19244a; --info: #a9bbff; --err-bg: #3b1714; --err: #ff9f94;
+    --kb: #3cc9b4; --inbox: #8d96ff; --scope: #f3a75c;
+    color-scheme: dark;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #151514; --panel: #1f1f1d; --text: #ecebe7; --muted: #a09f98; --line: #34332f;
-      --accent: #7b9cff; --accent-ink: #10131c; --sel: #232b40;
-      --ok-bg: #173323; --ok: #8fd8a8; --warn-bg: #3a2c10; --warn: #f0c46b;
-      --info-bg: #1b2645; --info: #a9bdff; --err-bg: #3d1915; --err: #ff9d92;
-    }
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  header { background: var(--panel); border-bottom: 1px solid var(--line); }
-  .bar { max-width: 1280px; margin: 0 auto; padding: 0 16px; height: 54px; display: flex; align-items: center; gap: 16px; }
-  .brand { font-weight: 650; }
-  .layout { display: grid; grid-template-columns: 280px 1fr; gap: 16px; max-width: 1280px; margin: 16px auto; padding: 0 16px; }
-  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
-  h2 { font-size: 17px; margin: 0 0 8px; } h3 { font-size: 13px; margin: 16px 0 6px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
-  .meta { color: var(--muted); font-size: 13px; }
-  .item { padding: 8px 10px; border-radius: 8px; cursor: pointer; }
-  .item:hover, .item.sel { background: var(--sel); }
-  input, textarea { width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-top: 6px; }
-  textarea { min-height: 140px; resize: vertical; font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
-  .btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer; }
-  .btn.secondary { background: var(--bg); color: var(--text); border: 1px solid var(--line); }
-  .btn:disabled { opacity: .5; cursor: default; }
-  .badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--bg); color: var(--muted); margin-right: 4px; white-space: nowrap; }
-  .b-approved, .b-confirmed, .b-existing_configuration, .b-added-ok { background: var(--ok-bg); color: var(--ok); }
-  .b-draft, .b-unclear, .b-existing_with_limitation, .b-modified, .b-warn { background: var(--warn-bg); color: var(--warn); }
-  .b-failed, .b-disputed, .b-block, .b-removed { background: var(--err-bg); color: var(--err); }
-  .b-building, .b-custom_development, .b-added { background: var(--info-bg); color: var(--info); }
-  .tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin: 12px 0; }
-  .tabs button { background: none; border: 0; padding: 8px 12px; font: inherit; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; }
-  .tabs button[aria-selected="true"] { color: var(--text); border-color: var(--accent); font-weight: 600; }
-  table { width: 100%; border-collapse: collapse; } th, td { text-align: left; vertical-align: top; padding: 8px; border-bottom: 1px solid var(--line); font-size: 14px; }
-  .quote { border-left: 3px solid var(--line); padding-left: 8px; margin: 4px 0; color: var(--muted); font-size: 13px; }
-  .issue { padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; }
+}
+body[data-app="kb"] { --accent: var(--kb); }
+body[data-app="inbox"] { --accent: var(--inbox); }
+body[data-app="scope"] { --accent: var(--scope); }
+body[data-app="hub"] { --accent: var(--inbox); }
+:root { --accent: var(--inbox); }
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text);
+       font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: var(--accent); }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+/* Suite bar: the same on every page */
+.s-bar { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--panel) 88%, transparent);
+         backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.s-bar-in { max-width: 1320px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; gap: 14px; }
+.s-brand { display: flex; align-items: center; gap: 9px; font-weight: 700; color: var(--text); text-decoration: none; white-space: nowrap; }
+.s-mark { width: 26px; height: 26px; border-radius: 8px; flex: none;
+          background: conic-gradient(from 210deg, var(--kb), var(--inbox), var(--scope), var(--kb)); }
+.s-apps { display: flex; gap: 4px; margin-left: 8px; overflow-x: auto; scrollbar-width: none; }
+.s-app { display: flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; color: var(--muted);
+         text-decoration: none; font-weight: 550; font-size: 14px; white-space: nowrap; }
+.s-app:hover { background: var(--panel-2); color: var(--text); }
+.s-app[aria-current="page"] { background: var(--panel-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
+.s-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.s-app[data-suite-link="kb"] .s-dot { background: var(--kb); }
+.s-app[data-suite-link="inbox"] .s-dot { background: var(--inbox); }
+.s-app[data-suite-link="scope"] .s-dot { background: var(--scope); }
+.s-task { color: var(--muted); font-weight: 500; font-size: 12px; }
+.s-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+@media (max-width: 760px) { .s-brand span, .s-task { display: none; } .s-apps { margin-left: 0; } }
+
+/* App sub-header: title + sub-tabs */
+.app-head { max-width: 1320px; margin: 0 auto; padding: 18px 16px 0; display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.app-title { margin: 0; font-size: 22px; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; }
+.app-title::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.app-sub { color: var(--muted); margin: 2px 0 0; font-size: 14px; }
+.subtabs { display: flex; gap: 2px; margin-left: auto; background: var(--panel-2); padding: 3px; border-radius: 10px; border: 1px solid var(--line); }
+.subtabs button { background: none; border: 0; padding: 6px 14px; border-radius: 8px; color: var(--muted); font: inherit; font-size: 14px; font-weight: 550; cursor: pointer; display: flex; gap: 6px; align-items: center; }
+.subtabs button[aria-selected="true"] { background: var(--panel); color: var(--text); box-shadow: var(--shadow); }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 16px; }
+
+/* Building blocks */
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.panel + .panel { margin-top: 16px; }
+.panel.flush { padding: 0; }
+h2 { font-size: 17px; margin: 0 0 4px; letter-spacing: -.005em; }
+h3.label { font-size: 12px; margin: 20px 0 8px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 650; }
+.muted, .meta { color: var(--muted); }
+.meta { font-size: 13px; }
+.sub { color: var(--muted); margin: 0 0 14px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+.spacer { flex: 1; }
+input, textarea, select { width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line-strong);
+                          border-radius: var(--radius-sm); padding: 9px 12px; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+textarea { resize: vertical; }
+.btn { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; border: 0; border-radius: var(--radius-sm);
+       padding: 9px 16px; font: inherit; font-weight: 650; cursor: pointer; text-decoration: none; white-space: nowrap; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn:not(.secondary):not(.ghost) { color: #0d0f12; } }
+.btn:hover { filter: brightness(1.06); }
+.btn.secondary { background: var(--panel); color: var(--text); border: 1px solid var(--line-strong); }
+.btn.secondary:hover { background: var(--panel-2); filter: none; }
+.btn.ghost { background: none; color: var(--muted); padding: 6px 10px; }
+.btn.ghost:hover { color: var(--text); background: var(--panel-2); filter: none; }
+.btn.small { padding: 6px 12px; font-size: 13px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; filter: none; }
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 650;
+         background: var(--panel-2); color: var(--muted); white-space: nowrap; border: 1px solid transparent; }
+.badge.ok { background: var(--ok-bg); color: var(--ok); } .badge.warn { background: var(--warn-bg); color: var(--warn); }
+.badge.info { background: var(--info-bg); color: var(--info); } .badge.err { background: var(--err-bg); color: var(--err); }
+.badge.accent { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+.chip { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; background: var(--panel);
+        border: 1px solid var(--line-strong); border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 14px; color: var(--text); cursor: pointer; }
+.chip small { color: var(--muted); font-size: 12px; }
+.chip:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--panel)); }
+.banner { padding: 10px 14px; border-radius: 10px; margin-bottom: 12px; display: flex; gap: 10px; align-items: flex-start; }
+.banner.err { background: var(--err-bg); color: var(--err); } .banner.info { background: var(--info-bg); color: var(--info); }
+.banner.ok { background: var(--ok-bg); color: var(--ok); } .banner.warn { background: var(--warn-bg); color: var(--warn); }
+.empty { color: var(--muted); text-align: center; padding: 32px 20px; }
+.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; counter-reset: s; }
+.steps li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; counter-increment: s; }
+.steps li::before { content: counter(s); width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700;
+                    background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+.kbd { font: 12px ui-monospace, Consolas, monospace; padding: 1px 6px; border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: 5px; color: var(--muted); }
+.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--accent) 25%, transparent);
+           border-top-color: var(--accent); animation: spin .8s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; vertical-align: top; padding: 10px; border-bottom: 1px solid var(--line); font-size: 14px; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 650; }
+.table-wrap { overflow-x: auto; }
+.md p { margin: 0 0 10px; } .md ol, .md ul { margin: 0 0 10px; padding-left: 22px; } .md li { margin: 3px 0; }
+.lightbox { position: fixed; inset: 0; z-index: 50; background: rgba(5, 7, 10, .82); display: grid; place-items: center; padding: 24px; cursor: zoom-out; }
+.lightbox img { max-width: 100%; max-height: 100%; border-radius: 10px; box-shadow: 0 10px 40px rgba(0, 0, 0, .5); background: #fff; }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 60; background: var(--text); color: var(--bg);
+         padding: 10px 16px; border-radius: 10px; font-weight: 600; box-shadow: 0 6px 24px rgba(0, 0, 0, .25); max-width: calc(100% - 32px); }
+</style>
+<!-- /suite:css -->
+<style>
+  .layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  .side { position: sticky; top: 72px; }
+  @media (max-width: 900px) { .side { position: static; } }
+  .proj { display: block; width: 100%; text-align: left; background: none; border: 0; border-radius: 9px; padding: 9px 10px; cursor: pointer; font: inherit; color: inherit; }
+  .proj:hover { background: var(--panel-2); }
+  .proj.sel { background: color-mix(in srgb, var(--accent) 12%, var(--panel)); }
+  .guide { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 10px; margin-bottom: 14px;
+           background: color-mix(in srgb, var(--accent) 10%, var(--panel)); border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line)); }
+  .guide b { color: var(--accent); }
+  .flow { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 14px; }
+  .flow span { font-size: 12px; font-weight: 650; padding: 3px 10px; border-radius: 999px; background: var(--panel-2); color: var(--muted); }
+  .flow span.done { background: var(--ok-bg); color: var(--ok); }
+  .flow span.now { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+  .meetings { display: grid; gap: 6px; }
+  .meeting { display: flex; gap: 10px; align-items: baseline; padding: 8px 10px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); }
+  .addbox { border: 1px dashed var(--line-strong); border-radius: 10px; padding: 14px; margin-top: 10px; }
+  .addbox textarea { min-height: 140px; font: 13px/1.5 ui-monospace, Consolas, monospace; }
+  .versions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .vbtn { display: inline-flex; gap: 6px; align-items: center; background: var(--panel); border: 1px solid var(--line-strong); border-radius: 9px; padding: 6px 10px; font: inherit; font-size: 14px; font-weight: 600; color: var(--text); cursor: pointer; }
+  .vbtn[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .vtabs { display: flex; gap: 2px; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin: 14px 0 12px; }
+  .vtabs button { background: none; border: 0; padding: 9px 12px; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .vtabs button[aria-selected="true"] { color: var(--text); border-color: var(--accent); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: var(--bg); }
+  .card b { display: block; font-size: 20px; letter-spacing: -.01em; }
+  .card span { color: var(--muted); font-size: 13px; }
+  .quote { border-left: 3px solid var(--line-strong); padding-left: 9px; margin: 5px 0; color: var(--muted); font-size: 13px; }
+  .issue { padding: 9px 12px; border-radius: 9px; margin-bottom: 6px; }
   .issue.block { background: var(--err-bg); color: var(--err); } .issue.warn { background: var(--warn-bg); color: var(--warn); }
-  .doc { max-width: 760px; } .doc h1 { font-size: 22px; } .doc h2 { font-size: 18px; margin-top: 22px; } .doc h3 { text-transform: none; font-size: 15px; color: var(--text); letter-spacing: 0; }
-  .doc blockquote { margin: 0; padding: 8px 12px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; }
-  .doc a { color: var(--accent); }
-  .banner { padding: 10px 14px; border-radius: 8px; max-width: 1248px; margin: 12px auto 0; }
-  .banner.err { background: var(--err-bg); color: var(--err); } .banner.info { background: var(--info-bg); color: var(--info); }
-  .empty { color: var(--muted); padding: 20px; text-align: center; }
-  [hidden] { display: none !important; }
+  .doc { max-width: 780px; } .doc h1 { font-size: 22px; } .doc h2 { font-size: 18px; margin-top: 22px; } .doc h3 { font-size: 15px; }
+  .doc blockquote { margin: 0 0 10px; padding: 9px 12px; background: var(--warn-bg); color: var(--warn); border-radius: 9px; }
+  .progress { display: flex; gap: 12px; align-items: center; }
+  .audit { max-height: 220px; overflow: auto; }
 </style>
 </head>
-<body>
-<header><div class="bar"><div class="brand">Scope Builder</div><span class="meta">Meeting transcripts to scope of work, estimate and proposal</span></div></header>
-<div id="banner" class="banner err" hidden></div>
-<div class="layout">
-  <aside>
-    <div class="panel">
-      <h2>Projects</h2>
-      <div id="projects"></div>
-      <h3>New project</h3>
-      <input id="p-name" placeholder="Project name">
-      <input id="p-client" placeholder="Client">
-      <div class="row"><button class="btn" id="p-create">Create</button></div>
-    </div>
-  </aside>
-  <main id="main"><div class="panel empty">Create or pick a project.</div></main>
+<body data-app="scope">
+<!-- suite:bar -->
+<header class="s-bar"><div class="s-bar-in">
+  <a class="s-brand" data-suite-home><span class="s-mark" aria-hidden="true"></span><span>AI Tech Consultant</span></a>
+  <nav class="s-apps" aria-label="Services">
+    <a class="s-app" data-suite-link="kb"><span class="s-dot"></span>Knowledge Brain <span class="s-task">Task 1</span></a>
+    <a class="s-app" data-suite-link="inbox"><span class="s-dot"></span>Inbox Agent <span class="s-task">Task 2</span></a>
+    <a class="s-app" data-suite-link="scope"><span class="s-dot"></span>Scope Builder <span class="s-task">Task 3</span></a>
+  </nav>
+  <div class="s-right" id="s-right"></div>
+</div></header>
+<!-- /suite:bar -->
+
+<div class="app-head">
+  <div>
+    <h1 class="app-title">Scope Builder</h1>
+    <p class="app-sub">A team of agents turns client meetings into requirements, a product check, a scope, an estimate and a proposal. Nothing reaches the client until a person approves it.</p>
+  </div>
 </div>
 
+<main class="wrap">
+  <div id="banner" class="banner err" hidden></div>
+  <div class="layout">
+    <aside class="side">
+      <div class="panel">
+        <h2>Projects</h2>
+        <div id="projects" style="margin-top:8px"></div>
+        <h3 class="label">New project</h3>
+        <input id="p-name" placeholder="Project name">
+        <input id="p-client" placeholder="Client" style="margin-top:8px">
+        <div class="row"><button class="btn secondary" id="p-create">Create</button></div>
+      </div>
+    </aside>
+    <section id="main"></section>
+  </div>
+</main>
+
+<!-- suite:js -->
+<script>
+// Shared behaviour for the suite bar. Edit here, then run  python scripts/sync_suite.py
+// Links between the three services work both locally (ports 8001-8003) and deployed
+// (kb. / inbox. / scope. subdomains of one host, with the hub page on the bare host).
+(function () {
+  const ports = { kb: 8001, inbox: 8002, scope: 8003 };
+  const { protocol, hostname } = location;
+  const sub = hostname.match(/^(kb|inbox|scope)\.(.+)$/);
+  const base = sub ? sub[2] : hostname;
+  const deployed = !location.port && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(hostname);
+  const urlFor = (app) => deployed ? `${protocol}//${app}.${base}/` : `${protocol}//${hostname}:${ports[app]}/`;
+  const current = document.body.dataset.app;
+  document.querySelectorAll("[data-suite-link]").forEach((a) => {
+    a.href = urlFor(a.dataset.suiteLink);
+    if (a.dataset.suiteLink === current) a.setAttribute("aria-current", "page");
+  });
+  const home = document.querySelector("[data-suite-home]");
+  if (home) home.href = deployed ? `${protocol}//${base}/` : urlFor("kb");
+  window.suite = {
+    toast(msg, ms = 2600) {
+      const t = Object.assign(document.createElement("div"), { className: "toast", textContent: msg, role: "status" });
+      document.body.append(t); setTimeout(() => t.remove(), ms);
+    },
+    lightbox(src, alt) {
+      const box = Object.assign(document.createElement("div"), { className: "lightbox", title: "Click or press Esc to close" });
+      const img = Object.assign(document.createElement("img"), { src, alt: alt || "" });
+      box.append(img); document.body.append(box);
+      const close = () => { box.remove(); document.removeEventListener("keydown", onKey); };
+      const onKey = (e) => { if (e.key === "Escape") close(); };
+      box.onclick = close; document.addEventListener("keydown", onKey);
+    },
+    // Small, safe Markdown subset for model answers: paragraphs, numbered and bullet lists, **bold**.
+    md(text) {
+      const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+      const out = []; let list = null;
+      const flush = () => { if (list) { out.push(`<${list.tag}>${list.items.join("")}</${list.tag}>`); list = null; } };
+      for (const raw of String(text ?? "").split("\n")) {
+        const line = raw.trimEnd();
+        const num = line.match(/^\s*\d+[.)]\s+(.*)$/), bul = line.match(/^\s*[-*•]\s+(.*)$/);
+        if (num || bul) {
+          const tag = num ? "ol" : "ul";
+          if (!list || list.tag !== tag) { flush(); list = { tag, items: [] }; }
+          list.items.push(`<li>${inline((num || bul)[1])}</li>`);
+        } else { flush(); if (line.trim()) out.push(`<p>${inline(line)}</p>`); }
+      }
+      flush();
+      return `<div class="md">${out.join("")}</div>`;
+    },
+  };
+})();
+</script>
+<!-- /suite:js -->
 <script>
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const VERDICT = { existing_configuration: "Built-in setting", existing_with_limitation: "Built-in, with limits", custom_development: "Custom work", needs_clarification: "Needs clarification" };
+const VERDICT = { existing_configuration: ["Built-in setting", "ok"], existing_with_limitation: ["Built-in, with limits", "warn"], custom_development: ["Custom work", "info"], needs_clarification: ["Needs clarification", "err"] };
+const VSTATUS = { approved: "ok", draft: "warn", building: "info", failed: "err", superseded: "" };
+const RSTATUS = { confirmed: "ok", unclear: "warn", disputed: "err" };
+const CHANGE = { added: "info", modified: "warn", removed: "err", unchanged: "" };
 let state = { pid: null, version: null, tab: "requirements", building: true };
-let poll = null;
+let poll = null, samples = [];
 
 async function api(path, options = {}) {
   const headers = options.body ? { "content-type": "application/json" } : {};
   let res;
-  try { res = await fetch(path, { ...options, headers }); } catch { banner("Scope Builder is not reachable."); throw new Error("offline"); }
+  try { res = await fetch(path, { ...options, headers }); } catch { banner("The Scope Builder isn't reachable."); throw new Error("offline"); }
   const isText = (res.headers.get("content-type") || "").startsWith("text/plain");
   const body = isText ? await res.text() : await res.json().catch(() => ({}));
   if (!res.ok) { const d = body.detail; throw new Error(typeof d === "string" ? d : Array.isArray(d) ? d.map((x) => `${x.loc.at(-1)}: ${x.msg}`).join("; ") : `Error ${res.status}`); }
@@ -93,18 +279,62 @@ async function api(path, options = {}) {
   return body;
 }
 function banner(msg, kind = "err") { const b = $("#banner"); b.className = `banner ${kind}`; b.textContent = msg; b.hidden = false; }
-function actor() { try { return localStorage.getItem("actor") || ""; } catch { return ""; } }
-function saveActor(v) { try { localStorage.setItem("actor", v); } catch {} }
+function actor() { try { return localStorage.getItem("reviewer") || "Reviewer"; } catch { return "Reviewer"; } }
+function saveActor(v) { try { localStorage.setItem("reviewer", v); } catch {} }
 
 async function loadProjects() {
   const ps = await api("/api/projects").catch(() => []);
-  $("#projects").innerHTML = ps.length ? ps.map((p) => `<div class="item ${p.id === state.pid ? "sel" : ""}" data-id="${p.id}"><b>${esc(p.name)}</b><div class="meta">${esc(p.client)} · ${p.meetings} meeting(s)${p.latest_version ? ` · v${p.latest_version}` : ""}</div></div>`).join("") : `<div class="meta">No projects yet.</div>`;
-  document.querySelectorAll("#projects .item").forEach((el) => el.onclick = () => openProject(Number(el.dataset.id)));
+  $("#projects").innerHTML = ps.length ? ps.map((p) => `<button class="proj ${p.id === state.pid ? "sel" : ""}" data-id="${p.id}"><b>${esc(p.name)}</b><div class="meta">${esc(p.client)} · ${p.meetings} meeting${p.meetings === 1 ? "" : "s"}${p.latest_version ? ` · v${p.latest_version}` : ""}</div></button>`).join("") : `<div class="meta">No projects yet.</div>`;
+  document.querySelectorAll("#projects .proj").forEach((el) => el.onclick = () => openProject(Number(el.dataset.id)));
+  return ps;
 }
 $("#p-create").onclick = async () => {
   try { const r = await api("/api/projects", { method: "POST", body: JSON.stringify({ name: $("#p-name").value, client: $("#p-client").value }) }); $("#p-name").value = $("#p-client").value = ""; await loadProjects(); openProject(r.id); }
   catch (e) { banner(e.message); }
 };
+
+function welcome(projects) {
+  $("#main").innerHTML = `<div class="panel">
+    <h2>Try it with a real client meeting</h2>
+    <p class="sub">The samples are real recorded design meetings from the public AMI corpus: a team scoping a TV remote control. The follow-up meeting changes earlier decisions, which shows the scope comparison.</p>
+    <ol class="steps" style="margin-bottom:16px">
+      <li><div><b>Create the demo project</b><span class="meta"> with the first meeting (ES2002c) already added.</span></div></li>
+      <li><div><b>Build the scope</b><span class="meta">: about 2 minutes. The agents extract requirements with quotes, check each against the product, then scope, estimate and write a proposal.</span></div></li>
+      <li><div><b>Approve it</b><span class="meta">, then add the follow-up meeting (ES2002d) and update: the new version is compared with what you approved.</span></div></li>
+    </ol>
+    <div class="row"><button class="btn" id="demo">Create the demo project</button>${projects.length ? `<span class="meta">or pick a project on the left${projects.some((p) => p.latest_version) ? " (some are already built)" : ""}.</span>` : ""}</div>
+  </div>`;
+  $("#demo").onclick = createDemo;
+}
+
+async function createDemo() {
+  const b = $("#demo"); b.disabled = true; b.innerHTML = `<span class="spinner" style="border-top-color:currentColor"></span>Creating…`;
+  try {
+    const { id } = await api("/api/projects", { method: "POST", body: JSON.stringify({ name: "TV remote control", client: "Real Reaction (AMI demo)" }) });
+    await addSample(id, "ami_ES2002c");
+    await loadProjects(); openProject(id);
+  } catch (e) { banner(e.message); b.disabled = false; b.textContent = "Create the demo project"; }
+}
+async function addSample(pid, name) {
+  const s = samples.find((x) => x.name === name);
+  const transcript = await api(`/api/samples/${name}`);
+  return api(`/api/projects/${pid}/meetings`, { method: "POST", body: JSON.stringify({ title: s.title, date: s.date, transcript }) });
+}
+
+function nextStep(p) {
+  const latest = p.versions[0];
+  const approved = p.versions.find((v) => v.status === "approved");
+  const flow = (now) => ["Add meeting", "Build", "Review", "Approve", "Follow-up"].map((s, i) => `<span class="${i < now ? "done" : i === now ? "now" : ""}">${s}</span>`).join("");
+  if (!p.meetings.length) return [0, "Add a meeting transcript below: paste, upload, or pick a sample."];
+  if (!latest) return [1, "Click <b>Build scope</b>. It takes about 2 minutes for a 40-minute meeting."];
+  if (latest.status === "building") return [1, "Building… the agents are reading the transcript."];
+  if (latest.status === "failed") return [1, "The last build failed (details below). Fix the cause and build again."];
+  if (latest.status === "draft") return [latest.baseline_version ? 4 : 2, latest.baseline_version
+    ? `Open the <b>Changes</b> tab: what the follow-up changed compared with approved v${latest.baseline_version}. Then approve it.`
+    : "Review the tabs, then open <b>Review &amp; approve</b>. Only an approved version can be sent to the client."];
+  const newerMeeting = approved && p.meetings.length > 1 && latest.status === "approved" && !p.versions.some((v) => v.baseline_version === approved.number);
+  return [4, newerMeeting ? "A new meeting is waiting: click <b>Update scope from new meetings</b>." : "Approved. Add a follow-up meeting (try the ES2002d sample) and click <b>Update scope</b> to see what changed."];
+}
 
 async function openProject(pid, version = null) {
   state.pid = pid; clearInterval(poll);
@@ -112,29 +342,41 @@ async function openProject(pid, version = null) {
   const p = await api(`/api/projects/${pid}`);
   const latest = p.versions[0];
   state.version = version ?? latest?.number ?? null;
-  const main = $("#main");
-  main.innerHTML = `
+  const [stage, hint] = nextStep(p);
+  const approvedExists = p.versions.some((v) => v.status === "approved");
+  const unused = samples.filter((s) => !p.meetings.some((m) => m.title === s.title));
+  $("#main").innerHTML = `
     <div class="panel">
-      <h2>${esc(p.project.name)}</h2><div class="meta">Client: ${esc(p.project.client)}</div>
-      <h3>Meetings</h3>
-      ${p.meetings.length ? p.meetings.map((m) => `<div>${esc(m.date)} · ${esc(m.title)} <span class="meta">(${esc(m.id)})</span></div>`).join("") : `<div class="meta">No meetings yet. Paste or upload a transcript below.</div>`}
-      <details style="margin-top:10px" ${p.meetings.length ? "" : "open"}><summary class="meta" style="cursor:pointer">Add a meeting transcript</summary>
-        <div class="row"><input id="m-title" placeholder="Meeting title, e.g. Kickoff call" style="flex:2"><input id="m-date" type="date" style="flex:1"></div>
-        <textarea id="m-text" placeholder="[00:00:05] Sam: Thanks for joining...&#10;[00:00:12] Priya: The search is bad..."></textarea>
-        <div class="row"><input type="file" id="m-file" accept=".txt,.vtt,.md" style="flex:1"><button class="btn secondary" id="m-add">Add meeting</button><span class="meta" id="m-note"></span></div>
+      <div class="row" style="margin-top:0;justify-content:space-between"><div><h2 style="margin:0">${esc(p.project.name)}</h2><div class="meta">Client: ${esc(p.project.client)}</div></div></div>
+      <div class="flow">${["Add meeting", "Build", "Review", "Approve", "Follow-up"].map((s, i) => `<span class="${i < stage ? "done" : i === stage ? "now" : ""}">${s}</span>`).join("")}</div>
+      <div class="guide"><span>→</span><div>${hint}</div></div>
+      <h3 class="label">Meetings</h3>
+      <div class="meetings">${p.meetings.length ? p.meetings.map((m) => `<div class="meeting"><b>${esc(m.date)}</b><span>${esc(m.title)}</span><span class="meta">${esc(m.id)}</span></div>`).join("") : `<div class="meta">No meetings yet.</div>`}</div>
+      <details class="addbox" ${p.meetings.length ? "" : "open"}><summary style="cursor:pointer;font-weight:600">+ Add a meeting transcript</summary>
+        ${unused.length ? `<div class="row"><select id="m-sample" style="flex:1;min-width:220px"><option value="">Pick a sample meeting…</option>${unused.map((s) => `<option value="${esc(s.name)}">${esc(s.title)}</option>`).join("")}</select><button class="btn secondary" id="m-add-sample">Add sample</button></div><div class="meta" style="margin-top:8px">or paste / upload your own:</div>` : ""}
+        <div class="row"><input id="m-title" placeholder="Meeting title, e.g. Kickoff call" style="flex:2;min-width:180px"><input id="m-date" type="date" style="flex:1;min-width:140px"></div>
+        <textarea id="m-text" style="margin-top:8px" placeholder="[00:00:05] Sam: Thanks for joining...&#10;[00:00:12] Priya: The search is bad..."></textarea>
+        <div class="row"><input type="file" id="m-file" accept=".txt,.vtt,.md" style="flex:1;min-width:200px"><button class="btn secondary" id="m-add">Add meeting</button><span class="meta" id="m-note"></span></div>
       </details>
       <div class="row">
-        <button class="btn" id="build" ${state.building && p.meetings.length ? "" : "disabled"}>${p.versions.some((v) => v.status === "approved") ? "Update scope from new meetings" : "Build scope"}</button>
-        <span class="meta">${state.building ? "Each build creates a new draft version. Nothing reaches the client until a person approves it." : "Building is off until the Claude API key is set."}</span>
+        <button class="btn" id="build" ${state.building && p.meetings.length && latest?.status !== "building" ? "" : "disabled"}>${approvedExists ? "Update scope from new meetings" : "Build scope"}</button>
+        <span class="meta">${state.building ? "Each build makes a new draft version. Usually about 2 minutes, about $0.30." : "Building is off until the Claude API key is set."}</span>
       </div>
-      ${p.versions.length ? `<h3>Versions</h3><div class="row">${p.versions.map((v) => `<button class="btn secondary" data-v="${v.number}" style="${v.number === state.version ? "outline:2px solid var(--accent)" : ""}">v${v.number} <span class="badge b-${esc(v.status)}">${esc(v.status)}</span>${v.baseline_version ? `<span class="meta">from v${v.baseline_version}</span>` : ""}</button>`).join("")}</div>` : ""}
+      ${p.versions.length ? `<h3 class="label">Versions</h3><div class="versions">${p.versions.map((v) => `<button class="vbtn" data-v="${v.number}" aria-pressed="${v.number === state.version}">v${v.number} <span class="badge ${VSTATUS[v.status] ?? ""}">${esc(v.status)}</span>${v.baseline_version ? `<span class="meta">vs v${v.baseline_version}</span>` : ""}</button>`).join("")}</div>` : ""}
     </div>
     <div id="version"></div>
-    <div class="panel"><h3 style="margin-top:0">Audit trail</h3>${p.audit.map((a) => `<div class="meta">${esc(a.created_at)} · ${a.version_number ? `v${a.version_number} · ` : ""}${esc(a.action)} · ${esc(a.actor)}${a.detail ? ` · ${esc(a.detail)}` : ""}</div>`).join("")}</div>`;
+    <div class="panel"><h3 class="label" style="margin-top:0">Audit trail</h3><div class="audit">${p.audit.map((a) => `<div class="meta">${esc(a.created_at)} · ${a.version_number ? `v${a.version_number} · ` : ""}${esc(a.action)} · ${esc(a.actor)}${a.detail ? ` · ${esc(a.detail)}` : ""}</div>`).join("") || `<div class="meta">Nothing yet.</div>`}</div></div>`;
   $("#m-file").onchange = async (e) => { const f = e.target.files[0]; if (f) { $("#m-text").value = await f.text(); if (!$("#m-title").value) $("#m-title").value = f.name.replace(/\.[^.]+$/, ""); } };
   $("#m-add").onclick = async () => {
-    try { const r = await api(`/api/projects/${pid}/meetings`, { method: "POST", body: JSON.stringify({ title: $("#m-title").value, date: $("#m-date").value, transcript: $("#m-text").value }) }); banner(`Added ${r.id}: ${r.turns} turns from ${r.speakers.join(", ")}.`, "info"); openProject(pid); }
+    try { const r = await api(`/api/projects/${pid}/meetings`, { method: "POST", body: JSON.stringify({ title: $("#m-title").value, date: $("#m-date").value, transcript: $("#m-text").value }) }); suite.toast(`Added ${r.id}: ${r.turns} turns from ${r.speakers.length} speakers`); openProject(pid); }
     catch (e) { $("#m-note").textContent = e.message; }
+  };
+  const addS = $("#m-add-sample");
+  if (addS) addS.onclick = async () => {
+    const name = $("#m-sample").value; if (!name) { $("#m-note").textContent = "Pick a sample first."; return; }
+    addS.disabled = true;
+    try { const r = await addSample(pid, name); suite.toast(`Added ${r.id}: ${r.turns} turns`); openProject(pid); }
+    catch (e) { $("#m-note").textContent = e.message; addS.disabled = false; }
   };
   $("#build").onclick = async () => {
     try { const r = await api(`/api/projects/${pid}/build`, { method: "POST" }); openProject(pid, r.version); }
@@ -148,35 +390,47 @@ async function loadVersion() {
   const v = await api(`/api/projects/${state.pid}/versions/${state.version}`);
   const box = $("#version");
   if (v.status === "building") {
-    box.innerHTML = `<div class="panel"><span class="badge b-building">building</span> Reading the transcripts and running the agents. This takes a minute or two for a long meeting.</div>`;
-    clearInterval(poll); poll = setInterval(async () => { const x = await api(`/api/projects/${state.pid}/versions/${state.version}`); if (x.status !== "building") { clearInterval(poll); openProject(state.pid, state.version); } }, 3000);
+    const started = Date.parse(v.created_at.endsWith("Z") || v.created_at.includes("+") ? v.created_at : v.created_at + "Z") || Date.now();
+    const stage = (s) => s < 60 ? "Reading the transcript in parts and extracting requirements with quotes…" : s < 100 ? "Checking each requirement against the product (Knowledge Brain)…" : "Scoping, estimating, writing and reviewing the proposal…";
+    const render = () => { const s = Math.max(0, Math.round((Date.now() - started) / 1000)); box.innerHTML = `<div class="panel"><div class="progress"><span class="spinner"></span><div><b>Building version ${v.number}</b> · ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}<div class="meta">${stage(s)} Usually about 2 minutes.</div></div></div></div>`; };
+    render(); clearInterval(poll);
+    let n = 0;
+    poll = setInterval(async () => { render(); if (++n % 3) return; const x = await api(`/api/projects/${state.pid}/versions/${state.version}`).catch(() => null); if (x && x.status !== "building") { clearInterval(poll); suite.toast(x.status === "failed" ? "Build failed" : `Version ${x.number} is ready`); openProject(state.pid, state.version); } }, 1000);
     return;
   }
-  if (v.status === "failed") { box.innerHTML = `<div class="panel"><span class="badge b-failed">failed</span> ${esc(v.error)}</div>`; return; }
+  if (v.status === "failed") { box.innerHTML = `<div class="panel"><span class="badge err">failed</span> ${esc(v.error)}</div>`; return; }
   const d = v.data;
-  const tabs = [["requirements", `Requirements (${d.analysis.requirements.length})`], ["feasibility", "Product check"], ["scope", "Scope"], ["estimate", "Estimate"], ...(d.diff ? [["changes", "Changes"]] : []), ["proposal", "Proposal"], ["approve", v.status === "approved" ? "Approved" : "Review & approve"]];
-  if (!tabs.some(([k]) => k === state.tab)) state.tab = "requirements";
-  box.innerHTML = `<div class="panel"><div class="row" style="margin:0"><h2 style="margin:0">Version ${v.number}</h2><span class="badge b-${esc(v.status)}">${esc(v.status)}</span><span class="meta">${esc(v.created_at)} · ${v.usage.calls ?? 0} model calls · $${(v.usage.cost_usd ?? 0).toFixed(3)}</span></div>
-    <div class="tabs">${tabs.map(([k, label]) => `<button data-tab="${k}" aria-selected="${k === state.tab}">${esc(label)}</button>`).join("")}</div><div id="tab"></div></div>`;
-  box.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => { state.tab = b.dataset.tab; loadVersion(); });
+  const blocking = v.issues.filter((i) => i.severity === "block").length;
+  const tabs = [["requirements", `Requirements (${d.analysis.requirements.length})`], ["feasibility", "Product check"], ["scope", "Scope"], ["estimate", "Estimate"], ...(d.diff ? [["changes", `Changes (${d.diff.changes.filter((c) => c.change !== "unchanged").length})`]] : []), ["proposal", "Proposal"], ["approve", v.status === "approved" ? "Approved ✓" : `Review & approve${blocking ? ` (${blocking} to fix)` : ""}`]];
+  if (!tabs.some(([k]) => k === state.tab)) state.tab = d.diff ? "changes" : "requirements";
+  const e = d.estimate;
+  box.innerHTML = `<div class="panel"><div class="row" style="margin:0"><h2 style="margin:0">Version ${v.number}</h2><span class="badge ${VSTATUS[v.status] ?? ""}">${esc(v.status)}</span><span class="spacer"></span><span class="meta">${esc(v.created_at)} · ${v.usage.calls ?? 0} model calls · $${(v.usage.cost_usd ?? 0).toFixed(3)}</span></div>
+    <div class="cards" style="margin-top:14px">
+      <div class="card"><b>${d.analysis.requirements.length}</b><span>requirements, each with a quote</span></div>
+      <div class="card"><b>${d.feasibility.filter((f) => f.verdict !== "custom_development").length} / ${d.feasibility.length}</b><span>already in the product</span></div>
+      <div class="card"><b>${e.expected_hours} h</b><span>expected effort (PERT)</span></div>
+      <div class="card"><b>${esc(e.currency)} ${e.price_low.toLocaleString()}–${e.price_high.toLocaleString()}</b><span>price range, computed in code</span></div>
+    </div>
+    <div class="vtabs" role="tablist">${tabs.map(([k, label]) => `<button role="tab" data-tab="${k}" aria-selected="${k === state.tab}">${esc(label)}</button>`).join("")}</div><div id="tab" class="table-wrap"></div></div>`;
+  box.querySelectorAll(".vtabs button").forEach((b) => b.onclick = () => { state.tab = b.dataset.tab; loadVersion(); });
   $("#tab").innerHTML = render[state.tab](v, d);
   if (state.tab === "approve") wireApprove(v);
 }
 
-const evidence = (ev) => ev.map((e) => `<div class="quote">"${esc(e.quote)}" <span>${esc(e.speaker)}${e.timestamp ? ` @ ${esc(e.timestamp)}` : ""} · ${esc(e.meeting_id)}${e.verified ? "" : ` · <span class="badge b-warn">quote not found in transcript</span>`}</span></div>`).join("");
-const notes = (title, items) => items.length ? `<h3>${title}</h3>${items.map((n) => `<div>${esc(n.statement)}${evidence(n.evidence)}</div>`).join("")}` : "";
-const list = (title, items) => items.length ? `<h3>${title}</h3><ul>${items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>` : "";
+const evidence = (ev) => ev.map((e) => `<div class="quote">“${esc(e.quote)}” <span>${esc(e.speaker)}${e.timestamp ? ` @ ${esc(e.timestamp)}` : ""} · ${esc(e.meeting_id)}${e.verified ? "" : ` · <span class="badge warn">quote not found in transcript</span>`}</span></div>`).join("");
+const notes = (title, items) => items.length ? `<h3 class="label">${title}</h3>${items.map((n) => `<div style="margin-bottom:8px">${esc(n.statement)}${evidence(n.evidence)}</div>`).join("")}` : "";
+const list = (title, items) => items.length ? `<h3 class="label">${title}</h3><ul>${items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>` : "";
 
 const render = {
-  requirements: (v, d) => `<table><thead><tr><th>ID</th><th>Requirement and what the client said</th><th>Status</th><th>Priority</th></tr></thead><tbody>${d.analysis.requirements.map((r) => `<tr><td>${esc(r.id)}</td><td>${esc(r.description)}${r.origin === "inferred" ? ` <span class="badge">inferred</span>` : ""}${evidence(r.evidence)}</td><td><span class="badge b-${esc(r.status)}">${esc(r.status)}</span></td><td>${esc(r.priority)}</td></tr>`).join("")}</tbody></table>${notes("Decisions", d.analysis.decisions)}${notes("Constraints", d.analysis.constraints)}${notes("Open questions", d.analysis.open_questions)}${notes("Commitments", d.analysis.commitments)}`,
-  feasibility: (v, d) => { const reqs = Object.fromEntries(d.analysis.requirements.map((r) => [r.id, r])); return `<p class="meta">Each requirement was checked against the product's help center through the Knowledge Brain. Built-in settings cost the client far less than custom code.</p><table><thead><tr><th>Requirement</th><th>Verdict</th><th>Details</th></tr></thead><tbody>${d.feasibility.map((f) => `<tr><td>${esc(f.requirement_id)} ${esc(reqs[f.requirement_id]?.description)}</td><td><span class="badge b-${esc(f.verdict)}">${esc(VERDICT[f.verdict])}</span></td><td>${esc(f.explanation)}${f.how_to ? `<div><b>How:</b> ${esc(f.how_to)}</div>` : ""}${f.limitation ? `<div><b>Limit:</b> ${esc(f.limitation)}</div>` : ""}${f.clarifying_question ? `<div><b>Ask:</b> ${esc(f.clarifying_question)}</div>` : ""}<div class="meta">${f.kb_sources.map((s) => s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>` : esc(s.title)).join(" · ") || `knowledge base: ${esc(f.kb_status)}`}</div></td></tr>`).join("")}</tbody></table>`; },
-  scope: (v, d) => d.scope.deliverables.map((x) => `<h3>${esc(x.id)} ${esc(x.title)} <span class="badge">${esc(x.approach)}</span></h3><div>${esc(x.description)}</div><div class="meta">Covers ${x.requirement_ids.map(esc).join(", ")}</div><ul>${x.acceptance_criteria.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>`).join("") + list("Left out on purpose", d.scope.excluded.map((e) => `${e.requirement_id}: ${e.reason}`)) + list("Not included", d.scope.exclusions) + list("Assumptions", d.scope.assumptions) + list("Dependencies", d.scope.dependencies) + list("Client responsibilities", d.scope.client_responsibilities) + list("Open questions", d.scope.open_questions),
-  estimate: (v, d) => { const e = d.estimate; return `<table><thead><tr><th>Deliverable</th><th>Task</th><th>Low</th><th>Likely</th><th>High</th><th>Confidence</th></tr></thead><tbody>${e.tasks.map((t) => `<tr><td>${esc(t.deliverable_id)}</td><td>${esc(t.name)}<div class="meta">${esc(t.assumptions)}</div></td><td>${t.low_hours}</td><td>${t.likely_hours}</td><td>${t.high_hours}</td><td><span class="badge ${t.confidence === "low" ? "b-warn" : ""}">${esc(t.confidence)}</span></td></tr>`).join("")}<tr><td></td><td><b>Total</b></td><td><b>${e.low_hours}</b></td><td><b>${e.likely_hours}</b></td><td><b>${e.high_hours}</b></td><td></td></tr></tbody></table><p><b>Expected ${e.expected_hours} h</b> (PERT). Price range <b>${esc(e.currency)} ${e.price_low.toLocaleString()} to ${e.price_high.toLocaleString()}</b> at ${esc(e.currency)} ${e.hourly_rate}/h with ${e.contingency_pct}% contingency. Calculated in code from the task hours, not by the model.</p>${list("Risks", e.risks)}`; },
-  changes: (v, d) => { const x = d.diff; const shown = x.changes.filter((c) => c.change !== "unchanged"); return `<p class="meta">Compared with approved version ${x.baseline_version}, not with the last draft. Anything added or changed after approval is flagged to be quoted separately.</p><table><thead><tr><th>Change</th><th>Requirement</th><th>Before → after</th></tr></thead><tbody>${shown.map((c) => `<tr><td><span class="badge b-${esc(c.change)}">${esc(c.change)}</span>${c.out_of_scope ? `<div><span class="badge b-warn">outside approved scope</span></div>` : ""}</td><td>${esc(c.requirement_id)}<div>${esc(c.summary)}</div>${evidence(c.evidence)}</td><td>${c.before ? `<div class="meta">Before: ${esc(c.before)}</div>` : ""}${c.after ? `<div>After: ${esc(c.after)}</div>` : ""}</td></tr>`).join("") || `<tr><td colspan="3" class="meta">No requirement changes.</td></tr>`}</tbody></table>${list("Constraint changes", x.constraint_changes)}<p>Effect on the estimate: <b>${x.hours_delta_expected >= 0 ? "+" : ""}${x.hours_delta_expected} expected hours</b>, ${esc(d.estimate.currency)} ${x.price_delta_low.toLocaleString()} to ${x.price_delta_high.toLocaleString()}. ${x.changes.filter((c) => c.change === "unchanged").length} requirement(s) unchanged.</p>`; },
+  requirements: (v, d) => `<table><thead><tr><th>ID</th><th>Requirement, and what the client said</th><th>Status</th><th>Priority</th></tr></thead><tbody>${d.analysis.requirements.map((r) => `<tr><td>${esc(r.id)}</td><td>${esc(r.description)}${r.origin === "inferred" ? ` <span class="badge">inferred</span>` : ""}${evidence(r.evidence)}</td><td><span class="badge ${RSTATUS[r.status] ?? ""}">${esc(r.status)}</span></td><td>${esc(r.priority)}</td></tr>`).join("")}</tbody></table>${notes("Decisions", d.analysis.decisions)}${notes("Constraints", d.analysis.constraints)}${notes("Open questions", d.analysis.open_questions)}${notes("Commitments", d.analysis.commitments)}`,
+  feasibility: (v, d) => { const reqs = Object.fromEntries(d.analysis.requirements.map((r) => [r.id, r])); return `<p class="meta">Each requirement was checked against the product's help center through the Knowledge Brain. A built-in setting costs the client far less than custom code.</p><table><thead><tr><th>Requirement</th><th>Verdict</th><th>Details</th></tr></thead><tbody>${d.feasibility.map((f) => { const [label, kind] = VERDICT[f.verdict] || [f.verdict, ""]; return `<tr><td>${esc(f.requirement_id)} ${esc(reqs[f.requirement_id]?.description)}</td><td><span class="badge ${kind}">${esc(label)}</span></td><td>${esc(f.explanation)}${f.how_to ? `<div><b>How:</b> ${esc(f.how_to)}</div>` : ""}${f.limitation ? `<div><b>Limit:</b> ${esc(f.limitation)}</div>` : ""}${f.clarifying_question ? `<div><b>Ask:</b> ${esc(f.clarifying_question)}</div>` : ""}<div class="meta">${f.kb_sources.map((s) => s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>` : esc(s.title)).join(" · ") || `knowledge base: ${esc(f.kb_status)}`}</div></td></tr>`; }).join("")}</tbody></table>`; },
+  scope: (v, d) => d.scope.deliverables.map((x) => `<h3 style="margin:16px 0 4px">${esc(x.id)} ${esc(x.title)} <span class="badge">${esc(x.approach)}</span></h3><div>${esc(x.description)}</div><div class="meta">Covers ${x.requirement_ids.map(esc).join(", ")}</div><ul>${x.acceptance_criteria.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>`).join("") + list("Left out on purpose", d.scope.excluded.map((e) => `${e.requirement_id}: ${e.reason}`)) + list("Not included", d.scope.exclusions) + list("Assumptions", d.scope.assumptions) + list("Dependencies", d.scope.dependencies) + list("Client responsibilities", d.scope.client_responsibilities) + list("Open questions", d.scope.open_questions),
+  estimate: (v, d) => { const e = d.estimate; return `<table><thead><tr><th>Deliverable</th><th>Task</th><th>Low</th><th>Likely</th><th>High</th><th>Confidence</th></tr></thead><tbody>${e.tasks.map((t) => `<tr><td>${esc(t.deliverable_id)}</td><td>${esc(t.name)}<div class="meta">${esc(t.assumptions)}</div></td><td>${t.low_hours}</td><td>${t.likely_hours}</td><td>${t.high_hours}</td><td><span class="badge ${t.confidence === "low" ? "warn" : ""}">${esc(t.confidence)}</span></td></tr>`).join("")}<tr><td></td><td><b>Total</b></td><td><b>${e.low_hours}</b></td><td><b>${e.likely_hours}</b></td><td><b>${e.high_hours}</b></td><td></td></tr></tbody></table><p><b>Expected ${e.expected_hours} h</b> (PERT). Price range <b>${esc(e.currency)} ${e.price_low.toLocaleString()} to ${e.price_high.toLocaleString()}</b> at ${esc(e.currency)} ${e.hourly_rate}/h with ${e.contingency_pct}% contingency. The model estimates task hours; all arithmetic is done in code.</p>${list("Risks", e.risks)}`; },
+  changes: (v, d) => { const x = d.diff; const shown = x.changes.filter((c) => c.change !== "unchanged"); const flagged = shown.filter((c) => c.out_of_scope).length; return `<div class="cards"><div class="card"><b>${shown.length}</b><span>changes vs approved v${x.baseline_version}</span></div><div class="card"><b>${flagged}</b><span>add work: quote separately</span></div><div class="card"><b>${x.hours_delta_expected >= 0 ? "+" : ""}${x.hours_delta_expected} h</b><span>effect on expected effort</span></div></div><p class="meta">Compared with the approved version, not with the last draft. Changes that reduce work aren't flagged.</p><table><thead><tr><th>Change</th><th>Requirement</th><th>Before → after</th></tr></thead><tbody>${shown.map((c) => `<tr><td><span class="badge ${CHANGE[c.change] ?? ""}">${esc(c.change)}</span>${c.out_of_scope ? `<div style="margin-top:4px"><span class="badge warn">adds work</span></div>` : ""}</td><td>${esc(c.requirement_id)}<div>${esc(c.summary)}</div>${evidence(c.evidence)}</td><td>${c.before ? `<div class="meta">Before: ${esc(c.before)}</div>` : ""}${c.after ? `<div>After: ${esc(c.after)}</div>` : ""}</td></tr>`).join("") || `<tr><td colspan="3" class="meta">No requirement changes.</td></tr>`}</tbody></table>${list("Constraint changes", x.constraint_changes)}<p>Price effect: <b>${esc(d.estimate.currency)} ${x.price_delta_low.toLocaleString()} to ${x.price_delta_high.toLocaleString()}</b>. ${x.changes.filter((c) => c.change === "unchanged").length} requirement(s) unchanged.</p>`; },
   proposal: (v, d) => `<div class="doc">${markdown(d.proposal_md)}</div>`,
-  approve: (v) => `${v.issues.length ? v.issues.map((i) => `<div class="issue ${i.severity}">${i.severity === "block" ? "Must fix" : "Check"}: ${esc(i.message)}</div>`).join("") : `<div class="meta">No issues found by the automatic review.</div>`}
-    ${v.status === "approved" ? `<p><span class="badge b-approved">approved</span> by ${esc(v.approved_by)} at ${esc(v.approved_at)}${v.approval_note ? ` · note: ${esc(v.approval_note)}` : ""}</p><div class="row"><button class="btn" id="export">Download proposal for the client</button></div>`
-      : v.status === "draft" ? `<h3>Approve</h3><p class="meta">Approving makes this the baseline that later meetings are compared against, and allows sending the proposal.</p><input id="a-name" placeholder="Your name" value="${esc(actor())}"><input id="a-note" placeholder="Note (required if there are blocking issues)"><div class="row"><button class="btn" id="approve">Approve version ${v.number}</button><span class="meta" id="a-msg"></span></div>`
+  approve: (v) => `${v.issues.length ? v.issues.map((i) => `<div class="issue ${i.severity}">${i.severity === "block" ? "Must fix" : "Check"}: ${esc(i.message)}</div>`).join("") : `<div class="banner ok">The automatic review found no issues.</div>`}
+    ${v.status === "approved" ? `<div class="banner ok">Approved by <b>${esc(v.approved_by)}</b> at ${esc(v.approved_at)}${v.approval_note ? ` · note: ${esc(v.approval_note)}` : ""}</div><div class="row"><button class="btn" id="export">Download proposal for the client</button></div>`
+      : v.status === "draft" ? `<h3 class="label">Approve</h3><p class="meta">Approving makes this the baseline later meetings are compared against, and unlocks the client proposal download. ${v.issues.some((i) => i.severity === "block") ? "There are blocking issues, so a note explaining your decision is required." : ""}</p><div class="row"><input id="a-name" placeholder="Your name" value="${esc(actor())}" style="max-width:220px"><input id="a-note" placeholder="Note${v.issues.some((i) => i.severity === "block") ? " (required)" : " (optional)"}" style="flex:1;min-width:200px"></div><div class="row"><button class="btn" id="approve">Approve version ${v.number}</button><button class="btn secondary" disabled title="Only an approved version can be exported">Download proposal (after approval)</button><span class="meta" id="a-msg"></span></div>`
       : `<p class="meta">This version is ${esc(v.status)} and can no longer be approved.</p>`}`,
 };
 
@@ -184,13 +438,13 @@ function wireApprove(v) {
   const a = $("#approve");
   if (a) a.onclick = async () => {
     const name = $("#a-name").value.trim(); saveActor(name);
-    try { await api(`/api/projects/${state.pid}/versions/${v.number}/approve`, { method: "POST", body: JSON.stringify({ actor: name, ...($("#a-note").value.trim() ? { note: $("#a-note").value.trim() } : {}) }) }); openProject(state.pid, v.number); }
+    try { await api(`/api/projects/${state.pid}/versions/${v.number}/approve`, { method: "POST", body: JSON.stringify({ actor: name, ...($("#a-note").value.trim() ? { note: $("#a-note").value.trim() } : {}) }) }); suite.toast(`Version ${v.number} approved`); openProject(state.pid, v.number); }
     catch (e) { $("#a-msg").textContent = e.message; }
   };
   const x = $("#export");
   if (x) x.onclick = async () => {
     try {
-      const md = await api(`/api/projects/${state.pid}/versions/${v.number}/export?actor=${encodeURIComponent(actor() || "user")}`);
+      const md = await api(`/api/projects/${state.pid}/versions/${v.number}/export?actor=${encodeURIComponent(actor())}`);
       const url = URL.createObjectURL(new Blob([md], { type: "text/markdown" }));
       const link = Object.assign(document.createElement("a"), { href: url, download: `proposal-v${v.number}.md` });
       link.click(); URL.revokeObjectURL(url);
@@ -203,11 +457,11 @@ function inline(s) {
     .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 }
 function markdown(md) {
-  const out = []; let list = null, table = null;
-  const flush = () => { if (list) { out.push(`<ul>${list.join("")}</ul>`); list = null; } if (table) { out.push(`<table>${table.join("")}</table>`); table = null; } };
+  const out = []; let lst = null, table = null;
+  const flush = () => { if (lst) { out.push(`<ul>${lst.join("")}</ul>`); lst = null; } if (table) { out.push(`<table>${table.join("")}</table>`); table = null; } };
   for (const line of md.split("\n")) {
     if (/^\|/.test(line)) { if (/^\|[-| ]+\|$/.test(line)) continue; table ??= []; const cells = line.split("|").slice(1, -1).map((c) => `<td>${inline(c.trim())}</td>`); table.push(`<tr>${cells.join("")}</tr>`); continue; }
-    if (/^- /.test(line)) { list ??= []; list.push(`<li>${line.startsWith("- [ ] ") ? "☐ " + inline(line.slice(6)) : inline(line.slice(2))}</li>`); continue; }
+    if (/^- /.test(line)) { lst ??= []; lst.push(`<li>${line.startsWith("- [ ] ") ? "☐ " + inline(line.slice(6)) : inline(line.slice(2))}</li>`); continue; }
     flush();
     const h = line.match(/^(#{1,3}) (.*)$/);
     if (h) out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`);
@@ -221,8 +475,12 @@ function markdown(md) {
 (async () => {
   const h = await api("/health").catch(() => null);
   state.building = Boolean(h?.building_enabled);
+  $("#s-right").innerHTML = h ? `<span class="badge ${state.building ? "ok" : "warn"}">${state.building ? "Building on" : "Building off"}</span>` : "";
   if (h && !state.building) banner("Building is off until ANTHROPIC_API_KEY is set. You can still create projects, add transcripts and review versions.", "info");
-  loadProjects();
+  samples = await api("/api/samples").catch(() => []);
+  const ps = await loadProjects();
+  const built = ps.find((p) => p.latest_version);
+  if (built) openProject(built.id); else welcome(ps);
 })();
 </script>
 </body>

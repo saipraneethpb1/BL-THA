@@ -81,3 +81,12 @@ def test_building_disabled_without_a_key(client: TestClient) -> None:
     pid = client.post("/api/projects", json={"name": "Vets", "client": "GV"}).json()["id"]
     assert client.post(f"/api/projects/{pid}/build").status_code == 503
     assert "<title>Scope Builder</title>" in client.get("/").text
+
+
+def test_sample_meetings_are_listed_and_served_safely(client: TestClient) -> None:
+    samples = client.get("/api/samples").json()
+    assert [s["name"] for s in samples] == ["ami_ES2002b", "ami_ES2002c", "ami_ES2002d"]
+    text = client.get("/api/samples/ami_ES2002c").text
+    assert len(text) > 10_000 and text.splitlines()[1].startswith("[00:00:00] Speaker A:")
+    assert client.get("/api/samples/..%2F..%2Fpyproject").status_code == 404
+    assert client.get("/api/samples/unknown").status_code == 404
