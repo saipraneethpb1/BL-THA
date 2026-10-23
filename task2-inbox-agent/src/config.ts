@@ -18,6 +18,10 @@ export interface Config {
   readonly draftLimitPer10Min: number;
   /** Public demo: lesson checks per day for the whole site. */
   readonly lessonChecksPerDay: number;
+  /** Google OAuth client for Connect Gmail (docs/GMAIL_SETUP.md); null = Gmail off. */
+  readonly google: { clientId: string; clientSecret: string } | null;
+  /** Minutes between background syncs of connected Gmail inboxes (0 = only "Sync now"). */
+  readonly gmailSyncMinutes: number;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -35,6 +39,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     budgetUsd: env.INBOX_BUDGET_USD ? Number(env.INBOX_BUDGET_USD) : null,
     draftLimitPer10Min: Number(env.INBOX_DRAFT_LIMIT_PER_10MIN ?? 15),
     lessonChecksPerDay: Number(env.INBOX_LESSON_CHECKS_PER_DAY ?? 3),
+    google: env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET ? { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET } : null,
+    gmailSyncMinutes: Number(env.INBOX_GMAIL_SYNC_MINUTES ?? 3),
   };
 }
 

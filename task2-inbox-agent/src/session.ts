@@ -9,6 +9,13 @@ export const COOKIE = "bl_session";
 export const GUEST = "guest";
 export const DEMO_ACCOUNTS = ["demo1", "demo2", "demo3", "demo4", "demo5"] as const;
 
+/** A Google login (Connect Gmail) gets a private workspace named from a hash of its Google id. */
+export const GOOGLE_ACCOUNT = /^g_[0-9a-f]{16}$/;
+
+export function isAccount(account: string): boolean {
+  return (DEMO_ACCOUNTS as readonly string[]).includes(account) || GOOGLE_ACCOUNT.test(account);
+}
+
 export function sessionSecret(env: NodeJS.ProcessEnv = process.env): string {
   return env.SESSION_SECRET || env.KB_API_KEY || "change-me";
 }
@@ -31,7 +38,19 @@ export function accountFromToken(secret: string, token: string | undefined, nowS
   const given = Buffer.from(sig);
   if (given.length !== expected.length || !timingSafeEqual(given, expected)) return null;
   if (!/^\d+$/.test(expires) || Number(expires) < nowS) return null;
-  return (DEMO_ACCOUNTS as readonly string[]).includes(account) ? account : null;
+  return isAccount(account) ? account : null;
+}
+
+/** Same rule as kb/session.py: share cookies across kb. / inbox. / scope. of one host;
+ *  host-only (undefined) for localhost and plain IPs. */
+export function cookieDomain(host: string | undefined): string | undefined {
+  if (!host) return undefined;
+  let h = host.split(":")[0]!.toLowerCase();
+  for (const prefix of ["kb.", "inbox.", "scope."]) {
+    if (h.startsWith(prefix)) { h = h.slice(prefix.length); break; }
+  }
+  if (h === "localhost" || h === "127.0.0.1" || /^[\d.]+$/.test(h) || !h.includes(".")) return undefined;
+  return h;
 }
 
 export function cookieValue(header: string | undefined, name = COOKIE): string | undefined {

@@ -313,9 +313,9 @@ async def auth_login(body: LoginIn, request: Request) -> JSONResponse:
 @app.post("/auth/logout")
 async def auth_logout(request: Request) -> JSONResponse:
     resp = JSONResponse({"account": None})
-    resp.delete_cookie(
-        session.COOKIE, domain=session.cookie_domain(request.headers.get("host")), path="/"
-    )
+    domain = session.cookie_domain(request.headers.get("host"))
+    resp.delete_cookie(session.COOKIE, domain=domain, path="/")
+    resp.delete_cookie("bl_who", domain=domain, path="/")  # the Gmail address shown in the bar
     return resp
 
 

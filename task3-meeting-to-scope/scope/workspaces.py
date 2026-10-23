@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from scope.pipeline import ScopeBuilder
-from scope.session import DEMO_ACCOUNTS, GUEST
+from scope.session import GUEST, is_account
 from scope.store import Store
 
 MakeBuilder = Callable[[Store], ScopeBuilder | None]
@@ -35,7 +35,7 @@ class Workspaces:
     def path_for(self, account: str) -> Path:
         if account == GUEST:
             return self.guest_db
-        if account not in DEMO_ACCOUNTS:  # only known names ever become file names
+        if not is_account(account):  # only known names ever become file names
             raise ValueError(f"unknown account {account!r}")
         return self.accounts_dir / f"{account}.db"
 
@@ -59,7 +59,7 @@ class Workspaces:
     async def all_stores(self) -> list[Store]:
         """Every workspace that exists on disk, for site-wide usage and budget."""
         names = [GUEST] + sorted(
-            p.stem for p in self.accounts_dir.glob("*.db") if p.stem in DEMO_ACCOUNTS
+            p.stem for p in self.accounts_dir.glob("*.db") if is_account(p.stem)
         )
         return [(await self.get(n))[0] for n in names]
 

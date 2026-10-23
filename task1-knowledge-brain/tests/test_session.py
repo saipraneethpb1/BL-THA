@@ -69,3 +69,10 @@ def test_public_visitors_must_sign_in_to_change_shared_settings(client: TestClie
     )
     assert client.put("/url-health/settings", json=body, headers=visitor).status_code == 200
     assert client.get("/url-health", headers=visitor).status_code == 200  # reading needs no sign-in
+
+
+def test_google_logins_are_their_own_workspaces() -> None:
+    token = session.make_token("g_0123456789abcdef")
+    assert session.account_from_token(token) == "g_0123456789abcdef"
+    assert session.account_from_token(session.make_token("g_short")) is None
+    assert session.account_from_token(session.make_token("admin")) is None

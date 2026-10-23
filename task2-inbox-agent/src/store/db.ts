@@ -82,6 +82,16 @@ CREATE TABLE IF NOT EXISTS outbox (
   mode TEXT NOT NULL,            -- human | auto
   sent_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+-- Emails imported from a connected Gmail account: what's needed to label the message and
+-- to reply in the same Gmail thread.
+CREATE TABLE IF NOT EXISTS gmail_messages (
+  email_id TEXT PRIMARY KEY REFERENCES emails(id),
+  gmail_id TEXT NOT NULL UNIQUE,
+  thread_id TEXT NOT NULL,
+  message_id TEXT,               -- the RFC 822 Message-ID header, for In-Reply-To
+  references_hdr TEXT,
+  labelled INTEGER NOT NULL DEFAULT 0
+);
 -- Guidance learned from human edits. One row = the complete set of lessons for a
 -- category at one version, so rollback is "activate an earlier row", never an edit.
 CREATE TABLE IF NOT EXISTS lesson_versions (
@@ -179,6 +189,39 @@ export class InboxStore {
     this.db = new DatabaseSync(path);
     this.db.exec("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
     this.db.exec(SCHEMA);
+    // Older databases: delivery = where a sent reply actually went ("gmail:<id>"), or
+    // "error: ..." if delivery failed; NULL for the simulated outbox.
+    const cols = (this.db.prepare("PRAGMA table_info(outbox)").all() as Row[]).map((c) => c.name);
+    if (!cols.includes("delivery")) this.db.exec("ALTER TABLE outbox ADD COLUMN delivery TEXT");
+  }
+
+  /** The latest reply recorded for an email (what was sent, by whom, and where it went). */
+  latestOutbox(emailId: string): { id: number; to_email: string; subject: string; body: string; mode: string; delivery: string | null } | undefined {
+    return this.db.prepare("SELECT * FROM outbox WHERE email_id = ? ORDER BY id DESC LIMIT 1").get(emailId) as
+      { id: number; to_email: string; subject: string; body: string; mode: string; delivery: string | null } | undefined;
+  }
+
+  setDelivery(outboxId: number, delivery: string): void {
+    this.db.prepare("UPDATE outbox SET delivery = ? WHERE id = ?").run(delivery, outboxId);
+  }
+
+  linkGmail(l: { emailId: string; gmailId: string; threadId: string; messageId: string | null; references: string | null }): void {
+    this.db
+      .prepare("INSERT OR IGNORE INTO gmail_messages(email_id, gmail_id, thread_id, message_id, references_hdr) VALUES (?, ?, ?, ?, ?)")
+      .run(l.emailId, l.gmailId, l.threadId, l.messageId, l.references);
+  }
+
+  gmailLink(emailId: string): { gmail_id: string; thread_id: string; message_id: string | null; references_hdr: string | null; labelled: number } | undefined {
+    return this.db.prepare("SELECT * FROM gmail_messages WHERE email_id = ?").get(emailId) as
+      { gmail_id: string; thread_id: string; message_id: string | null; references_hdr: string | null; labelled: number } | undefined;
+  }
+
+  hasGmailMessage(gmailId: string): boolean {
+    return this.db.prepare("SELECT 1 FROM gmail_messages WHERE gmail_id = ?").get(gmailId) !== undefined;
+  }
+
+  markGmailLabelled(emailId: string): void {
+    this.db.prepare("UPDATE gmail_messages SET labelled = 1 WHERE email_id = ?").run(emailId);
   }
 
   addEmail(e: Omit<EmailRow, "status" | "error">): boolean {
@@ -196,12 +239,14 @@ export class InboxStore {
     return r ? toEmail(r) : undefined;
   }
 
-  listEmails(): (EmailRow & { category: string | null; urgency: string | null; blocker: string | null; sent_mode: string | null })[] {
+  listEmails(): (EmailRow & { category: string | null; urgency: string | null; blocker: string | null; sent_mode: string | null; delivery: string | null; from_gmail: boolean })[] {
     const rows = this.db
       .prepare(
         `SELECT e.*, json_extract(d.classification, '$.category') AS category,
                 json_extract(d.classification, '$.urgency') AS urgency, d.auto_send_blocker AS blocker,
-                (SELECT mode FROM outbox o WHERE o.email_id = e.id ORDER BY o.id DESC LIMIT 1) AS sent_mode
+                (SELECT mode FROM outbox o WHERE o.email_id = e.id ORDER BY o.id DESC LIMIT 1) AS sent_mode,
+                (SELECT delivery FROM outbox o WHERE o.email_id = e.id ORDER BY o.id DESC LIMIT 1) AS delivery,
+                EXISTS (SELECT 1 FROM gmail_messages g WHERE g.email_id = e.id) AS from_gmail
          FROM emails e LEFT JOIN drafts d ON d.id = (SELECT max(id) FROM drafts WHERE email_id = e.id)
          ORDER BY CASE json_extract(d.classification, '$.urgency')
                     WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'normal' THEN 2 ELSE 3 END,
@@ -214,6 +259,8 @@ export class InboxStore {
       urgency: (r.urgency as string | null) ?? null,
       blocker: (r.blocker as string | null) ?? null,
       sent_mode: (r.sent_mode as string | null) ?? null,
+      delivery: (r.delivery as string | null) ?? null,
+      from_gmail: Boolean(r.from_gmail),
     }));
   }
 

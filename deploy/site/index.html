@@ -367,9 +367,12 @@ body.has-usage-bar { padding-bottom: 46px; }
     let me;
     try { me = await fetch("/_auth/me").then((r) => r.ok ? r.json() : null); } catch { return; }
     if (!me) return;
-    const initial = (me.account || "g").replace(/^demo/, "")[0].toUpperCase();
+    // A Google login (Connect Gmail) is named by a hash; show its address instead.
+    const who = me.account?.startsWith("g_") ? decodeURIComponent((document.cookie.match(/(?:^|; )bl_who=([^;]*)/) || [])[1] || "Gmail account") : me.account;
+    const initial = (who || "g").replace(/^demo/, "")[0].toUpperCase();
+    const safe = String(who).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
     acctSlot.innerHTML = me.account
-      ? `<button class="s-acct" type="button" title="Signed in as ${me.account}: your own inbox and projects. Click to sign out."><span class="who">${initial}</span>${me.account}</button>`
+      ? `<button class="s-acct" type="button" title="Signed in as ${safe}: your own inbox and projects. Click to sign out."><span class="who">${initial}</span>${safe}</button>`
       : `<button class="s-acct guest" type="button" title="You're in the shared guest workspace. Sign in with a demo account to keep your own work."><span class="who">G</span>Guest · Sign in</button>`;
     acctSlot.querySelector("button").onclick = me.account ? signOut : () => signInDialog(me.demo_accounts);
   }

@@ -5,7 +5,7 @@ Three connected services that do a software consultant's slow work: knowing the 
 | Service | What it does | Language | URL |
 |---|---|---|---|
 | **Knowledge Brain** (Task 1) | Crawls the Brilliant Directories help center (1,537 articles, 5,040 screenshots) and keeps it fresh daily. Answers questions with citations, and sends anything it can't answer to a human expert. | Python | http://localhost:8001 |
-| **Inbox Agent** (Task 2) | Sorts customer emails and drafts replies from the Knowledge Brain. Gmail-style inbox: each email gets a label under a parent type, and a human approves each draft. A label may send on its own after X unedited approvals in a row (X is set in Settings, 20 by default). | TypeScript | http://localhost:8002 |
+| **Inbox Agent** (Task 2) | Sorts customer emails and drafts replies from the Knowledge Brain. Gmail-style inbox: each email gets a label under a parent type, and a human approves each draft. A label may send on its own after X unedited approvals in a row (X is set in Settings, 20 by default). Optionally connected to a real Gmail account ([setup](docs/GMAIL_SETUP.md)). | TypeScript | http://localhost:8002 |
 | **Scope Builder** (Task 3) | A team of agents turns meeting transcripts into requirements, a scope, an estimate and a proposal. It checks existing product features first, compares follow-up meetings with the approved scope, and sends nothing without approval. | Python | http://localhost:8003 |
 
 Tasks 2 and 3 use Task 1 only through its HTTP API (docs at http://localhost:8001/docs).

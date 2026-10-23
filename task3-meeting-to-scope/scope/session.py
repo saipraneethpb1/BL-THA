@@ -10,6 +10,7 @@ and the Scope Builder (scope/session.py).
 import hashlib
 import hmac
 import os
+import re
 import time
 
 COOKIE = "bl_session"
@@ -19,6 +20,14 @@ MAX_AGE_S = 30 * 24 * 3600
 # Preset demo accounts. The passwords are shown on the sign-in screen: they separate
 # workspaces for a demo, they don't protect anything secret.
 DEMO_ACCOUNTS = {f"demo{i}": f"bd-demo-{i}" for i in range(1, 6)}
+
+# A Google login (Connect Gmail in the Inbox Agent) gets its own private workspace, named
+# from a hash of the Google account id. Only that login's signed cookie can reach it.
+GOOGLE_ACCOUNT = re.compile(r"g_[0-9a-f]{16}")
+
+
+def is_account(account: str) -> bool:
+    return account in DEMO_ACCOUNTS or GOOGLE_ACCOUNT.fullmatch(account) is not None
 
 
 def secret() -> bytes:
@@ -46,7 +55,7 @@ def account_from_token(token: str | None, now: float | None = None) -> str | Non
         return None
     if not expires.isdigit() or int(expires) < (now or time.time()):
         return None
-    return account if account in DEMO_ACCOUNTS else None
+    return account if is_account(account) else None
 
 
 def check_password(account: str, password: str) -> bool:

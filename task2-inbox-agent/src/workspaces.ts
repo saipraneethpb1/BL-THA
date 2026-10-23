@@ -5,12 +5,12 @@
  * SQLite file under data/accounts/, so they persist across visits and nobody else sees them.
  * A new account's inbox starts with the 40 sample emails, ready to try.
  */
-import { existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { EmailCase } from "./dataset/schema.js";
 import type { LearningService } from "./feedback/learning.js";
 import type { InboxAgent } from "./pipeline.js";
-import { DEMO_ACCOUNTS, GUEST } from "./session.js";
+import { GUEST, isAccount } from "./session.js";
 import { InboxStore } from "./store/db.js";
 
 export interface Workspace {
@@ -47,7 +47,7 @@ export class Workspaces {
 
   pathFor(account: string): string {
     if (account === GUEST) return this.guestDb;
-    if (!(DEMO_ACCOUNTS as readonly string[]).includes(account)) throw new Error(`unknown account ${account}`);
+    if (!isAccount(account)) throw new Error(`unknown account ${account}`);
     return join(this.accountsDir, `${account}.db`);
   }
 
@@ -55,7 +55,8 @@ export class Workspaces {
     let ws = this.open.get(account);
     if (!ws) {
       const path = this.pathFor(account);
-      const fresh = account !== GUEST && path !== ":memory:" && !existsSync(path);
+      // A demo account starts with the sample emails; a Gmail workspace starts empty.
+      const fresh = account !== GUEST && !account.startsWith("g_") && path !== ":memory:" && !existsSync(path);
       if (fresh) mkdirSync(dirname(path), { recursive: true });
       ws = this.make(new InboxStore(path));
       if (fresh) seedEmails(ws.store, this.root, "dev");
@@ -66,10 +67,23 @@ export class Workspaces {
 
   /** Every inbox that exists, for site-wide usage and budget. */
   all(): Workspace[] {
+    return this.names().map((n) => this.get(n));
+  }
+
+  names(): string[] {
     const names = existsSync(this.accountsDir)
       ? readdirSync(this.accountsDir).filter((f) => f.endsWith(".db")).map((f) => f.slice(0, -3))
-        .filter((n) => (DEMO_ACCOUNTS as readonly string[]).includes(n)).sort()
+        .filter((n) => isAccount(n)).sort()
       : [];
-    return [GUEST, ...names].map((n) => this.get(n));
+    return [GUEST, ...names];
+  }
+
+  /** Deletes an account's inbox for good (used when a Gmail workspace disconnects). */
+  erase(account: string): void {
+    if (account === GUEST) throw new Error("the guest inbox can't be erased");
+    const path = this.pathFor(account);
+    this.open.get(account)?.store.db.close();
+    this.open.delete(account);
+    for (const suffix of ["", "-wal", "-shm"]) rmSync(`${path}${suffix}`, { force: true });
   }
 }

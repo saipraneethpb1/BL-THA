@@ -65,7 +65,7 @@ The rule that holds it together: **Tasks 2 and 3 use Task 1 only through its HTT
 | **Secrets removed before any model sees them** | Card numbers (Luhn-checked) and pasted passwords. On the 40 dev emails it caught all 3 labelled cases, with 0 false alarms. |
 | **"X in a row"** | X is a per-account setting (default 20, 1–100). Changing it applies at once: lowering X grants labels already past it; raising it puts autonomous labels back under review until their streak catches up. My definitions: *same kind* = same category; *unchanged* = identical text after whitespace. Autonomy is lost on any edit, rejection or escalation, a failed spot check (20% of auto-sent emails are re-checked), a manual revoke, or a lesson change. Even when autonomous, an email still goes to a person if it is critical, angry, contained secrets, looks like an injection, or the knowledge base could not answer it. |
 | **Learning from edits** | A model reads recent corrections and proposes lessons. Past emails are re-drafted with and without them and scored against what the human actually sent. A lesson goes live only if it helps on emails the miner never saw, or a person writes a reason. Rollback is one click, and both promote and rollback reset autonomy. |
-| **Simulated outbox** | Real sending (Gmail or IMAP) is plumbing, not judgement. Everything up to the send is real. |
+| **Live Gmail, in a private workspace** | Connect Gmail signs in with Google (OAuth, `gmail.modify` scope) and opens a workspace only that Google login can reach; the demo and guest inboxes are public, so Gmail never goes there. New mail is imported every few minutes, labelled in Gmail too (`Inbox Agent/<parent type>/<label>`), drafted, and the approved or auto-sent reply goes out from that Gmail account in the same thread. Only mail that arrives after connecting is drafted automatically, so a busy inbox can't run up the bill. Refresh tokens are stored encrypted; Disconnect revokes access and erases the workspace. Without Gmail the outbox is simulated. Setup: [docs/GMAIL_SETUP.md](docs/GMAIL_SETUP.md). |
 
 ### Task 3: Scope Builder
 
@@ -156,7 +156,7 @@ Embeddings are local: bge-small, 384 dimensions. Claude has no embedding model, 
 1. Date-aware lookup for release notes, and a calibrated "partial" label so correct answers stop going to a human.
 2. Change detection that also links follow-up *decisions*, not only requirements (the remaining Task 3 miss).
 3. Grade learning by a judge model on held-out emails, not by wording closeness.
-4. Real Gmail and IMAP integration, with the same review screen.
+4. Gmail push notifications (Pub/Sub watch) instead of polling, IMAP for other providers, and Google app verification so any Gmail user can connect.
 5. Compare estimates with actual hours, so the estimator learns per task type.
 6. Multi-tenant Postgres with pgvector, per-tenant keys, and SSO for the screens.
 7. Harden the deployment: an Elastic IP and a real domain, nightly database backups to S3, and alerts on `/health`.

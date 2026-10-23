@@ -1,4 +1,5 @@
 /** HTTP API and review screen for the Inbox Agent. */
+import { createHash, randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
@@ -13,7 +14,9 @@ import { InboxAgent, ReviewError, type ReviewAction } from "./pipeline.js";
 import { checkBudget, GuardError, RateLimiter, visitor } from "./guard.js";
 import { readSettings, THRESHOLD_MAX, THRESHOLD_MIN, updateSettings } from "./settings.js";
 import { InboxStore } from "./store/db.js";
-import { accountFromToken, cookieValue, GUEST, sessionSecret } from "./session.js";
+import { accountFromToken, COOKIE, cookieDomain, cookieValue, GUEST, makeToken, sessionSecret } from "./session.js";
+import { authUrl, exchangeCode, identity, type Fetch } from "./gmail/google.js";
+import { GmailService } from "./gmail/service.js";
 import { seedEmails, Workspaces, type Workspace } from "./workspaces.js";
 
 const ROOT = join(import.meta.dirname, "..");
@@ -41,6 +44,8 @@ export interface AppDeps extends Workspace {
    *  inbox above: that's how the tests run. */
   workspaces?: Workspaces;
   sessionSecret?: string;
+  /** For tests: a fake fetch for Google's APIs. */
+  googleFetch?: Fetch;
 }
 
 export function defaultDeps(config = loadConfig()): AppDeps {
@@ -160,14 +165,20 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     if (!agent) return reply.status(503).send({ error: "drafting is disabled: ANTHROPIC_API_KEY is not configured" });
     draftLimiter.check(req);
     guardSpend();
-    return agent.process(req.params.id);
+    const r = await agent.process(req.params.id);
+    // A Gmail email: label it in Gmail, and send it there if it was auto-sent.
+    const delivery_error = await gmailOf(ws(req))?.afterProcess(req.params.id, r.autoSent).then(() => null, (e: Error) => e.message);
+    return { ...r, ...(delivery_error ? { delivery_error } : {}) };
   });
 
   app.post<{ Params: { id: string } }>("/api/emails/:id/review", async (req, reply) => {
     const agent = ws(req).agent;
     if (!agent) return reply.status(503).send({ error: "drafting is disabled: ANTHROPIC_API_KEY is not configured" });
     const action = compact(Review.parse(req.body)) as ReviewAction;
-    return agent.review(req.params.id, action);
+    const r = agent.review(req.params.id, action);
+    // A Gmail email that was just sent: send it from the connected Gmail account.
+    const delivery_error = await gmailOf(ws(req))?.deliver(req.params.id).then(() => null, (e: Error) => e.message);
+    return { ...r, ...(delivery_error ? { delivery_error } : {}) };
   });
 
   const settingsOf = (req: FastifyRequest) => readSettings(ws(req).store, deps.config.autonomyThreshold);
@@ -228,6 +239,115 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       { autonomyThreshold: body.autonomy_threshold, autoSend: body.auto_send }, body.actor ?? account);
     return { autonomy_threshold: r.settings.autonomyThreshold, auto_send: r.settings.autoSend, events: r.events };
   });
+
+  // ----- Gmail (docs/GMAIL_SETUP.md). Connecting signs in with Google and opens a private
+  // workspace for that Google account: Gmail never goes into the shared guest or demo inboxes.
+
+  const google = deps.config.google;
+  const gmailServices = new WeakMap<InboxStore, GmailService>();
+  const gmailOf = (w: Workspace): GmailService | null => {
+    if (!google) return null;
+    let svc = gmailServices.get(w.store);
+    if (!svc) gmailServices.set(w.store, (svc = new GmailService(w.store, w.agent, google, secret, deps.googleFetch ?? fetch)));
+    return svc;
+  };
+  const isHttps = (req: FastifyRequest) => req.headers["x-forwarded-proto"] === "https" || req.protocol === "https";
+  const redirectUri = (req: FastifyRequest) => `${isHttps(req) ? "https" : "http"}://${req.headers.host}/api/gmail/callback`;
+  const cookie = (req: FastifyRequest, name: string, value: string, opts: { maxAge: number; httpOnly?: boolean; path?: string; shared?: boolean }) => {
+    const domain = opts.shared ? cookieDomain(req.headers.host) : undefined;
+    return [`${name}=${encodeURIComponent(value)}`, `Max-Age=${opts.maxAge}`, `Path=${opts.path ?? "/"}`, "SameSite=Lax",
+      ...(domain ? [`Domain=${domain}`] : []), ...(opts.httpOnly === false ? [] : ["HttpOnly"]), ...(isHttps(req) ? ["Secure"] : [])].join("; ");
+  };
+  /** A Google account's workspace name: a hash of its stable Google id, never the address. */
+  const googleAccount = (sub: string) => `g_${createHash("sha256").update(`google:${sub}`).digest("hex").slice(0, 16)}`;
+  const gmailSync = new RateLimiter(10, 600, "Gmail syncs");
+
+  app.get("/api/gmail/status", async (req) => {
+    const account = accountOf(req);
+    const svc = account.startsWith("g_") ? gmailOf(ws(req)) : null;
+    return { configured: google !== null, workspace: account, ...(svc ? svc.status() : { connected: false }) };
+  });
+
+  app.get("/api/gmail/connect", async (req, reply) => {
+    if (!google || !deps.workspaces) return reply.status(503).type("text/html").send("Gmail isn't set up on this server yet (see docs/GMAIL_SETUP.md).");
+    const nonce = randomBytes(16).toString("hex"); // ties Google's answer to this browser
+    void reply.header("set-cookie", cookie(req, "bl_oauth", nonce, { maxAge: 600, path: "/api/gmail" }));
+    return reply.redirect(authUrl(google, redirectUri(req), nonce));
+  });
+
+  app.get<{ Querystring: { code?: string; state?: string; error?: string } }>("/api/gmail/callback", async (req, reply) => {
+    const back = (why: string) => reply.redirect(`/#/gmail-error/${encodeURIComponent(why)}`);
+    if (!google || !deps.workspaces) return back("Gmail isn't set up on this server.");
+    if (req.query.error) return back(req.query.error === "access_denied" ? "Google access wasn't granted." : req.query.error);
+    const expected = cookieValue(req.headers.cookie, "bl_oauth");
+    if (!req.query.code || !expected || req.query.state !== expected) return back("The sign-in expired or came from another browser. Try again.");
+    let tokens, who;
+    try {
+      tokens = await exchangeCode(google, req.query.code, redirectUri(req), deps.googleFetch ?? fetch);
+      who = identity(tokens.id_token);
+    } catch (e) {
+      return back(e instanceof Error ? e.message : String(e));
+    }
+    const account = googleAccount(who.sub);
+    const svc = gmailOf(deps.workspaces.get(account))!;
+    try { svc.connect(tokens, who); } catch (e) { return back(e instanceof Error ? e.message : String(e)); }
+    void reply.header("set-cookie", [
+      cookie(req, COOKIE, makeToken(secret, account), { maxAge: 30 * 24 * 3600, shared: true }),
+      cookie(req, "bl_who", who.email, { maxAge: 30 * 24 * 3600, shared: true, httpOnly: false }), // shown in the top bar
+      cookie(req, "bl_oauth", "", { maxAge: 0, path: "/api/gmail" }),
+    ]);
+    // First import in the background; the page shows the mail arriving.
+    void svc.sync({ draftLimit: 3, beforeDraft: guardSpend }).catch(() => undefined);
+    return reply.redirect("/#/folder/inbox");
+  });
+
+  const gmailHere = (req: FastifyRequest) => {
+    const svc = accountOf(req).startsWith("g_") ? gmailOf(ws(req)) : null;
+    if (!svc?.connection()) throw new ReviewError("this inbox isn't connected to Gmail");
+    return svc;
+  };
+
+  app.post("/api/gmail/sync", async (req) => {
+    const svc = gmailHere(req);
+    gmailSync.check(req);
+    guardSpend();
+    return svc.sync({ draftLimit: 5, beforeDraft: guardSpend });
+  });
+
+  app.post<{ Params: { id: string } }>("/api/gmail/deliver/:id", async (req) => {
+    await gmailHere(req).deliver(req.params.id);
+    return { delivered: req.params.id };
+  });
+
+  /** Revokes Google's access and erases everything imported, then signs out. */
+  app.post("/api/gmail/disconnect", async (req, reply) => {
+    const account = accountOf(req);
+    if (!account.startsWith("g_") || !deps.workspaces) return reply.status(409).send({ error: "this inbox isn't a Gmail workspace" });
+    await gmailOf(ws(req))?.disconnect();
+    deps.workspaces.erase(account);
+    void reply.header("set-cookie", [
+      cookie(req, COOKIE, "", { maxAge: 0, shared: true }),
+      cookie(req, "bl_who", "", { maxAge: 0, shared: true, httpOnly: false }),
+    ]);
+    return { erased: true };
+  });
+
+  // Connected Gmail inboxes are checked for new mail every few minutes (within the budget).
+  if (google && deps.workspaces && deps.config.gmailSyncMinutes > 0) {
+    const all = deps.workspaces;
+    const timer = setInterval(() => {
+      void (async () => {
+        for (const name of all.names().filter((n) => n.startsWith("g_"))) {
+          const svc = gmailOf(all.get(name));
+          if (!svc?.connection()) continue;
+          try { guardSpend(); } catch { return; }
+          await svc.sync({ draftLimit: 3, beforeDraft: guardSpend }).catch(() => undefined);
+        }
+      })();
+    }, deps.config.gmailSyncMinutes * 60_000);
+    timer.unref();
+    app.addHook("onClose", async () => clearInterval(timer));
+  }
 
   /** Loads the labelled dataset into this inbox (labels are not shown to the agent). */
   app.post<{ Params: { split: string } }>("/api/seed/:split", async (req) => {

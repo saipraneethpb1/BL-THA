@@ -368,6 +368,15 @@ body.has-usage-bar { padding-bottom: 46px; }
   .switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
   .save-bar { position: sticky; bottom: 0; background: var(--panel); padding: 12px 0; display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--line); margin-top: 16px; }
 
+  .gbox { margin: 0 10px 12px 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font-size: 13px; }
+  .gbox .who { font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; gap: 6px; align-items: center; }
+  .gbox .who::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); flex: none; }
+  .gbox .who.err::before { background: var(--err); }
+  .gbox .row { margin-top: 8px; }
+  .gbtn { display: inline-flex; align-items: center; gap: 8px; width: 100%; justify-content: center; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line-strong);
+          background: var(--panel); color: var(--text); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; }
+  .gbtn:hover { background: var(--panel-2); }
+  .gbtn svg { width: 16px; height: 16px; }
   @media (max-width: 900px) {
     .gm { grid-template-columns: 1fr; height: auto; min-height: 0; padding: 8px 8px 0; }
     .gm-side { display: none; position: fixed; inset: 56px auto 46px 0; width: 270px; z-index: 40; background: var(--panel); border-right: 1px solid var(--line); box-shadow: 0 0 30px rgba(0, 0, 0, .3); padding-top: 12px; }
@@ -405,6 +414,7 @@ body.has-usage-bar { padding-bottom: 46px; }
 <div class="gm" id="gm">
   <aside class="gm-side" id="side" aria-label="Folders and labels">
     <button class="gm-compose" id="compose-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Compose</button>
+    <div id="gmailbox"></div>
     <nav class="gm-nav" id="folders"></nav>
     <div class="gm-sec">Labels <a href="#/settings">Manage</a></div>
     <nav class="gm-nav" id="labels"></nav>
@@ -462,9 +472,12 @@ body.has-usage-bar { padding-bottom: 46px; }
     let me;
     try { me = await fetch("/_auth/me").then((r) => r.ok ? r.json() : null); } catch { return; }
     if (!me) return;
-    const initial = (me.account || "g").replace(/^demo/, "")[0].toUpperCase();
+    // A Google login (Connect Gmail) is named by a hash; show its address instead.
+    const who = me.account?.startsWith("g_") ? decodeURIComponent((document.cookie.match(/(?:^|; )bl_who=([^;]*)/) || [])[1] || "Gmail account") : me.account;
+    const initial = (who || "g").replace(/^demo/, "")[0].toUpperCase();
+    const safe = String(who).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
     acctSlot.innerHTML = me.account
-      ? `<button class="s-acct" type="button" title="Signed in as ${me.account}: your own inbox and projects. Click to sign out."><span class="who">${initial}</span>${me.account}</button>`
+      ? `<button class="s-acct" type="button" title="Signed in as ${safe}: your own inbox and projects. Click to sign out."><span class="who">${initial}</span>${safe}</button>`
       : `<button class="s-acct guest" type="button" title="You're in the shared guest workspace. Sign in with a demo account to keep your own work."><span class="who">G</span>Guest · Sign in</button>`;
     acctSlot.querySelector("button").onclick = me.account ? signOut : () => signInDialog(me.demo_accounts);
   }
@@ -756,7 +769,7 @@ const FOLDERS = [
 ];
 const TOOLS = [["autonomy", "Autonomy"], ["learning", "Learning"], ["settings", "Settings"]];
 
-let emails = [], draftingOn = false, account = null, lastList = "#/folder/inbox";
+let emails = [], draftingOn = false, account = null, lastList = "#/folder/inbox", gmail = { configured: false, connected: false };
 let META = { labels: [], parents: [], autonomy_threshold: 20 };
 const labelOf = (id) => META.labels.find((l) => l.id === id);
 const colorOf = (cat) => `var(--p-${labelOf(cat)?.parent || "other"})`;
@@ -804,6 +817,7 @@ function render() {
   $("#gm").classList.remove("side-open");
   renderSide(r);
   if (r.kind === "mail") return openEmail(r.arg);
+  if (r.kind === "gmail-error") { banner(`Couldn't connect Gmail: ${r.arg}`, "warn"); history.replaceState(null, "", "#/folder/inbox"); return render(); }
   if (r.kind === "settings") return renderSettings();
   if (r.kind === "autonomy") return renderAutonomy();
   if (r.kind === "learning") return renderLearning();
@@ -834,6 +848,40 @@ function renderSide(r) {
     renderSide(route());
   });
   $("#tools").innerHTML = TOOLS.map(([id, name]) => `<a href="#/${id}"${r.kind === id ? ' aria-current="page"' : ""}>${svg(id)}${name}</a>`).join("");
+}
+
+// ----- Gmail: connect (signs in with Google: a private workspace), sync, disconnect
+const GLOGO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285f4" d="M2 6.5V18a2 2 0 0 0 2 2h3V10l5 3.8 5-3.8v10h3a2 2 0 0 0 2-2V6.5l-1.6-1.2A2 2 0 0 0 17 5.6L12 9.4 7 5.6a2 2 0 0 0-3.4.7z"/></svg>';
+function renderGmailBox() {
+  const box = $("#gmailbox");
+  if (gmail.connected) {
+    box.innerHTML = `<div class="gbox"><div class="who ${gmail.last_error ? "err" : ""}" title="This private workspace is linked to ${esc(gmail.email)}">${esc(gmail.email)}</div>
+      <div class="meta">${gmail.last_error ? `<span style="color:var(--err)">${esc(gmail.last_error)}</span>` : gmail.last_sync_at ? `Synced ${esc(when(gmail.last_sync_at))}` : "First sync running…"}</div>
+      <div class="row" style="gap:6px"><button class="btn secondary small" id="gsync" type="button">Sync now</button><button class="btn ghost small" id="gdisc" type="button">Disconnect</button></div></div>`;
+    $("#gsync").onclick = gmailSyncNow;
+    $("#gdisc").onclick = gmailDisconnect;
+    if (/expired|revoked|connect Gmail again/i.test(gmail.last_error || "")) $(".gbox").insertAdjacentHTML("beforeend", `<a class="gbtn" style="margin-top:8px" href="/api/gmail/connect">${GLOGO}Reconnect Gmail</a>`);
+  } else if (gmail.configured) {
+    box.innerHTML = `<div class="gbox" style="border:0;padding:0"><a class="gbtn" href="/api/gmail/connect" title="Sign in with Google: your Gmail goes into a private workspace only that Google login can open">${GLOGO}Connect Gmail</a></div>`;
+  } else box.innerHTML = "";
+}
+async function loadGmail() {
+  gmail = await api("/api/gmail/status").catch(() => ({ configured: false, connected: false }));
+  renderGmailBox();
+}
+async function gmailSyncNow() {
+  const b = $("#gsync"); b.disabled = true; b.innerHTML = `<span class="spinner" style="width:12px;height:12px"></span>Syncing`;
+  try {
+    const r = await api("/api/gmail/sync", { method: "POST" });
+    suite.toast(`Gmail: ${r.imported} new email(s)${r.drafted ? `, ${r.drafted} drafted` : ""}${r.auto_sent ? `, ${r.auto_sent} sent automatically` : ""}.`, 4000);
+    window.dispatchEvent(new Event("suite:usage-changed"));
+  } catch (e) { banner(suite.friendlyError(e.message), "warn"); }
+  await Promise.all([loadGmail(), loadEmails()]);
+}
+async function gmailDisconnect() {
+  if (!confirm(`Disconnect ${gmail.email}? Google's access is revoked and everything imported into this workspace is erased. Your Gmail itself is not changed.`)) return;
+  try { await api("/api/gmail/disconnect", { method: "POST" }); location.href = "/"; }
+  catch (e) { banner(e.message); }
 }
 
 // ----- the list
@@ -869,6 +917,14 @@ function renderList(r) {
   // Rows are links, so their label chips can't be links too (links don't nest): a click on
   // a chip opens that label instead of the email.
   v.querySelectorAll(".gm-row .lbl").forEach((el) => el.addEventListener("click", (ev) => { ev.preventDefault(); ev.stopPropagation(); location.hash = `#/label/${el.dataset.cat}`; }));
+}
+
+function deliveryNote(id) {
+  const e = emails.find((x) => x.id === id);
+  if (!e?.from_gmail) return "";
+  if (e.delivery?.startsWith("gmail:")) return `<div class="meta" style="margin-top:8px;color:var(--ok)">✓ Sent from ${esc(gmail.email || "Gmail")}, in the same thread</div>`;
+  if (e.delivery?.startsWith("error:")) return `<div class="banner warn" style="margin-top:8px">Not delivered to Gmail: ${esc(e.delivery.slice(7))} <button class="btn secondary small" data-redeliver="${esc(id)}">Retry</button></div>`;
+  return `<div class="meta" style="margin-top:8px">Sending through Gmail…</div>`;
 }
 
 // ----- one thread
@@ -911,7 +967,7 @@ async function openEmail(id) {
     const final = [...reviews].reverse().find((r) => r.final_body);
     const auto = reviews.some((r) => r.outcome === "auto_sent");
     if (email.status === "sent") {
-      html += `<div class="msg">${avatar(auto ? "Inbox Agent" : reviewer())}<div><div class="msg-head"><b>${auto ? "Inbox Agent (sent automatically)" : esc(final?.reviewer || "You")}</b><span class="meta">to ${esc(email.from_email)}</span><span class="meta when">${esc(when((final || reviews.at(-1))?.created_at?.replace(" ", "T") + "Z", true))}</span></div><div class="meta">${esc(final?.final_subject || draft.subject)}</div><div class="msg-body">${esc(final?.final_body || draft.body)}</div></div></div>`;
+      html += `<div class="msg">${avatar(auto ? "Inbox Agent" : reviewer())}<div><div class="msg-head"><b>${auto ? "Inbox Agent (sent automatically)" : esc(final?.reviewer || "You")}</b><span class="meta">to ${esc(email.from_email)}</span><span class="meta when">${esc(when((final || reviews.at(-1))?.created_at?.replace(" ", "T") + "Z", true))}</span></div><div class="meta">${esc(final?.final_subject || draft.subject)}</div><div class="msg-body">${esc(final?.final_body || draft.body)}</div>${deliveryNote(email.id)}</div></div>`;
     }
   } else {
     html += `<div class="reply"><div class="reply-to">Reply to <b style="color:var(--text)">${esc(email.from_name)}</b> &lt;${esc(email.from_email)}&gt; · drafted by the agent, edit freely</div>
@@ -927,6 +983,12 @@ async function openEmail(id) {
   }
   if (reviews.length) html += `<details class="gm-history"><summary>History (${reviews.length})</summary>` + reviews.map((r) => `<div class="meta">${esc(r.created_at)} · ${esc(r.outcome.replace("_", " "))} by ${esc(r.reviewer || "agent")}${r.reason ? ` · ${esc(r.reason)}` : ""}${r.spot_check ? " · picked for spot check" : ""}</div>`).join("") + `</details>`;
   v.innerHTML = head + `<div class="gm-thread">${html}</div>`;
+  v.querySelectorAll("[data-redeliver]").forEach((b) => b.onclick = async () => {
+    b.disabled = true;
+    try { await api(`/api/gmail/deliver/${encodeURIComponent(b.dataset.redeliver)}`, { method: "POST" }); suite.toast("Sent from Gmail"); }
+    catch (e) { suite.toast(e.message, 5000); }
+    await loadEmails(false); openEmail(id);
+  });
   if (done) return;
 
   const body = $("#body"), original = draft.body;
@@ -945,6 +1007,7 @@ async function openEmail(id) {
     try {
       const r = await api(`/api/emails/${encodeURIComponent(id)}/review`, { method: "POST", body: JSON.stringify({ reviewer: who, ...payload }) });
       suite.toast(r.autonomy?.status === "autonomous" && streak?.status !== "autonomous" ? `${CAT[c.category]} reached ${META.autonomy_threshold}: its replies now send automatically` : msg, 4000);
+      if (r.delivery_error) banner(`Saved, but Gmail didn't send it: ${r.delivery_error}`, "warn");
       await loadEmails(false); openEmail(id);
     } catch (e) { $("#note").textContent = e.message; }
   };
@@ -961,7 +1024,7 @@ async function runProcess(id) {
   const started = Date.now();
   const tick = () => { const s = Math.round((Date.now() - started) / 1000); btn.innerHTML = `<span class="spinner" style="border-top-color:currentColor"></span>Drafting… ${s} s`; $("#pmeta").textContent = s < 4 ? "Labelling the email…" : s < 9 ? "Asking the Knowledge Brain…" : "Writing and checking the reply…"; };
   tick(); const timer = setInterval(tick, 1000);
-  try { const r = await api(`/api/emails/${encodeURIComponent(id)}/process`, { method: "POST" }); if (r.autoSent) suite.toast("Sent automatically: this label has earned auto-send", 4000); }
+  try { const r = await api(`/api/emails/${encodeURIComponent(id)}/process`, { method: "POST" }); if (r.autoSent) suite.toast("Sent automatically: this label has earned auto-send", 4000); if (r.delivery_error) banner(`Gmail: ${r.delivery_error}`, "warn"); }
   catch (e) { banner(suite.friendlyError(e.message), e.status === 502 ? "warn" : "err"); }
   clearInterval(timer); window.dispatchEvent(new Event("suite:usage-changed"));
   await loadEmails(false); openEmail(id);
@@ -973,7 +1036,7 @@ function compose() {
   const w = Object.assign(document.createElement("form"), { className: "cw" });
   w.setAttribute("aria-label", "New message");
   w.innerHTML = `<div class="cw-head">New message<button class="gm-tool" type="button" data-min title="Minimise" aria-label="Minimise" style="width:28px;height:28px">–</button><button class="gm-tool" type="button" data-x title="Close" aria-label="Close" style="width:28px;height:28px;margin-left:0">✕</button></div>
-    <div class="hint">Write as a customer: the message lands in this inbox, like a real email arriving.</div>
+    <div class="hint">${gmail.connected ? "Test message: it lands in this inbox only (not in Gmail). To test with real mail, email " + esc(gmail.email) + " from another address, then Sync now." : "Write as a customer: the message lands in this inbox, like a real email arriving."}</div>
     <input name="name" placeholder="From (name)" required maxlength="80" value="Test Customer">
     <input name="email" type="email" placeholder="From (email)" required value="customer@example.com">
     <input name="subject" placeholder="Subject" maxlength="200">
@@ -1129,7 +1192,9 @@ document.addEventListener("keydown", (e) => {
   account = sess && sess.workspace !== "guest" ? sess.workspace : null;
   $("#s-right").innerHTML = h ? `<span class="badge ${draftingOn ? "ok" : "warn"}">${draftingOn ? "Drafting on" : "Drafting off"}</span>` : "";
   if (h && !draftingOn) banner("Drafting is off until ANTHROPIC_API_KEY is set. You can still browse the inbox.", "info");
-  await loadEmails();
+  await Promise.all([loadGmail(), loadEmails()]);
+  // A connected Gmail inbox fills in the background: refresh the list now and then.
+  setInterval(() => { if (gmail.connected && document.visibilityState === "visible") { loadGmail(); loadEmails(route().kind !== "mail"); } }, 60_000);
 })();
 </script>
 </body>
