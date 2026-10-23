@@ -259,6 +259,26 @@ body.has-usage-bar { padding-bottom: 46px; }
   .src-check li { display: flex; gap: 8px; align-items: baseline; overflow-wrap: anywhere; }
   .src-check .ic { flex: none; width: 16px; text-align: center; font-weight: 700; }
   .src-check .good { color: var(--ok); } .src-check .bad { color: var(--err); } .src-check .wait { color: var(--muted); }
+  .run-total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .run-total b { font-size: 20px; }
+  details.urls { margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+  details.urls > summary { cursor: pointer; padding: 10px 14px; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  details.urls > summary::-webkit-details-marker { display: none; }
+  details.urls > summary::after { content: "▾"; color: var(--muted); transition: transform .15s; }
+  details.urls[open] > summary::after { transform: rotate(180deg); }
+  .url-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 0 14px 10px; border-bottom: 1px solid var(--line); }
+  .url-tools input { flex: 1; min-width: 180px; padding: 6px 10px; }
+  .url-list { max-height: 380px; overflow: auto; }
+  .url-row { display: grid; grid-template-columns: 74px 104px minmax(0, 1fr); gap: 10px; align-items: baseline; padding: 7px 14px; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .url-row:last-child { border-bottom: 0; }
+  .url-row:hover { background: var(--panel-2); }
+  .url-row .t { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .url-row a { overflow-wrap: anywhere; text-decoration: none; }
+  .url-row a:hover { text-decoration: underline; }
+  .url-row .d { grid-column: 3; color: var(--muted); }
+  @media (max-width: 560px) { .url-row { grid-template-columns: 1fr; } .url-row .d { grid-column: 1; } }
+  .chipbtn { border: 1px solid var(--line-strong); background: var(--panel); color: var(--text); border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .chipbtn[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--panel)); }
 </style>
 </head>
 <body data-app="kb">
@@ -341,6 +361,15 @@ body.has-usage-bar { padding-bottom: 46px; }
       <p class="sub">The help center is re-checked daily; only changed pages are fetched again.</p>
       <div class="stats" id="stats"></div>
       <div class="row"><button class="btn secondary" id="refresh-btn">Run refresh now</button><span class="meta" id="refresh-meta"></span></div>
+    </div>
+
+    <div class="panel" id="runs-panel">
+      <div class="row" style="margin-top:0;justify-content:space-between">
+        <h2 style="margin:0">Refresh runs</h2>
+        <label class="meta" style="display:flex;gap:8px;align-items:center">Run <select id="run-pick" style="width:auto;min-width:260px"></select></label>
+      </div>
+      <p class="sub">What each refresh fetched. Times are in your time zone; hover a time to see it in UTC.</p>
+      <div id="run-body"><div class="empty"><span class="spinner" style="display:inline-block"></span></div></div>
     </div>
 
     <div class="panel">
@@ -737,6 +766,7 @@ async function loadQueue() {
 async function loadStatus() {
   let s;
   loadSources();
+  loadRuns();
   try { s = await api("/ingestion/status"); } catch { return; }
   const pages = s.pages_by_status;
   const stat = (v, label) => `<div class="stat"><b>${v}</b><span>${label}</span></div>`;
@@ -757,6 +787,74 @@ async function loadStatus() {
   if (s.next_scheduled_refresh) $("#refresh-meta").textContent += ` Next automatic refresh ${s.next_scheduled_refresh.replace("T", " ").replace("+00:00", "")} UTC.`;
   if (s.refresh_running) setTimeout(loadStatus, 3000);
 }
+// Refresh runs: first and last fetch, totals, and every fetched URL.
+const OUTCOME = { updated: ["Updated", "ok"], unchanged: ["Unchanged", ""], failed: ["Failed, will retry", "warn"], quarantined: ["Quarantined", "err"], refused: ["Refused (private address)", "err"] };
+const when = (iso, opts = { dateStyle: "medium", timeStyle: "medium" }) => iso
+  ? `<span title="${esc(iso.replace("T", " ").replace("Z", " UTC"))}">${esc(new Date(iso).toLocaleString(undefined, opts))}</span>` : `<span class="meta">none</span>`;
+let runs = [], runUrls = null, runFilter = "all";
+
+async function loadRuns() {
+  try { runs = await api("/ingestion/runs?limit=15"); } catch { return; }
+  const pick = $("#run-pick");
+  if (!runs.length) { pick.innerHTML = ""; $("#run-body").innerHTML = `<div class="empty">No refresh has run yet.</div>`; return; }
+  const keep = Number(pick.value) || runs[0].id;
+  pick.innerHTML = runs.map((r) => `<option value="${r.id}">#${r.id} · ${esc(new Date(r.started_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }))} · ${esc(r.status)}${r.fetched_urls ? ` · ${r.fetched_urls} URLs` : ""}</option>`).join("");
+  pick.value = String(runs.some((r) => r.id === keep) ? keep : runs[0].id);
+  renderRun();
+}
+$("#run-pick").addEventListener("change", () => { runUrls = null; runFilter = "all"; renderRun(); });
+
+function renderRun() {
+  const r = runs.find((x) => x.id === Number($("#run-pick").value));
+  if (!r) return;
+  const stat = (label, value) => `<div class="stat"><b style="font-size:15px">${value}</b><span>${label}</span></div>`;
+  const outcomes = Object.entries(r.outcomes).sort((a, b) => b[1] - a[1])
+    .map(([k, n]) => `<span class="badge ${(OUTCOME[k] || [])[1] || ""}">${esc((OUTCOME[k] || [k])[0])}: ${n.toLocaleString()}</span>`).join(" ");
+  $("#run-body").innerHTML = `
+    <div class="stats">
+      ${stat("First fetch", when(r.first_fetch_at))}
+      ${stat("Last fetch", when(r.last_fetch_at))}
+      ${stat("Run started", when(r.started_at))}
+      ${stat("Run finished", r.finished_at ? when(r.finished_at) : r.status === "running" ? "still running…" : "")}
+    </div>
+    ${r.error ? `<div class="banner err" style="margin-top:12px">This run crashed: ${esc(r.error)}</div>` : ""}
+    ${outcomes ? `<div class="row">${outcomes}</div>` : ""}
+    <div class="run-total"><span class="meta">${r.new} new, ${r.changed} changed and ${r.quarantined} quarantined in the sitemaps this run.</span><span>Total fetched URLs: <b>${r.fetched_urls.toLocaleString()}</b></span></div>
+    ${r.fetched_urls ? `<details class="urls" id="run-urls"><summary>Show all ${r.fetched_urls.toLocaleString()} fetched URLs</summary><div id="url-box"><div class="empty"><span class="spinner" style="display:inline-block"></span></div></div></details>`
+      : `<p class="meta" style="margin:10px 0 0">${r.first_fetch_at === null && r.status !== "running" ? "No URLs were fetched in this run (nothing had changed), or it ran before URL lists were recorded." : ""}</p>`}`;
+  const det = $("#run-urls");
+  if (det) det.addEventListener("toggle", () => { if (det.open && !runUrls) loadRunUrls(r.id); });
+}
+
+async function loadRunUrls(id) {
+  try { runUrls = (await api(`/ingestion/runs/${id}/urls`)).urls; } catch { return; }
+  const counts = runUrls.reduce((m, u) => (m[u.outcome] = (m[u.outcome] || 0) + 1, m), {});
+  $("#url-box").innerHTML = `
+    <div class="url-tools">
+      <button type="button" class="chipbtn" data-f="all" aria-pressed="true">All ${runUrls.length.toLocaleString()}</button>
+      ${Object.entries(counts).map(([k, n]) => `<button type="button" class="chipbtn" data-f="${esc(k)}" aria-pressed="false">${esc((OUTCOME[k] || [k])[0])} ${n.toLocaleString()}</button>`).join("")}
+      <input type="search" id="url-q" placeholder="Filter by URL or source…" aria-label="Filter URLs">
+    </div>
+    <div class="url-list" id="url-list"></div>`;
+  $("#url-box").querySelectorAll("[data-f]").forEach((b) => b.onclick = () => {
+    runFilter = b.dataset.f;
+    $("#url-box").querySelectorAll("[data-f]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    renderUrlList();
+  });
+  $("#url-q").addEventListener("input", renderUrlList);
+  renderUrlList();
+}
+
+function renderUrlList() {
+  const q = ($("#url-q")?.value || "").toLowerCase();
+  const shown = runUrls.filter((u) => (runFilter === "all" || u.outcome === runFilter) && (!q || u.url.toLowerCase().includes(q) || (u.source || "").toLowerCase().includes(q)));
+  const source = (s) => s === "help-center" ? "Help center" : (s || "").replace(/^https?:\/\//, "").split("/")[0];
+  $("#url-list").innerHTML = shown.length ? shown.map((u) => {
+    const [label, kind] = OUTCOME[u.outcome] || [u.outcome, ""];
+    return `<div class="url-row"><span class="t">${when(u.fetched_at, { timeStyle: "medium" })}</span><span><span class="badge ${kind}">${esc(label)}</span></span><a href="${esc(u.url)}" target="_blank" rel="noopener">${esc(u.url)}</a>${u.detail || u.source !== "help-center" ? `<span class="d">${u.source !== "help-center" ? `from ${esc(source(u.source))}` : ""}${u.detail && u.source !== "help-center" ? " · " : ""}${u.detail ? esc(u.detail) : ""}</span>` : ""}</div>`;
+  }).join("") : `<div class="empty">No URLs match.</div>`;
+}
+
 // Sources: the built-in help-center sitemap plus custom ones.
 // The same format rules as the server (kb/ingestion/sources.py), so problems show while typing.
 function sitemapSyntax(raw) {

@@ -207,6 +207,22 @@ async def _store_article(
     return changed
 
 
+async def _log_fetch(
+    db: aiosqlite.Connection,
+    report: IngestionReport,
+    article_id: str,
+    url: str,
+    source: str,
+    outcome: str,
+    detail: str | None = None,
+) -> None:
+    await db.execute(
+        """INSERT INTO fetch_log(run_id, article_id, url, source, outcome, detail)
+           VALUES (?, ?, ?, ?, ?, ?)""",
+        (report.run_id, article_id, url, source, outcome, detail),
+    )
+
+
 async def _process_one(
     db: aiosqlite.Connection,
     db_lock: asyncio.Lock,
@@ -216,6 +232,7 @@ async def _process_one(
     lastmod: str | None,
     report: IngestionReport,
     kind: str = "helpcenter",
+    source: str = "help-center",
 ) -> None:
     try:
         html = await fetcher.get_text(url)
@@ -225,6 +242,7 @@ async def _process_one(
         async with db_lock:
             report.failed += 1
             await _quarantine(db, article_id, reason=str(exc))
+            await _log_fetch(db, report, article_id, url, source, "refused", str(exc))
             await db.commit()
         log.warning("refused %s: %s", url, exc)
         return
@@ -235,6 +253,8 @@ async def _process_one(
                 await _quarantine(db, article_id, reason=str(exc))
             else:
                 await _mark_failed(db, article_id, str(exc))
+            outcome = "quarantined" if exc.permanent else "failed"
+            await _log_fetch(db, report, article_id, url, source, outcome, str(exc))
             await db.commit()
         log.warning("fetch failed %s: %s", url, exc)
         return
@@ -242,6 +262,7 @@ async def _process_one(
         async with db_lock:
             report.failed += 1
             await _mark_failed(db, article_id, str(exc))
+            await _log_fetch(db, report, article_id, url, source, "failed", str(exc))
             await db.commit()
         log.warning("parse failed %s: %s", url, exc)
         return
@@ -250,6 +271,7 @@ async def _process_one(
         changed = await _store_article(db, article, lastmod)
         report.fetched += 1
         report.content_changed += int(changed)
+        await _log_fetch(db, report, article_id, url, source, "updated" if changed else "unchanged")
         await db.commit()
     log.info("stored %s (%s)%s", article_id, article.title, "" if changed else " [unchanged]")
 
@@ -307,7 +329,7 @@ async def run_ingestion(
         )
 
         # Work queue = everything not yet stored, including leftovers from a crashed run.
-        sql = """SELECT article_id, url, lastmod, kind FROM pages
+        sql = """SELECT article_id, url, lastmod, kind, source FROM pages
                  WHERE status='pending' OR (status='failed' AND attempts < ?)
                  ORDER BY article_id"""
         params: list[object] = [settings.max_attempts]
@@ -329,6 +351,7 @@ async def run_ingestion(
                         r["lastmod"],
                         report,
                         r["kind"],
+                        r["source"],
                     )
                     for r in todo
                 )

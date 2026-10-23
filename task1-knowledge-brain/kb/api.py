@@ -336,6 +336,74 @@ async def remove_sitemap(sitemap_id: int) -> dict[str, Any]:
     return {"removed": rows[0]["url"]}
 
 
+def _utc(t: str | None) -> str | None:
+    """SQLite 'YYYY-MM-DD HH:MM:SS' (UTC) to ISO 8601, so browsers show local time."""
+    if not t:
+        return None
+    return t if t.endswith("Z") else t.replace(" ", "T") + "Z"
+
+
+@app.get("/ingestion/runs", dependencies=[Protected])
+async def refresh_runs(limit: int = 10) -> list[dict[str, Any]]:
+    """Recent refresh runs, newest first, each with its first and last fetch time and how many
+    URLs it fetched (from the fetch log; runs from before the log existed show none)."""
+    async with connect(settings.db_path) as db:
+        rows = await db.execute_fetchall(
+            """SELECT r.*,
+                      (SELECT min(fetched_at) FROM fetch_log f WHERE f.run_id = r.id) AS first_fetch_at,
+                      (SELECT max(fetched_at) FROM fetch_log f WHERE f.run_id = r.id) AS last_fetch_at,
+                      (SELECT count(*) FROM fetch_log f WHERE f.run_id = r.id) AS fetched_urls
+               FROM ingestion_runs r ORDER BY r.id DESC LIMIT ?""",
+            (max(1, min(limit, 50)),),
+        )
+        outcomes = await db.execute_fetchall(
+            """SELECT run_id, outcome, count(*) AS n FROM fetch_log
+               WHERE run_id IN (SELECT id FROM ingestion_runs ORDER BY id DESC LIMIT ?)
+               GROUP BY run_id, outcome""",
+            (max(1, min(limit, 50)),),
+        )
+    by_run: dict[int, dict[str, int]] = {}
+    for o in outcomes:
+        by_run.setdefault(o["run_id"], {})[o["outcome"]] = o["n"]
+    return [
+        {
+            "id": r["id"],
+            "status": r["status"],
+            "started_at": _utc(r["started_at"]),
+            "finished_at": _utc(r["finished_at"]),
+            "first_fetch_at": _utc(r["first_fetch_at"]),
+            "last_fetch_at": _utc(r["last_fetch_at"]),
+            "fetched_urls": r["fetched_urls"],
+            "outcomes": by_run.get(r["id"], {}),
+            "new": r["new"],
+            "changed": r["changed"],
+            "quarantined": r["removed"],
+            "error": r["error"],
+        }
+        for r in rows
+    ]
+
+
+@app.get("/ingestion/runs/{run_id}/urls", dependencies=[Protected])
+async def refresh_run_urls(run_id: int) -> dict[str, Any]:
+    """Every URL one refresh run fetched, in the order it fetched them."""
+    async with connect(settings.db_path) as db:
+        run = list(
+            await db.execute_fetchall("SELECT id FROM ingestion_runs WHERE id = ?", (run_id,))
+        )
+        if not run:
+            raise HTTPException(404, "no such refresh run")
+        rows = await db.execute_fetchall(
+            """SELECT url, source, outcome, detail, fetched_at FROM fetch_log
+               WHERE run_id = ? ORDER BY fetched_at, id LIMIT 20000""",
+            (run_id,),
+        )
+    return {
+        "run_id": run_id,
+        "urls": [{**dict(r), "fetched_at": _utc(r["fetched_at"])} for r in rows],
+    }
+
+
 @app.get("/ingestion/status", response_model=IngestionStatus, dependencies=[Protected])
 async def ingestion_status(request: Request) -> IngestionStatus:
     """Crawl progress, index size, screenshot coverage and the refresh schedule."""

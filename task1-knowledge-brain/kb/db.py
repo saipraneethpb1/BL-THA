@@ -125,6 +125,19 @@ CREATE TABLE IF NOT EXISTS ingestion_runs (
     error       TEXT
 );
 
+-- Every URL a refresh run fetched, and what happened to it (the Refresh runs panel).
+CREATE TABLE IF NOT EXISTS fetch_log (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id     INTEGER NOT NULL REFERENCES ingestion_runs(id),
+    article_id TEXT,
+    url        TEXT NOT NULL,
+    source     TEXT,      -- 'help-center' or a custom sitemap's URL
+    outcome    TEXT NOT NULL,  -- updated | unchanged | failed | quarantined | refused
+    detail     TEXT,      -- the error, if any
+    fetched_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+);
+CREATE INDEX IF NOT EXISTS idx_fetch_log_run ON fetch_log(run_id, fetched_at);
+
 -- Sitemaps users added on top of the help center's own (see kb/ingestion/sources.py).
 CREATE TABLE IF NOT EXISTS custom_sitemaps (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
