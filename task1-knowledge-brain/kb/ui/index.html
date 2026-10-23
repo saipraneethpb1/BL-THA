@@ -269,6 +269,71 @@ body.has-usage-bar { padding-bottom: 46px; }
   .src { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; background: var(--bg); }
   .src + .src { margin-top: 8px; }
   .src .u { font: 13px ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
+  .knowledge-inputs { padding: 0; overflow: hidden; }
+  .source-heading { padding: 24px 26px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: start; justify-content: space-between; gap: 20px; }
+  .source-eyebrow { margin-bottom: 7px; color: var(--accent); font-size: 11px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+  .source-heading h2 { margin: 0 0 6px; font-size: 24px; letter-spacing: -.035em; }
+  .source-heading .sub { margin: 0; max-width: 660px; }
+  .source-capacity { flex-shrink: 0; border: 1px solid var(--line); border-radius: 999px; padding: 6px 11px; background: var(--bg); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .source-workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+  .source-library { padding: 24px 26px; background: var(--bg); border-right: 1px solid var(--line); }
+  .source-section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; font-size: 13px; font-weight: 650; }
+  .source-section-title span { font-size: 11px; color: var(--muted); font-weight: 450; }
+  .source-library .src { padding: 16px; background: var(--panel); grid-template-columns: 34px minmax(0,1fr); gap: 12px; border-radius: 12px; }
+  .src-icon { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 9px; color: var(--accent); background: var(--bg); }
+  .src-icon svg, .source-action svg { width: 17px; height: 17px; }
+  .src-title { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; font-size: 13px; font-weight: 650; margin-bottom: 6px; }
+  .source-library .src .u { font-size: 11.5px; color: var(--muted); line-height: 1.65; }
+  .src-metrics { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  .src-metrics strong { color: var(--text); font-weight: 650; font-variant-numeric: tabular-nums; }
+  .source-library .badge { font-size: 10px; }
+  .source-library .src .btn { padding: 3px 7px; font-size: 11px; }
+  .source-library-note { margin: 16px 0 0; font-size: 12px; color: var(--muted); line-height: 1.65; }
+  .source-composer { padding: 24px 26px; }
+  .source-composer h3 { margin: 0 0 5px; font-size: 16px; letter-spacing: -.02em; }
+  .source-composer > p { margin: 0 0 17px; color: var(--muted); font-size: 13px; }
+  .source-input-shell { border: 1px solid var(--line-strong); border-radius: 12px; background: var(--bg); overflow: hidden; transition: border-color .15s, box-shadow .15s; }
+  .source-input-shell:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb,var(--accent) 12%,transparent); }
+  .source-input-caption { display: flex; align-items: center; gap: 7px; padding: 11px 14px 0; font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+  .source-input-shell textarea { border: 0; outline: none; box-shadow: none; background: transparent; border-radius: 0; min-height: 105px; padding: 12px 14px; resize: vertical; font: 12.5px/1.8 ui-monospace,Consolas,monospace; }
+  .source-input-shell textarea:focus { outline: none; box-shadow: none; }
+  .source-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 9px 10px; border-top: 1px solid var(--line); }
+  .source-action { display: inline-flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer; transition: background .15s, border-color .15s, transform .15s; }
+  .source-action:not(:disabled):active { transform: translateY(1px); }
+  .source-tools .source-action { border: 1px solid transparent; border-radius: 7px; padding: 6px 8px; background: transparent; color: var(--muted); font: inherit; font-size: 12px; }
+  .source-tools .source-action:hover { color: var(--text); background: var(--panel); border-color: var(--line); }
+  .source-submit-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+  .source-submit-row .btn { border-radius: 9px; padding: 11px 17px; box-shadow: inset 0 1px 0 #ffffff20,0 2px 3px #0000000a; }
+  .source-submit-row .btn:not(:disabled):hover { box-shadow: 0 3px 9px color-mix(in srgb,var(--accent) 18%,transparent); }
+  .source-pipeline { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; padding: 14px 26px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); }
+  .source-pipeline b { font: 10px ui-monospace,Consolas,monospace; margin-right: 5px; opacity: .7; }
+  .source-pipeline .arrow { opacity: .5; }
+  #src-activity:not(:empty) { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+  @media (max-width: 850px) { .source-workspace { grid-template-columns: 1fr; } .source-library { border-right: 0; border-bottom: 1px solid var(--line); } .source-heading { flex-wrap: wrap; gap: 12px; } }
+  @media (max-width: 560px) { .source-heading,.source-library,.source-composer { padding: 20px; } .source-pipeline { padding: 14px 20px; } }
+  /* Activity: what the agent is doing, step by step, as it happens */
+  .activity { margin: 4px 0 14px; }
+  .act { list-style: none; padding: 0; margin: 0 0 6px; }
+  .act li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; position: relative; padding-bottom: 12px; font-size: 14.5px; }
+  .act li:not(:last-child)::before { content: ""; position: absolute; left: 10.5px; top: 24px; bottom: 2px; width: 1px; background: var(--line-strong); }
+  .act .i { width: 22px; height: 22px; display: grid; place-items: center; color: var(--muted); }
+  .act .i svg { width: 17px; height: 17px; }
+  .act .t { color: var(--muted); }
+  .act .d { display: block; font-size: 12.5px; color: var(--muted); opacity: .85; overflow-wrap: anywhere; margin-top: 1px; }
+  .act li.ok .i { color: var(--ok); } .act li.warn .i { color: var(--warn); } .act li.err .i { color: var(--err); }
+  .act li.now .t { color: transparent; background: linear-gradient(90deg, var(--muted) 20%, var(--text) 50%, var(--muted) 80%); background-size: 220% 100%;
+                   -webkit-background-clip: text; background-clip: text; animation: shimmer 1.8s linear infinite; }
+  .act li.grp { grid-template-columns: 1fr; padding: 2px 0 8px; font: 12.5px/1.4 ui-monospace, Consolas, monospace; color: var(--text); overflow-wrap: anywhere; }
+  .act li.grp::before { display: none; }
+  @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -120% 0; } }
+  @media (prefers-reduced-motion: reduce) { .act li.now .t { animation: none; color: var(--text); background: none; } }
+  .act-foot { display: inline-flex; align-items: center; gap: 10px; border: 0; background: none; padding: 2px 0; color: var(--muted); font: inherit; font-size: 14.5px; }
+  .act-foot.done { cursor: pointer; } .act-foot.done:hover { color: var(--text); }
+  .act-foot .orb { width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, var(--text) 0 28%, transparent 30%), var(--accent);
+                   animation: orb 1.2s ease-in-out infinite; flex: none; }
+  @keyframes orb { 50% { transform: scale(.82); opacity: .7; } }
+  .act-foot .chev { display: inline-block; transition: transform .15s; }
+  .act-foot[aria-expanded="true"] .chev { transform: rotate(90deg); }
   .src-check { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 4px; font-size: 13px; }
   .src-check li { display: flex; gap: 8px; align-items: baseline; overflow-wrap: anywhere; }
   .src-check .ic { flex: none; width: 16px; text-align: center; font-weight: 700; }
@@ -387,6 +452,31 @@ body.has-usage-bar { padding-bottom: 46px; }
   </section>
 
   <section id="tab-status" hidden>
+    <div class="panel knowledge-inputs">
+      <header class="source-heading"><div><div class="source-eyebrow">Knowledge inputs</div><h2>Sources</h2><p class="sub">Give the Brain a place to look. Connect website sitemaps to expand the evidence it can search and cite.</p></div><span class="source-capacity" id="src-count">Loading sources…</span></header>
+      <div class="source-workspace">
+        <div class="source-library"><div class="source-section-title">Source library <span>Connected websites</span></div><div id="sources"></div><p class="source-library-note">The help center includes articles and screenshot descriptions. Custom websites contribute page text.</p></div>
+        <div class="source-composer">
+          <h3>Connect a website</h3><p>Add a sitemap URL, or import a text file containing one URL per line.</p>
+          <form id="src-form">
+            <div class="source-input-shell">
+              <label class="source-input-caption" for="src-urls">Sitemap URLs · one per line</label>
+              <textarea id="src-urls" rows="3" placeholder="https://your-website.com/sitemap.xml" spellcheck="false" autocomplete="off" aria-describedby="src-meta"></textarea>
+              <div class="source-tools">
+                <button class="source-action" type="button" id="src-new-line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add another URL</button>
+                <button class="source-action" type="button" id="src-import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M4 15v5h16v-5"/></svg>Import URL list</button>
+                <input type="file" id="src-file" accept=".txt,text/plain" hidden>
+              </div>
+            </div>
+            <ul class="src-check" id="src-live" aria-live="polite"></ul>
+            <div class="source-submit-row"><button class="btn source-action" id="src-add" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7l8-4Z"/><path d="m8 12 3 3 5-6"/></svg><span id="src-add-label">Validate & connect</span></button><span class="meta" id="src-meta" role="status"></span></div>
+          </form>
+          <div id="src-activity"></div>
+        </div>
+      </div>
+      <div class="source-pipeline"><span><b>01</b>Validate now</span><span class="arrow" aria-hidden="true">→</span><span><b>02</b>Crawl at next refresh</span><span class="arrow" aria-hidden="true">→</span><span><b>03</b>Search & cite</span></div>
+    </div>
+
     <div class="panel">
       <h2>Knowledge status</h2>
       <p class="sub">The help center is re-checked daily; only changed pages are fetched again.</p>
@@ -405,28 +495,17 @@ body.has-usage-bar { padding-bottom: 46px; }
 
     <div class="panel" id="health-panel">
       <div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">URL health</h2><span class="meta" id="health-summary"></span></div>
-      <p class="sub">Each refresh re-checks URLs that left their sitemap or are already being counted. A URL that shows the same problem for the set number of refreshes in a row waits here for your decision. Nothing is quarantined until you confirm, and quarantine never deletes: the page is kept but left out of search.</p>
+      <p class="sub">Pages returning HTTP 404 are automatically quarantined as soon as a fetch or health check detects them, even if still listed in a sitemap. Their content is kept, but excluded from search. You can restore them below. Other URL problems follow the review rules.</p>
+      <div class="banner info" style="margin-bottom:14px"><strong>404 · Automatic quarantine</strong><br>No confirmation or repeated failures required. Detection happens during crawling or URL health checks.</div>
       <form id="health-form" class="health-settings">
-        <label>Threshold <span class="meta">consecutive refreshes</span><input id="h-threshold" type="number" min="1" max="30" required></label>
-        <label>404 and no longer in its sitemap<select id="h-gone"><option value="quarantine">Quarantine, after I confirm</option><option value="flag">Flag only</option></select></label>
+        <label>Review threshold <span class="meta">other URL problems only</span><input id="h-threshold" type="number" min="1" max="30" required></label>
+        <label>410 and no longer in its sitemap<select id="h-gone"><option value="quarantine">Quarantine, after I confirm</option><option value="flag">Flag only</option></select></label>
         <label>301 permanent redirect<select id="h-moved"><option value="quarantine">Quarantine, after I confirm</option><option value="flag">Flag only</option></select></label>
         <div class="row" style="margin-top:0;align-self:end"><button class="btn secondary" id="h-save">Save settings</button><span class="meta" id="h-msg"></span></div>
       </form>
       <div id="health-lists"></div>
     </div>
 
-    <div class="panel">
-      <div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">Sources</h2><span class="meta" id="src-count"></span></div>
-      <p class="sub">Where knowledge comes from. Add your own sitemaps to search your site's pages alongside the help center. They're crawled at the next refresh (text only).</p>
-      <div id="sources"></div>
-      <h3 class="label">Add sitemaps</h3>
-      <form id="src-form">
-        <textarea id="src-urls" rows="3" placeholder="https://www.example.com/sitemap.xml&#10;One URL per line: each is checked before it's added" spellcheck="false" autocomplete="off" style="font:13px/1.6 ui-monospace,Consolas,monospace"></textarea>
-        <ul class="src-check" id="src-live" aria-live="polite"></ul>
-        <div class="row"><button class="btn" id="src-add" disabled>Check and add</button><span class="meta" id="src-meta"></span></div>
-      </form>
-      <ul class="src-check" id="src-results"></ul>
-    </div>
   </section>
 </main>
 
@@ -747,6 +826,8 @@ async function api(path, options = {}) {
   try { res = await fetch(path, { ...options, headers }); }
   catch { showBanner("The Knowledge Brain isn't reachable. Check that it's running."); throw new Error("offline"); }
   if (res.status === 401) {
+    const b = await res.clone().json().catch(() => ({}));
+    if (/sign in/i.test(b.detail || "")) { const err = new Error(b.detail); err.status = 401; throw err; }
     $("#keybox").hidden = false; $("#key-input").focus();
     return new Promise((resolve, reject) => { pendingRetry = () => api(path, options).then(resolve, reject); });
   }
@@ -763,6 +844,81 @@ $("#key-form").addEventListener("submit", (e) => {
 });
 function showBanner(msg, kind = "err") { const b = $("#banner"); b.className = `banner ${kind}`; b.textContent = msg; b.hidden = false; }
 function hideBanner() { $("#banner").hidden = true; }
+
+// Live activity: the server streams each step (server-sent events) and the page shows them
+// as a timeline while the work happens, like "Ran 3 searches" → "Found 6 passages".
+const ACT_ICONS = {
+  think: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2V16h5v-.2c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3z"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  doc: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 5-5.5"/>',
+  warn: '<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  person: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+};
+const actIcon = (name) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACT_ICONS[name] || ACT_ICONS.think}</svg>`;
+
+function activity(container) {
+  const started = Date.now();
+  container.innerHTML = `<div class="activity"><ol class="act" aria-live="polite"></ol><button class="act-foot" type="button" aria-expanded="true"><span class="orb" aria-hidden="true"></span><span class="lbl">Working…</span></button></div>`;
+  const list = $(".act", container), foot = $(".act-foot", container);
+  const tick = () => { $(".lbl", foot).textContent = `Working for ${Math.floor((Date.now() - started) / 1000)}s`; };
+  tick(); const timer = setInterval(tick, 500);
+  let group;
+  return {
+    step(e) {
+      list.querySelector("li.now")?.classList.remove("now");
+      if (e.group !== undefined && e.group !== group) { group = e.group; list.insertAdjacentHTML("beforeend", `<li class="grp">${esc(e.group_label)}</li>`); }
+      const kind = { check: "ok", warn: "warn", error: "err" }[e.icon] || "";
+      list.insertAdjacentHTML("beforeend", `<li class="now ${kind}"><span class="i">${actIcon(e.icon === "error" ? "warn" : e.icon)}</span><span><span class="t">${esc(e.text)}</span>${e.detail ? `<span class="d">${esc(e.detail)}</span>` : ""}</span></li>`);
+    },
+    finish(collapse = true) {
+      clearInterval(timer);
+      list.querySelector("li.now")?.classList.remove("now");
+      const n = list.querySelectorAll("li:not(.grp)").length;
+      foot.classList.add("done");
+      list.hidden = collapse;
+      foot.setAttribute("aria-expanded", String(!collapse));
+      foot.innerHTML = `<span class="chev" aria-hidden="true">›</span><span>Worked for ${((Date.now() - started) / 1000).toFixed(1)}s · ${n} step${n === 1 ? "" : "s"}</span>`;
+      foot.onclick = () => { const open = foot.getAttribute("aria-expanded") === "true"; foot.setAttribute("aria-expanded", String(!open)); list.hidden = open; };
+    },
+  };
+}
+
+/** POST that streams progress events; resolves with the final result. */
+async function apiStream(path, body, onStep) {
+  let res;
+  const headers = { "content-type": "application/json", ...(getKey() ? { "X-API-Key": getKey() } : {}) };
+  try { res = await fetch(path, { method: "POST", headers, body: JSON.stringify(body) }); }
+  catch { showBanner("The Knowledge Brain isn't reachable. Check that it's running."); throw new Error("offline"); }
+  if (!res.ok) {
+    const b = await res.json().catch(() => ({}));
+    if (res.status === 401 && !/sign in/i.test(b.detail || "")) { $("#keybox").hidden = false; $("#key-input").focus(); }
+    const err = new Error(typeof b.detail === "string" ? b.detail : `Error ${res.status}`); err.status = res.status; throw err;
+  }
+  hideBanner();
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  let buf = "", result;
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let cut;
+    while ((cut = buf.indexOf("\n\n")) >= 0) {
+      const chunk = buf.slice(0, cut); buf = buf.slice(cut + 2);
+      for (const line of chunk.split("\n")) {
+        if (!line.startsWith("data: ")) continue;
+        const ev = JSON.parse(line.slice(6));
+        if (ev.done) result = ev.done;
+        else if (ev.error) { const err = new Error(ev.error); err.status = ev.status; throw err; }
+        else onStep(ev);
+      }
+    }
+  }
+  if (!result) throw new Error("The connection closed before the work finished.");
+  return result;
+}
 
 // Tabs
 function showTab(tab) {
@@ -787,17 +943,23 @@ $("#ask-form").addEventListener("submit", async (e) => {
   const question = $("#question").value.trim();
   if (question.length < 3) return;
   const btn = $("#ask-btn"); btn.disabled = true;
-  const started = Date.now();
-  const tick = () => { $("#ask-meta").innerHTML = `<span style="display:inline-flex;gap:8px;align-items:center"><span class="spinner"></span>Searching and writing… ${Math.round((Date.now() - started) / 1000)} s (usually 5–8 s)</span>`; };
-  tick(); const timer = setInterval(tick, 1000);
+  const el = $("#result");
+  el.innerHTML = `<div class="answer-head"><span class="badge info">Working</span><span class="meta">${esc(question)}</span></div><div class="act-wrap"></div><div class="ans-body"></div>`;
+  el.hidden = false;
+  el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  const act = activity($(".act-wrap", el));
   try {
-    const r = await api("/query", { method: "POST", body: JSON.stringify({ question, caller: "chat-ui" }) });
+    const r = await apiStream("/query/stream", { question, caller: "chat-ui" }, act.step);
+    act.finish();
     renderAnswer(r, question);
     loadQueueCount();
   } catch (err) {
+    act.step({ icon: "error", text: "Stopped", detail: err.status === 503 ? "answering is switched off" : suite.friendlyError(err.message) });
+    act.finish(false);
+    $(".answer-head .badge", el).className = "badge warn"; $(".answer-head .badge", el).textContent = "Not answered";
     if (err.status === 503) showBanner("Answering is switched off: the Claude API key is not configured. The expert queue and status still work.", "info");
-    else if (err.message !== "offline") showBanner(suite.friendlyError(err.message), err.status === 502 ? "warn" : "err");
-  } finally { clearInterval(timer); $("#ask-meta").textContent = ""; btn.disabled = false; window.dispatchEvent(new Event("suite:usage-changed")); }
+    else if (err.message !== "offline") showBanner(suite.friendlyError(err.message), err.status === 502 || err.status === 429 ? "warn" : "err");
+  } finally { btn.disabled = false; window.dispatchEvent(new Event("suite:usage-changed")); }
 });
 
 function renderAnswer(r, question) {
@@ -809,8 +971,9 @@ function renderAnswer(r, question) {
       ${s.image_urls.length ? `<div class="thumbs">${s.image_urls.slice(0, 6).map((u) => `<button type="button" data-img="${esc(u)}" data-alt="Screenshot from ${esc(s.title)}"><img src="${esc(u)}" alt="Screenshot from ${esc(s.title)}" loading="lazy"></button>`).join("")}</div>` : ""}
     </div>`).join("");
   const el = $("#result");
-  el.innerHTML = `
-    <div class="answer-head"><span class="badge ${kind}">${esc(label)}</span><span class="meta">${esc(question)}</span></div>
+  if (!$(".ans-body", el)) el.innerHTML = `<div class="answer-head"></div><div class="act-wrap"></div><div class="ans-body"></div>`;
+  $(".answer-head", el).innerHTML = `<span class="badge ${kind}">${esc(label)}</span><span class="meta">${esc(question)}</span>`;
+  $(".ans-body", el).innerHTML = `
     <div class="answer">${suite.md(r.answer)}</div>
     ${r.missing_info && r.status !== "answered" ? `<div class="banner info">Not covered by the help center: ${esc(r.missing_info)}</div>` : ""}
     ${r.escalation_id ? `<div class="banner warn">Expert task #${r.escalation_id} opened. <a href="#queue" data-goto="queue">Open the expert queue</a> to answer it; the answer is reused next time.</div>` : ""}
@@ -819,7 +982,6 @@ function renderAnswer(r, question) {
   el.hidden = false;
   el.querySelectorAll("[data-img]").forEach((b) => b.onclick = () => suite.lightbox(b.dataset.img, b.dataset.alt));
   el.querySelectorAll("[data-goto]").forEach((a) => a.onclick = (e) => { e.preventDefault(); showTab(a.dataset.goto); });
-  el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 // Expert queue
@@ -1036,24 +1198,51 @@ function sitemapSyntax(raw) {
 }
 // One entry per line (a line with spaces is one bad entry, not several).
 const srcLines = () => [...new Set($("#src-urls").value.split(/\r?\n/).map((l) => l.trim()).filter(Boolean))];
+let sourceBusy = false;
 function liveCheck() {
   const lines = srcLines();
   const rows = lines.map((l) => ({ l, err: sitemapSyntax(l) }));
   $("#src-live").innerHTML = rows.map(({ l, err }) => `<li><span class="ic ${err ? "bad" : "wait"}">${err ? "✗" : "·"}</span><span><span class="u">${esc(l)}</span> <span class="meta">${err ? esc(err) : "format OK, will be checked when you add it"}</span></span></li>`).join("");
   const good = rows.filter((r) => !r.err).length;
-  $("#src-add").disabled = good === 0 || lines.length > 10;
+  $("#src-add").disabled = sourceBusy || good === 0 || lines.length > 10;
+  $("#src-add-label").textContent = sourceBusy ? "Checking sources…" : "Validate & connect";
+  $("#src-urls").readOnly = sourceBusy;
+  $("#src-new-line").disabled = sourceBusy;
+  $("#src-import").disabled = sourceBusy;
   $("#src-meta").textContent = lines.length > 10 ? "At most 10 URLs at a time." : good ? `${good} to check` : "";
 }
 $("#src-urls").addEventListener("input", liveCheck);
+$("#src-new-line").onclick = () => {
+  const input = $("#src-urls");
+  if (input.value.trim()) input.value = input.value.trimEnd() + "\n";
+  input.focus(); input.setSelectionRange(input.value.length, input.value.length);
+  liveCheck();
+};
+$("#src-import").onclick = () => $("#src-file").click();
+$("#src-file").onchange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    if (file.size > 100000) throw new Error("Choose a URL list smaller than 100 KB.");
+    if (!/\.txt$/i.test(file.name)) throw new Error("Choose a .txt file containing sitemap URLs, one per line.");
+    const text = (await file.text()).replace(/^\uFEFF/, "").trim();
+    if (sourceBusy) return;
+    const input = $("#src-urls");
+    input.value = [input.value.trim(), text].filter(Boolean).join("\n");
+    liveCheck(); input.focus();
+    suite.toast("URL list inserted. Review it, then validate to connect the sources.");
+  } catch (err) { showBanner(err.message); }
+  finally { e.target.value = ""; }
+};
 
 async function loadSources() {
   let s;
   try { s = await api("/sitemaps"); } catch { return; }
-  const row = (url, meta, tail) => `<div class="src"><div><div class="u">${esc(url)}</div><div class="meta">${meta}</div></div>${tail}</div>`;
-  $("#src-count").textContent = `${s.custom.length} of ${s.max_custom} custom sitemaps`;
-  $("#sources").innerHTML = row(s.builtin.url, `Brilliant Directories help center · ${s.builtin.pages_indexed.toLocaleString()} pages indexed`, `<span class="badge">built in</span>`)
-    + s.custom.map((c) => row(c.url,
-      `${c.kind === "sitemapindex" ? "Sitemap index" : "Sitemap"} · ${c.url_count} listed · ${c.pages_indexed} pages indexed`
+  const row = (url, title, meta, tail) => `<div class="src"><span class="src-icon">${actIcon("globe")}</span><div><div class="src-title">${esc(title)}${tail}</div><div class="u">${esc(url)}</div><div class="src-metrics">${meta}</div></div></div>`;
+  $("#src-count").textContent = `${s.custom.length} / ${s.max_custom} custom sources`;
+  $("#sources").innerHTML = row(s.builtin.url, "Brilliant Directories", `<strong>${s.builtin.pages_indexed.toLocaleString()}</strong> pages indexed · Help center`, `<span class="badge">Built in</span>`)
+    + s.custom.map((c) => row(c.url, new URL(c.url).hostname,
+      `${c.kind === "sitemapindex" ? "Sitemap index" : "Sitemap"} · <strong>${c.url_count}</strong> listed · <strong>${c.pages_indexed}</strong> indexed`
       + (c.last_error ? ` · <span style="color:var(--err)">last check failed: ${esc(c.last_error)}</span>` : c.pages_indexed ? "" : " · crawled at the next refresh"),
       `<button class="btn ghost small" data-rm="${c.id}" data-url="${esc(c.url)}">Remove</button>`)).join("");
   $("#sources").querySelectorAll("[data-rm]").forEach((b) => b.onclick = async () => {
@@ -1066,20 +1255,24 @@ async function loadSources() {
 $("#src-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const urls = srcLines().filter((l) => !sitemapSyntax(l));
-  if (!urls.length) return;
-  const btn = $("#src-add"); btn.disabled = true;
-  $("#src-meta").innerHTML = `<span style="display:inline-flex;gap:8px;align-items:center"><span class="spinner"></span>Checking ${urls.length} URL${urls.length > 1 ? "s" : ""}…</span>`;
+  if (!urls.length || sourceBusy || srcLines().length > 10) return;
+  sourceBusy = true; liveCheck();
+  $("#src-meta").textContent = "";
+  const act = activity($("#src-activity"));
   try {
-    const { results } = await api("/sitemaps", { method: "POST", body: JSON.stringify({ urls }) });
-    $("#src-results").innerHTML = results.map((r) => r.ok
-      ? `<li><span class="ic good">✓</span><span><span class="u">${esc(r.url)}</span> <span class="meta">added: ${r.url_count} ${r.kind === "sitemapindex" ? "child sitemaps" : "pages"} found, crawled at the next refresh</span></span></li>`
-      : `<li><span class="ic bad">✗</span><span><span class="u">${esc(r.input)}</span> <span class="meta">${esc(r.error)}</span></span></li>`).join("");
+    const { results } = await apiStream("/sitemaps/stream", { urls }, act.step);
+    act.finish(results.every((r) => r.ok));
     const added = new Set(results.filter((r) => r.ok).map((r) => r.input));
     $("#src-urls").value = srcLines().filter((l) => !added.has(l)).join("\n");
     liveCheck(); loadSources();
     if (added.size) suite.toast(`${added.size} sitemap${added.size > 1 ? "s" : ""} added. Use "Run refresh now" to crawl them.`, 4000);
-  } catch (err) { showBanner(err.message); }
-  finally { $("#src-meta").textContent = ""; liveCheck(); }
+  } catch (err) {
+    act.step({ icon: "error", text: "Stopped", detail: err.message });
+    act.finish(false);
+    if (err.status === 401) $("#src-meta").innerHTML = `${esc(err.message)} Use <b>Guest · Sign in</b> at the top right.`;
+    else if (err.message !== "offline") showBanner(suite.friendlyError(err.message), "err");
+  }
+  finally { sourceBusy = false; liveCheck(); }
 });
 
 $("#refresh-btn").addEventListener("click", async () => {

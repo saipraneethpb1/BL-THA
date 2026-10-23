@@ -18,6 +18,7 @@ import aiosqlite
 
 from kb.answer.escalations import open_escalation
 from kb.answer.llm import Answerer, LLMResult, PassageInput
+from kb.progress import Progress, report
 from kb.retrieval.search import Searcher, SearchHit
 
 Status = Literal["answered", "partial", "insufficient_evidence"]
@@ -104,9 +105,10 @@ async def answer_question(
     k: int = 6,
     min_score: float = 0.60,
     caller: str | None = None,
+    progress: Progress | None = None,
 ) -> QueryResult:
     started = time.perf_counter()
-    hits = await searcher.search(db, question, k=k)
+    hits = await searcher.search(db, question, k=k, progress=progress)
     top_score = hits[0].score if hits else 0.0
 
     llm: LLMResult | None = None
@@ -115,8 +117,25 @@ async def answer_question(
     if top_score < min_score:
         status: Status = "insufficient_evidence"
         answer, missing = NOT_COVERED, f"no relevant passage (best match {top_score:.2f})"
+        await report(
+            progress,
+            "warn",
+            "No passage is close enough to answer from",
+            f"best match {top_score:.2f}, needs {min_score:.2f}: not guessing",
+        )
     else:
+        await report(
+            progress,
+            "check",
+            "The evidence is strong enough to answer",
+            f"best match {top_score:.2f}",
+        )
         passages = [PassageInput(i + 1, h.title, h.section, h.text) for i, h in enumerate(hits)]
+        await report(
+            progress,
+            "think",
+            f"Writing the answer from {len(passages)} passage{'s' if len(passages) != 1 else ''}",
+        )
         llm = await answerer.answer(question, passages)
         draft = llm.draft
         valid = sorted({n for n in draft.cited_passages if 1 <= n <= len(hits)})
@@ -127,11 +146,25 @@ async def answer_question(
             missing = "model answered without citing any passage"
         if status == "insufficient_evidence":
             cited_hits = []
+        if cited_hits:
+            await report(
+                progress,
+                "check",
+                f"Checked {len(cited_hits)} cited passage reference{'s' if len(cited_hits) > 1 else ''}",
+            )
+        else:
+            await report(progress, "warn", "The help center doesn't cover this", missing)
 
     escalation_id = None
     if status != "answered":
         escalation_id = await open_escalation(
             db, question, missing or status, _evidence(hits), caller
+        )
+        await report(
+            progress,
+            "person",
+            f"Handed to a human expert (task #{escalation_id})",
+            "their answer is reused next time",
         )
 
     result = QueryResult(

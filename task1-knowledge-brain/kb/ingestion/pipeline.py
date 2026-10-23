@@ -269,7 +269,7 @@ async def _health_checks(
                 await db.commit()
             return
         issue: str | None
-        if status in (404, 410) and missing:
+        if status == 404 or (status == 410 and missing):
             issue, outcome = "gone", "missing"
         elif status in (301, 308):
             issue, outcome = "moved", "moved"
@@ -285,12 +285,14 @@ async def _health_checks(
             state = await health.observe(
                 db, hs, aid, url, issue, status=status, redirect_to=location
             )
+            if state == "quarantined":
+                outcome = "quarantined"
             row = list(
                 await db.execute_fetchall("SELECT count FROM url_health WHERE article_id=?", (aid,))
             )
             detail: str | None = None
             if issue is not None and row:
-                detail = f"HTTP {status}, {row[0]['count']} of {hs.threshold} refreshes in a row ({state})"
+                detail = "HTTP 404: automatically quarantined" if status == 404 else f"HTTP {status}, {row[0]['count']} of {hs.threshold} refreshes in a row ({state})"
                 if location:
                     detail += f", redirects to {location}"
             elif missing:
@@ -330,10 +332,15 @@ async def _process_one(
     except FetchError as exc:
         async with db_lock:
             report.failed += 1
-            # A page still listed in its sitemap that answers 404 isn't one of the URL health
-            # rules (those need it to be missing too), so it's recorded as failed, not quarantined.
-            await _mark_failed(db, article_id, str(exc))
-            await _log_fetch(db, report, article_id, url, source, "failed", str(exc))
+            if exc.status_code == 404:
+                await health.observe(
+                    db, hs or health.HealthSettings(), article_id, url, "gone", status=404
+                )
+                outcome, failure_detail = "quarantined", "HTTP 404: automatically quarantined"
+            else:
+                await _mark_failed(db, article_id, str(exc))
+                outcome, failure_detail = "failed", str(exc)
+            await _log_fetch(db, report, article_id, url, source, outcome, failure_detail)
             await db.commit()
         log.warning("fetch failed %s: %s", url, exc)
         return

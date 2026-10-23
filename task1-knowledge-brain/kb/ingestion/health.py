@@ -1,13 +1,14 @@
-"""URL health: count problems across consecutive refreshes, and let a person decide.
+"""URL health: HTTP 404 automatically quarantines; other problems wait for review.
 
 Two problems are tracked, each with its own rule (quarantine, or only flag):
-- "gone":  the URL answers 404/410 and is no longer listed in its sitemap;
+- "gone": the URL answers 404, or answers 410 and is no longer listed in its sitemap;
 - "moved": the URL answers a permanent redirect (301/308).
 
 Each refresh that sees the same problem adds one to the URL's count; a refresh that sees it
 working again resets it. When the count reaches the threshold, the URL becomes "pending"
 (rule: quarantine) or "flagged" (rule: flag). Nothing is quarantined until a person confirms
-it, and nothing is ever deleted: quarantine keeps the page but takes it out of search.
+it, except HTTP 404, which bypasses the count and preferences. Nothing is ever deleted:
+quarantine keeps the page but takes it out of search.
 """
 
 from dataclasses import dataclass
@@ -15,7 +16,7 @@ from dataclasses import dataclass
 import aiosqlite
 
 ISSUES = {
-    "gone": "404 and no longer in its sitemap",
+    "gone": "Page not found (404/410)",
     "moved": "301 permanent redirect",
 }
 ACTIONS = ("quarantine", "flag")
@@ -102,7 +103,8 @@ async def observe(
         )
         return "quarantined"
     count = row["count"] + 1 if row is not None and row["issue"] == issue else 1
-    state = _state(count, issue, s)
+    auto_quarantine = issue == "gone" and status == 404
+    state = "quarantined" if auto_quarantine else _state(count, issue, s)
     await db.execute(
         """INSERT INTO url_health(article_id, url, issue, count, state, last_status, redirect_to,
                                   first_seen_at, last_seen_at)
@@ -114,6 +116,17 @@ async def observe(
                                 THEN url_health.first_seen_at ELSE excluded.first_seen_at END""",
         (article_id, url, issue, count, state, status, redirect_to),
     )
+    if auto_quarantine:
+        await db.execute(
+            """UPDATE pages SET status='quarantined', last_error='HTTP 404 (automatically quarantined)',
+               quarantined_at=coalesce(quarantined_at, datetime('now')), updated_at=datetime('now')
+               WHERE article_id=?""",
+            (article_id,),
+        )
+        await db.execute(
+            "UPDATE url_health SET decided_at=datetime('now') WHERE article_id=?",
+            (article_id,),
+        )
     return state
 
 

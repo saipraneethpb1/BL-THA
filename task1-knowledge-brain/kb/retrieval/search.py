@@ -13,6 +13,7 @@ from typing import Literal
 import aiosqlite
 import numpy as np
 
+from kb.progress import Progress, report
 from kb.retrieval.embedder import Embedder, Vector
 from kb.retrieval.rewrite import QueryRewriter
 
@@ -116,10 +117,16 @@ class Searcher:
         self.max_per_article = max_per_article
 
     async def search(
-        self, db: aiosqlite.Connection, question: str, k: int = 8, mode: Mode = "hybrid"
+        self,
+        db: aiosqlite.Connection,
+        question: str,
+        k: int = 8,
+        mode: Mode = "hybrid",
+        progress: Progress | None = None,
     ) -> list[SearchHit]:
         queries = [question]
         if self.rewriter is not None and mode == "hybrid":
+            await report(progress, "think", "Rephrasing the question in help-center terms")
             queries += [
                 q for q in await self.rewriter.rewrite(question) if q.lower() != question.lower()
             ]
@@ -169,6 +176,20 @@ class Searcher:
             out.append(hit)
             if len(out) == k:
                 break
+        kinds = {"hybrid": "meaning + keywords", "vector": "meaning", "keyword": "keywords"}[mode]
+        await report(
+            progress,
+            "search",
+            f"Ran {len(queries)} search{'es' if len(queries) > 1 else ''} ({kinds})",
+            " · ".join(f"“{q}”" for q in queries),
+        )
+        titles = list(dict.fromkeys(h.title for h in out))
+        await report(
+            progress,
+            "doc",
+            f"Found {len(out)} passage{'s' if len(out) != 1 else ''} in {len(titles)} article{'s' if len(titles) != 1 else ''}",
+            " · ".join(titles[:5]) + (f" · +{len(titles) - 5} more" if len(titles) > 5 else ""),
+        )
         return out
 
     async def _keyword(self, db: aiosqlite.Connection, question: str) -> list[int]:

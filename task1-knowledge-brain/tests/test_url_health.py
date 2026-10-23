@@ -1,5 +1,4 @@
-"""URL health: problems are counted across consecutive refreshes, shown as pending at the
-threshold, and only quarantined when a person confirms. Nothing is ever deleted."""
+"""404s quarantine immediately; other problems retain review rules. Content is kept."""
 
 import sqlite3
 from pathlib import Path
@@ -21,6 +20,7 @@ class Site:
     def __init__(self) -> None:
         self.sitemap = ""
         self.gone: set[str] = set()
+        self.gone_status = 404
         self.moved: dict[str, str] = {}  # article id -> article id it redirects to
 
     def handler(self, request: httpx.Request) -> httpx.Response:
@@ -29,7 +29,7 @@ class Site:
             return httpx.Response(200, text=self.sitemap)
         aid = path.rsplit("/", 1)[-1]
         if aid in self.gone:
-            return httpx.Response(404)
+            return httpx.Response(self.gone_status)
         if aid in self.moved:
             return httpx.Response(301, headers={"location": f"{BASE}/{self.moved[aid]}"})
         return httpx.Response(200, text=ARTICLE_HTML.replace("5000558401", aid))
@@ -65,8 +65,8 @@ def status(settings: Settings, aid: str) -> str:
         return db.execute("SELECT status FROM pages WHERE article_id=?", (aid,)).fetchone()[0]
 
 
-async def test_gone_urls_count_up_become_pending_and_wait_for_a_person(settings: Settings) -> None:
-    await set_rules(settings, threshold=2)
+async def test_404_quarantines_immediately_despite_preferences(settings: Settings) -> None:
+    await set_rules(settings, threshold=30, action_gone="flag")
     site = Site()
     t = httpx.MockTransport(site.handler)
     site.sitemap = sitemap(("1", "d1"), ("2", "d1"))
@@ -74,22 +74,13 @@ async def test_gone_urls_count_up_become_pending_and_wait_for_a_person(settings:
 
     site.sitemap, site.gone = sitemap(("1", "d1")), {"2"}  # 2 disappears and answers 404
     await run_ingestion(settings, transport=t)
-    assert tracked(settings) == {"2": ("gone", 1, "counting")}
-    await run_ingestion(settings, transport=t)
-    assert tracked(settings) == {"2": ("gone", 2, "pending")}
-    assert status(settings, "2") == "done"  # still searchable: nothing happens until confirmed
-    await run_ingestion(settings, transport=t)
-    assert tracked(settings)["2"][1:] == (3, "pending")
-
-    async with connect(settings.db_path) as db:
-        assert await health.quarantine(db, ["2"]) == 1
-        await db.commit()
+    assert tracked(settings) == {"2": ("gone", 1, "quarantined")}
     assert status(settings, "2") == "quarantined"
     assert tracked(settings)["2"][2] == "quarantined"
     with sqlite3.connect(settings.db_path) as db:
         assert db.execute("SELECT count(*) FROM articles WHERE article_id='2'").fetchone()[0] == 1
         reason = db.execute("SELECT last_error FROM pages WHERE article_id='2'").fetchone()[0]
-    assert reason == "404 and no longer in its sitemap for 3 refreshes in a row (confirmed)"
+    assert reason == "HTTP 404 (automatically quarantined)"
 
     async with connect(settings.db_path) as db:  # restore: fetched again at the next refresh
         assert await health.restore(db, ["2"]) == 1
@@ -100,6 +91,7 @@ async def test_gone_urls_count_up_become_pending_and_wait_for_a_person(settings:
 async def test_a_recovered_url_resets_its_count(settings: Settings) -> None:
     await set_rules(settings, threshold=3)
     site = Site()
+    site.gone_status = 410  # non-404 problems still use consecutive-refresh review
     t = httpx.MockTransport(site.handler)
     site.sitemap = sitemap(("1", "d1"), ("2", "d1"))
     await run_ingestion(settings, transport=t)

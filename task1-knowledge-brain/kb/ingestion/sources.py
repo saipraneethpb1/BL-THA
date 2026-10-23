@@ -16,6 +16,8 @@ from urllib.parse import urlsplit
 
 import httpx
 
+from kb.progress import Progress, report
+
 MAX_URL_LENGTH = 2048
 MAX_SITEMAP_BYTES = 5_000_000
 
@@ -146,12 +148,19 @@ class SitemapCheck:
     url_count: int
 
 
-async def validate_sitemap(raw_url: str, guard: HostGuard, timeout_s: float = 15.0) -> SitemapCheck:
+async def validate_sitemap(
+    raw_url: str, guard: HostGuard, timeout_s: float = 15.0, progress: Progress | None = None
+) -> SitemapCheck:
     """Full check for a URL someone wants to add: syntax, public host, reachable, real sitemap."""
     url = check_url_syntax(raw_url)
-    await guard.check(urlsplit(url).hostname or "")
+    host = urlsplit(url).hostname or ""
+    await report(progress, "shield", f"Checking that {host} is a public site")
+    await guard.check(host)
+    await report(progress, "globe", "Downloading the sitemap", url)
     async with guarded_client(guard, timeout=timeout_s) as client:
-        parsed = parse_any_sitemap(await fetch_sitemap(client, url))
+        text = await fetch_sitemap(client, url)
+    await report(progress, "doc", f"Reading the XML ({len(text.encode()) / 1024:,.0f} KB)")
+    parsed = parse_any_sitemap(text)
     return SitemapCheck(url, parsed.kind, len(parsed.locs))
 
 

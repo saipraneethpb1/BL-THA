@@ -43,13 +43,12 @@ async def test_each_fetch_is_logged_with_its_outcome(tmp_path: Path) -> None:
     run1 = {u.rsplit("/", 1)[-1]: (o, d) for r, u, o, d, _ in log if r == first.run_id}
     assert run1 == {
         "1": ("updated", None),
-        "2": ("failed", "HTTP 404"),
+        "2": ("quarantined", "HTTP 404: automatically quarantined"),
         "3": ("failed", "gave up after 1 attempts: HTTP 503"),
     }
     run2 = {u.rsplit("/", 1)[-1]: o for r, u, o, _, _ in log if r == second.run_id}
-    # 1: same content again; 3: updated entry, fine now. 2 used up its attempts and waits
-    # for its sitemap entry to change.
-    assert run2 == {"1": "unchanged", "3": "updated"}
+    # A quarantined page still listed in the sitemap is retried and recovers on HTTP 200.
+    assert run2 == {"1": "unchanged", "2": "updated", "3": "updated"}
     assert {s for *_, s in log} == {"help-center"}
 
 

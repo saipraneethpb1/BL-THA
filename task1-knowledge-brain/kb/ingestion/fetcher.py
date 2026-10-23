@@ -18,9 +18,10 @@ class Fetched:
 
 
 class FetchError(Exception):
-    def __init__(self, message: str, *, permanent: bool) -> None:
+    def __init__(self, message: str, *, permanent: bool, status_code: int | None = None) -> None:
         super().__init__(message)
         self.permanent = permanent  # True for 404/410: retrying will not help
+        self.status_code = status_code
 
 
 @dataclass
@@ -75,7 +76,7 @@ class PoliteFetcher:
                         moved = first is not None and first.status_code in (301, 308)
                         return Fetched(resp.text, str(resp.url) if moved else None)
                     if resp.status_code in (404, 410):
-                        raise FetchError(f"HTTP {resp.status_code}", permanent=True)
+                        raise FetchError(f"HTTP {resp.status_code}", permanent=True, status_code=resp.status_code)
                     if resp.status_code not in RETRYABLE:
                         raise FetchError(f"HTTP {resp.status_code}", permanent=False)
                     last_error = f"HTTP {resp.status_code}"

@@ -215,7 +215,7 @@ def test_custom_sitemaps_validate_each_url_on_entry(
 ) -> None:
     from kb.ingestion.sources import SitemapCheck, SitemapError
 
-    async def fake_validate(url: str) -> SitemapCheck:
+    async def fake_validate(url: str, progress: object = None) -> SitemapCheck:
         if "broken" in url:
             raise SitemapError("The server answered HTTP 404, not a sitemap.")
         return SitemapCheck(url, "urlset", 12)

@@ -2,6 +2,7 @@
 
 import asyncio
 import contextlib
+import json
 import os
 import secrets
 import time
@@ -14,7 +15,7 @@ from typing import Annotated, Any, Literal
 
 import anthropic
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from kb import session
@@ -34,6 +35,7 @@ from kb.ingestion.sources import (
     validate_sitemap,
 )
 from kb.ingestion.vision import ClaudeImageDescriber
+from kb.progress import Progress, report
 from kb.refresh import Refresher, daily_loop, seconds_until
 from kb.retrieval.embedder import FastEmbedder
 from kb.retrieval.rewrite import ClaudeQueryRewriter
@@ -67,7 +69,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         )
     if not hasattr(app.state, "sitemap_validator"):  # tests inject a fake
         guard = HostGuard()
-        app.state.sitemap_validator = lambda url: validate_sitemap(url, guard)
+        app.state.sitemap_validator = lambda url, progress=None: validate_sitemap(
+            url, guard, progress=progress
+        )
     if not hasattr(app.state, "transcriber"):
         app.state.transcriber = (
             WhisperTranscriber(settings.whisper_model, settings.model_cache_dir)
@@ -344,21 +348,71 @@ async def list_sitemaps() -> dict[str, Any]:
     }
 
 
-@app.post("/sitemaps", dependencies=[Protected, SignedIn])
-async def add_sitemaps(body: SitemapsIn, request: Request) -> dict[str, Any]:
-    """Validate each URL (format, public host, reachable, a real sitemap) and add the good
-    ones. Each URL gets its own result, so one bad line doesn't block the rest. Their pages
-    are crawled at the next refresh."""
-    sitemap_limiter.check(request)
-    validate: Callable[[str], Awaitable[SitemapCheck]] = request.app.state.sitemap_validator
+def _event_stream(work: Callable[[Progress], Awaitable[dict[str, Any]]]) -> StreamingResponse:
+    """Runs `work` and sends each step it reports as a server-sent event, then its result
+    (`{"done": ...}`) or what went wrong (`{"error": ..., "status": ...}`). The page shows
+    the steps live, so a slow request visibly does something."""
+
+    async def events() -> AsyncIterator[str]:
+        started = time.perf_counter()
+        queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue()
+
+        async def progress(step: dict[str, Any]) -> None:
+            await queue.put(step)
+
+        async def run() -> None:
+            try:
+                await queue.put({"done": await work(progress)})
+            except anthropic.APIError as exc:
+                await queue.put(
+                    {"error": f"Claude API error: {claude_error_message(exc)}", "status": 502}
+                )
+            except HTTPException as exc:
+                await queue.put({"error": str(exc.detail), "status": exc.status_code})
+            except Exception as exc:  # reported to the page, which shows it
+                await queue.put({"error": str(exc) or type(exc).__name__, "status": 500})
+            finally:
+                await queue.put(None)
+
+        task = asyncio.create_task(run())
+        try:
+            while (item := await queue.get()) is not None:
+                item["t_ms"] = round((time.perf_counter() - started) * 1000)
+                yield f"data: {json.dumps(item)}\n\n"
+            await task
+        finally:
+            # Closing the request must not leave paid work running in the background.
+            if not task.done():
+                task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+
+    # No buffering anywhere on the way, so each step reaches the page as it happens.
+    return StreamingResponse(
+        events(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+async def _add_sitemaps(
+    urls: list[str], request: Request, progress: Progress | None = None
+) -> dict[str, Any]:
+    validate: Callable[..., Awaitable[SitemapCheck]] = request.app.state.sitemap_validator
     results: list[dict[str, Any]] = []
     async with connect(settings.db_path) as db:
         existing = {r["url"] for r in await db.execute_fetchall("SELECT url FROM custom_sitemaps")}
-        for raw in body.urls:
+        for i, raw in enumerate(urls):
             result: dict[str, Any] = {"input": raw, "ok": False}
             results.append(result)
+
+            async def step(event: dict[str, Any], i: int = i, raw: str = raw) -> None:
+                if progress is not None:
+                    await progress({**event, "group": i, "group_label": raw})
+
             try:
                 url = check_url_syntax(raw)
+                await report(step, "check", "The address is a valid URL")
                 if url == settings.sitemap_url:
                     raise SitemapError(
                         "That's the help center's own sitemap: it's always included."
@@ -369,9 +423,10 @@ async def add_sitemaps(body: SitemapsIn, request: Request) -> dict[str, Any]:
                     raise SitemapError(
                         f"This demo allows {settings.max_custom_sitemaps} custom sitemaps; remove one first."
                     )
-                check = await validate(url)
+                check = await (validate(url, progress=step) if progress else validate(url))
             except SitemapError as exc:
                 result["error"] = str(exc)
+                await report(step, "warn", "Not added", str(exc))
                 continue
             cur = await db.execute(
                 """INSERT INTO custom_sitemaps(url, kind, url_count, added_by, last_checked_at)
@@ -382,8 +437,31 @@ async def add_sitemaps(body: SitemapsIn, request: Request) -> dict[str, Any]:
             result.update(
                 ok=True, id=cur.lastrowid, url=check.url, kind=check.kind, url_count=check.url_count
             )
+            what = "child sitemaps" if check.kind == "sitemapindex" else "pages"
+            await report(
+                step,
+                "check",
+                f"Added: {check.url_count} {what} found",
+                "their text is fetched at the next refresh",
+            )
         await db.commit()
     return {"results": results}
+
+
+@app.post("/sitemaps", dependencies=[Protected, SignedIn])
+async def add_sitemaps(body: SitemapsIn, request: Request) -> dict[str, Any]:
+    """Validate each URL (format, public host, reachable, a real sitemap) and add the good
+    ones. Each URL gets its own result, so one bad line doesn't block the rest. Their pages
+    are crawled at the next refresh."""
+    sitemap_limiter.check(request)
+    return await _add_sitemaps(body.urls, request)
+
+
+@app.post("/sitemaps/stream", dependencies=[Protected, SignedIn])
+async def add_sitemaps_stream(body: SitemapsIn, request: Request) -> StreamingResponse:
+    """Same as POST /sitemaps, reporting each check as it happens (server-sent events)."""
+    sitemap_limiter.check(request)
+    return _event_stream(lambda progress: _add_sitemaps(body.urls, request, progress))
 
 
 @app.delete("/sitemaps/{sitemap_id}", dependencies=[Protected, SignedIn])
@@ -471,10 +549,10 @@ async def refresh_run_urls(run_id: int) -> dict[str, Any]:
 
 class HealthSettingsIn(BaseModel):
     threshold: int = Field(
-        ge=1, le=30, description="Consecutive refreshes before a URL needs a decision"
+        ge=1, le=30, description="Consecutive refreshes before a non-404 URL issue needs a decision"
     )
     action_gone: Literal["quarantine", "flag"] = Field(
-        description="404 and no longer in its sitemap"
+        description="410 and no longer in its sitemap; HTTP 404 always quarantines automatically"
     )
     action_moved: Literal["quarantine", "flag"] = Field(description="301/308 permanent redirect")
 
@@ -681,6 +759,12 @@ async def query(req: QueryRequest, request: Request) -> QueryResponse:
         raise HTTPException(503, "answering is disabled: ANTHROPIC_API_KEY is not configured")
     query_limiter.check(request)
     over_budget(await spent_usd(), settings.budget_usd)
+    return await _answer(req, request, answerer)
+
+
+async def _answer(
+    req: QueryRequest, request: Request, answerer: Answerer, progress: Progress | None = None
+) -> QueryResponse:
     async with connect(settings.db_path) as db:
         result = await answer_question(
             db,
@@ -689,8 +773,26 @@ async def query(req: QueryRequest, request: Request) -> QueryResponse:
             req.question,
             min_score=settings.min_evidence_score,
             caller=req.caller,
+            progress=progress,
         )
     return QueryResponse.model_validate(asdict(result))
+
+
+@app.post("/query/stream", dependencies=[Protected])
+async def query_stream(req: QueryRequest, request: Request) -> StreamingResponse:
+    """Same as POST /query, reporting each step as it happens (server-sent events): the
+    rephrasings, the searches, what was found, the evidence check, writing, and the
+    citation check. The last event carries the answer."""
+    answerer: Answerer | None = request.app.state.answerer
+    if answerer is None:
+        raise HTTPException(503, "answering is disabled: ANTHROPIC_API_KEY is not configured")
+    query_limiter.check(request)
+    over_budget(await spent_usd(), settings.budget_usd)
+
+    async def work(progress: Progress) -> dict[str, Any]:
+        return (await _answer(req, request, answerer, progress)).model_dump()
+
+    return _event_stream(work)
 
 
 # ---------- Human experts ----------

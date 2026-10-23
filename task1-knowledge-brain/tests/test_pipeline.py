@@ -100,16 +100,16 @@ async def test_failures_are_isolated_and_resumed(site: FakeSite, settings: Setti
     assert statuses(settings) == {"1": "done", "2": "done"}
 
 
-async def test_404_while_still_listed_is_a_failure_not_a_quarantine(
+async def test_404_while_still_listed_is_automatically_quarantined(
     site: FakeSite, settings: Settings
 ) -> None:
-    # The URL health rule needs both: a 404 and missing from the sitemap.
+    # HTTP 404 bypasses preferences even while the sitemap still lists the URL.
     site.sitemap = sitemap(("1", "d1"))
     site.gone = {"1"}
     await run_ingestion(settings, transport=httpx.MockTransport(site.handler))
-    assert statuses(settings) == {"1": "failed"}
+    assert statuses(settings) == {"1": "quarantined"}
     with sqlite3.connect(settings.db_path) as c:
-        assert c.execute("SELECT last_error FROM pages").fetchone() == ("HTTP 404",)
+        assert c.execute("SELECT last_error FROM pages").fetchone() == ("HTTP 404 (automatically quarantined)",)
 
 
 async def test_limit_allows_a_partial_run(site: FakeSite, settings: Settings) -> None:
