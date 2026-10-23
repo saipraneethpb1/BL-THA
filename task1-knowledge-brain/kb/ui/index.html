@@ -279,6 +279,23 @@ body.has-usage-bar { padding-bottom: 46px; }
   @media (max-width: 560px) { .url-row { grid-template-columns: 1fr; } .url-row .d { grid-column: 1; } }
   .chipbtn { border: 1px solid var(--line-strong); background: var(--panel); color: var(--text); border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
   .chipbtn[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--panel)); }
+  .health-settings { display: grid; grid-template-columns: 140px repeat(2, minmax(180px, 1fr)) auto; gap: 12px; align-items: end; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+  @media (max-width: 860px) { .health-settings { grid-template-columns: 1fr; } }
+  .health-settings label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; }
+  .health-settings input, .health-settings select { padding: 7px 10px; }
+  .hgroup { margin-top: 16px; }
+  .hgroup-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .hgroup-head h3 { margin: 0; }
+  .hlist { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .hrow { display: grid; grid-template-columns: 26px minmax(0, 1fr) 150px; gap: 10px; align-items: center; padding: 9px 12px; border-bottom: 1px solid var(--line); font-size: 13px; background: var(--bg); }
+  .hrow:last-child { border-bottom: 0; }
+  .hrow a { overflow-wrap: anywhere; text-decoration: none; font-weight: 600; }
+  .hrow .why { color: var(--muted); margin-top: 2px; }
+  .hcount { display: grid; gap: 4px; justify-items: end; font-variant-numeric: tabular-nums; }
+  .hmeter { width: 110px; height: 6px; border-radius: 3px; background: var(--panel-2); overflow: hidden; border: 1px solid var(--line); }
+  .hmeter > span { display: block; height: 100%; background: var(--warn); }
+  .hrow.pending .hmeter > span { background: var(--err); }
+  @media (max-width: 560px) { .hrow { grid-template-columns: 26px 1fr; } .hcount { grid-column: 2; justify-items: start; } }
 </style>
 </head>
 <body data-app="kb">
@@ -370,6 +387,18 @@ body.has-usage-bar { padding-bottom: 46px; }
       </div>
       <p class="sub">What each refresh fetched. Times are in your time zone; hover a time to see it in UTC.</p>
       <div id="run-body"><div class="empty"><span class="spinner" style="display:inline-block"></span></div></div>
+    </div>
+
+    <div class="panel" id="health-panel">
+      <div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">URL health</h2><span class="meta" id="health-summary"></span></div>
+      <p class="sub">Each refresh re-checks URLs that left their sitemap or are already being counted. A URL that shows the same problem for the set number of refreshes in a row waits here for your decision. Nothing is quarantined until you confirm, and quarantine never deletes: the page is kept but left out of search.</p>
+      <form id="health-form" class="health-settings">
+        <label>Threshold <span class="meta">consecutive refreshes</span><input id="h-threshold" type="number" min="1" max="30" required></label>
+        <label>404 and no longer in its sitemap<select id="h-gone"><option value="quarantine">Quarantine, after I confirm</option><option value="flag">Flag only</option></select></label>
+        <label>301 permanent redirect<select id="h-moved"><option value="quarantine">Quarantine, after I confirm</option><option value="flag">Flag only</option></select></label>
+        <div class="row" style="margin-top:0;align-self:end"><button class="btn secondary" id="h-save">Save settings</button><span class="meta" id="h-msg"></span></div>
+      </form>
+      <div id="health-lists"></div>
     </div>
 
     <div class="panel">
@@ -767,6 +796,7 @@ async function loadStatus() {
   let s;
   loadSources();
   loadRuns();
+  loadHealth();
   try { s = await api("/ingestion/status"); } catch { return; }
   const pages = s.pages_by_status;
   const stat = (v, label) => `<div class="stat"><b>${v}</b><span>${label}</span></div>`;
@@ -788,7 +818,74 @@ async function loadStatus() {
   if (s.refresh_running) setTimeout(loadStatus, 3000);
 }
 // Refresh runs: first and last fetch, totals, and every fetched URL.
-const OUTCOME = { updated: ["Updated", "ok"], unchanged: ["Unchanged", ""], failed: ["Failed, will retry", "warn"], quarantined: ["Quarantined", "err"], refused: ["Refused (private address)", "err"] };
+const OUTCOME = { updated: ["Updated", "ok"], unchanged: ["Unchanged", ""], failed: ["Failed, will retry", "warn"], quarantined: ["Quarantined", "err"], refused: ["Refused (private address)", "err"],
+  checked: ["Re-checked: fine", "ok"], missing: ["Re-checked: 404, not in sitemap", "err"], moved: ["Re-checked: moved (301)", "warn"], unreachable: ["Re-check inconclusive", ""] };
+
+// URL health: settings, URLs waiting for a decision, and quarantined URLs.
+let healthData = null;
+async function loadHealth() {
+  try { healthData = await api("/url-health"); } catch { return; }
+  const s = healthData.settings;
+  $("#h-threshold").value = s.threshold; $("#h-gone").value = s.action_gone; $("#h-moved").value = s.action_moved;
+  renderHealth();
+}
+function renderHealth() {
+  const { items, quarantined, issues, settings: s } = healthData;
+  const group = (st) => items.filter((i) => i.state === st);
+  const pending = group("pending"), flagged = group("flagged"), counting = group("counting");
+  $("#health-summary").textContent = pending.length ? `${pending.length} waiting for your decision` : counting.length + flagged.length ? `${counting.length + flagged.length} being watched` : "all healthy";
+  const row = (i, check) => {
+    const pct = Math.min(100, (i.count / s.threshold) * 100);
+    const why = `${esc(issues[i.issue] || i.issue)}${i.last_status ? ` · last answer HTTP ${i.last_status}` : ""}${i.redirect_to ? ` · redirects to <span style="overflow-wrap:anywhere">${esc(i.redirect_to)}</span>` : ""}`;
+    return `<div class="hrow ${i.state}">${check ? `<input type="checkbox" data-id="${esc(i.article_id)}" aria-label="Select ${esc(i.url)}">` : "<span></span>"}
+      <div><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.title || i.url)}</a>${i.title ? `<div class="meta" style="overflow-wrap:anywhere">${esc(i.url)}</div>` : ""}<div class="why">${why}</div></div>
+      <div class="hcount"><span><b>${i.count}</b> of ${s.threshold} refreshes</span><span class="hmeter"><span style="width:${pct}%"></span></span></div></div>`;
+  };
+  const section = (title, list, note, actions) => list.length ? `<div class="hgroup" data-group="${title}">
+      <div class="hgroup-head"><h3 class="label" style="margin:0">${title} (${list.length})</h3>${actions ? `<div class="row" style="margin:0">
+        <label class="meta" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-all> Select all</label>${actions}</div>` : ""}</div>
+      ${note ? `<p class="meta" style="margin:0 0 8px">${note}</p>` : ""}<div class="hlist">${list.map((i) => row(i, Boolean(actions))).join("")}</div></div>` : "";
+  const acts = `<button class="btn small" data-act="quarantine" disabled>Quarantine selected</button><button class="btn secondary small" data-act="keep" disabled>Keep (reset count)</button>`;
+  $("#health-lists").innerHTML =
+    section("Pending your decision", pending, "These reached the threshold. They stay searchable until you choose.", acts)
+    + section("Flagged", flagged, "These reached the threshold under a \"Flag only\" rule: shown for information, never quarantined automatically.", acts)
+    + section("Counting", counting, "Problems seen in recent refreshes, not yet at the threshold. The count resets if the URL recovers.", "")
+    + (quarantined.length ? `<div class="hgroup"><div class="hgroup-head"><h3 class="label" style="margin:0">Quarantined (${quarantined.length})</h3></div>
+        <p class="meta" style="margin:0 0 8px">Kept, but left out of search. Restore brings a URL back: it's fetched again at the next refresh.</p>
+        <div class="hlist">${quarantined.map((q) => `<div class="hrow"><span></span><div><a href="${esc(q.url)}" target="_blank" rel="noopener">${esc(q.title || q.url)}</a>${q.title ? `<div class="meta" style="overflow-wrap:anywhere">${esc(q.url)}</div>` : ""}<div class="why">${esc(q.reason || "")}${q.quarantined_at ? ` · since ${when(q.quarantined_at, { dateStyle: "medium" })}` : ""}</div></div>
+          <div class="hcount"><button class="btn secondary small" data-restore="${esc(q.article_id)}">Restore</button></div></div>`).join("")}</div></div>` : "")
+    || `<div class="empty">No URL needs attention. Problems appear here after a refresh notices them.</div>`;
+
+  $("#health-lists").querySelectorAll("[data-group]").forEach((g) => {
+    const boxes = [...g.querySelectorAll("input[data-id]")];
+    const sync = () => g.querySelectorAll("[data-act]").forEach((b) => b.disabled = !boxes.some((x) => x.checked));
+    boxes.forEach((b) => b.onchange = sync);
+    const all = g.querySelector("[data-all]");
+    if (all) all.onchange = () => { boxes.forEach((b) => b.checked = all.checked); sync(); };
+    g.querySelectorAll("[data-act]").forEach((b) => b.onclick = () => healthAct(b.dataset.act, boxes.filter((x) => x.checked).map((x) => x.dataset.id)));
+  });
+  $("#health-lists").querySelectorAll("[data-restore]").forEach((b) => b.onclick = () => healthAct("restore", [b.dataset.restore]));
+}
+async function healthAct(action, ids) {
+  if (!ids.length) return;
+  const n = ids.length, what = n === 1 ? "this URL" : `these ${n} URLs`;
+  const ask = { quarantine: `Quarantine ${what}? ${n === 1 ? "It's" : "They're"} kept, but left out of search until restored.`,
+    keep: `Keep ${what}? The count resets; it starts again if the problem comes back.`,
+    restore: `Restore ${what}? It's fetched again at the next refresh and returns to search if it works.` }[action];
+  if (!confirm(ask)) return;
+  try {
+    const r = await api("/url-health/actions", { method: "POST", body: JSON.stringify({ action, article_ids: ids }) });
+    suite.toast({ quarantine: `Quarantined ${r.done}`, keep: `Kept ${r.done}; count reset`, restore: `Restored ${r.done}; fetched at the next refresh` }[action]);
+    loadHealth(); loadStatus();
+  } catch (err) { showBanner(err.message); }
+}
+$("#health-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const body = { threshold: Number($("#h-threshold").value), action_gone: $("#h-gone").value, action_moved: $("#h-moved").value };
+  if (!(body.threshold >= 1 && body.threshold <= 30)) { $("#h-msg").textContent = "Threshold must be 1 to 30."; return; }
+  try { await api("/url-health/settings", { method: "PUT", body: JSON.stringify(body) }); $("#h-msg").textContent = "Saved."; suite.toast("URL health settings saved"); loadHealth(); }
+  catch (err) { $("#h-msg").textContent = err.message; }
+});
 const when = (iso, opts = { dateStyle: "medium", timeStyle: "medium" }) => iso
   ? `<span title="${esc(iso.replace("T", " ").replace("Z", " UTC"))}">${esc(new Date(iso).toLocaleString(undefined, opts))}</span>` : `<span class="meta">none</span>`;
 let runs = [], runUrls = null, runFilter = "all";

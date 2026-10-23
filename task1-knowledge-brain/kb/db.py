@@ -138,6 +138,26 @@ CREATE TABLE IF NOT EXISTS fetch_log (
 );
 CREATE INDEX IF NOT EXISTS idx_fetch_log_run ON fetch_log(run_id, fetched_at);
 
+-- URL health (kb/ingestion/health.py): problems counted across consecutive refreshes.
+CREATE TABLE IF NOT EXISTS url_health (
+    article_id    TEXT PRIMARY KEY,
+    url           TEXT NOT NULL,
+    issue         TEXT NOT NULL,   -- gone (404 + not in sitemap) | moved (301/308)
+    count         INTEGER NOT NULL DEFAULT 1,  -- consecutive refreshes with this issue
+    state         TEXT NOT NULL,   -- counting | pending | flagged | quarantined
+    last_status   INTEGER,
+    redirect_to   TEXT,
+    first_seen_at TEXT NOT NULL DEFAULT (datetime('now')),
+    last_seen_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    decided_at    TEXT
+);
+
+-- Settings changed from the UI (URL health threshold and rules).
+CREATE TABLE IF NOT EXISTS kb_settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
 -- Sitemaps users added on top of the help center's own (see kb/ingestion/sources.py).
 CREATE TABLE IF NOT EXISTS custom_sitemaps (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -248,3 +248,67 @@ def test_custom_sitemaps_validate_each_url_on_entry(
     assert client.delete(f"/sitemaps/{first}", headers=H).json() == {"removed": urls[0]}
     assert client.delete(f"/sitemaps/{first}", headers=H).status_code == 404
     del api.app.state.sitemap_validator
+
+
+def test_url_health_settings_pending_list_and_decisions(client: TestClient) -> None:
+    import sqlite3
+
+    assert client.get("/url-health").status_code == 401
+    assert client.get("/url-health", headers=H).json()["settings"] == {
+        "threshold": 3,
+        "action_gone": "quarantine",
+        "action_moved": "quarantine",
+    }
+    bad = client.put(
+        "/url-health/settings",
+        json={"threshold": 0, "action_gone": "quarantine", "action_moved": "delete"},
+        headers=H,
+    )
+    assert bad.status_code == 422  # threshold 1-30; there is no "delete" action
+    with sqlite3.connect(api.settings.db_path) as db:
+        db.executemany(
+            "INSERT INTO pages(article_id, url, status) VALUES (?, ?, 'done')",
+            [("a", "https://help.test/a"), ("b", "https://help.test/b")],
+        )
+        db.executemany(
+            "INSERT INTO url_health(article_id, url, issue, count, state, last_status) VALUES (?, ?, ?, ?, ?, ?)",
+            [
+                ("a", "https://help.test/a", "gone", 2, "counting", 404),
+                ("b", "https://help.test/b", "moved", 1, "counting", 301),
+            ],
+        )
+    ok = client.put(
+        "/url-health/settings",
+        json={"threshold": 2, "action_gone": "quarantine", "action_moved": "flag"},
+        headers=H,
+    )
+    assert ok.status_code == 200
+    items = {i["article_id"]: i for i in client.get("/url-health", headers=H).json()["items"]}
+    assert (items["a"]["state"], items["a"]["count"]) == ("pending", 2)  # shown before any action
+    assert items["b"]["state"] == "counting"
+
+    r = client.post(
+        "/url-health/actions", json={"action": "quarantine", "article_ids": ["a"]}, headers=H
+    )
+    assert r.json() == {"action": "quarantine", "done": 1}
+    body = client.get("/url-health", headers=H).json()
+    assert [q["article_id"] for q in body["quarantined"]] == ["a"]
+    assert "confirmed" in body["quarantined"][0]["reason"]
+    assert (
+        client.post(
+            "/url-health/actions", json={"action": "keep", "article_ids": ["b"]}, headers=H
+        ).json()["done"]
+        == 1
+    )
+    assert (
+        client.post(
+            "/url-health/actions", json={"action": "restore", "article_ids": ["a"]}, headers=H
+        ).json()["done"]
+        == 1
+    )
+    body = client.get("/url-health", headers=H).json()
+    assert body["items"] == [] and body["quarantined"] == []
+    bad_action = client.post(
+        "/url-health/actions", json={"action": "delete", "article_ids": ["a"]}, headers=H
+    )
+    assert bad_action.status_code == 422

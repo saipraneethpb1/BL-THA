@@ -24,6 +24,7 @@ from kb.bootstrap import article_count, seed_database
 from kb.config import settings
 from kb.db import connect, init_db
 from kb.guard import RateLimiter, over_budget, visitor
+from kb.ingestion import health as url_health_rules
 from kb.ingestion.sources import (
     HostGuard,
     SitemapCheck,
@@ -402,6 +403,81 @@ async def refresh_run_urls(run_id: int) -> dict[str, Any]:
         "run_id": run_id,
         "urls": [{**dict(r), "fetched_at": _utc(r["fetched_at"])} for r in rows],
     }
+
+
+class HealthSettingsIn(BaseModel):
+    threshold: int = Field(
+        ge=1, le=30, description="Consecutive refreshes before a URL needs a decision"
+    )
+    action_gone: Literal["quarantine", "flag"] = Field(
+        description="404 and no longer in its sitemap"
+    )
+    action_moved: Literal["quarantine", "flag"] = Field(description="301/308 permanent redirect")
+
+
+class HealthActionIn(BaseModel):
+    action: Literal["quarantine", "keep", "restore"]
+    article_ids: list[str] = Field(min_length=1, max_length=500)
+
+
+@app.get("/url-health", dependencies=[Protected])
+async def url_health() -> dict[str, Any]:
+    """Settings, every URL being counted (with its count), and every quarantined URL."""
+    async with connect(settings.db_path) as db:
+        hs = await url_health_rules.get_settings(db)
+        items = await db.execute_fetchall(
+            """SELECT h.*, a.title FROM url_health h LEFT JOIN articles a USING (article_id)
+               WHERE h.state != 'quarantined'
+               ORDER BY CASE h.state WHEN 'pending' THEN 0 WHEN 'flagged' THEN 1 ELSE 2 END,
+                        h.count DESC, h.url"""
+        )
+        quarantined = await db.execute_fetchall(
+            """SELECT p.article_id, p.url, p.last_error AS reason, p.quarantined_at, a.title
+               FROM pages p LEFT JOIN articles a USING (article_id)
+               WHERE p.status = 'quarantined' ORDER BY p.quarantined_at DESC, p.url"""
+        )
+    return {
+        "settings": {
+            "threshold": hs.threshold,
+            "action_gone": hs.action_gone,
+            "action_moved": hs.action_moved,
+        },
+        "issues": url_health_rules.ISSUES,
+        "items": [
+            {
+                **dict(r),
+                "first_seen_at": _utc(r["first_seen_at"]),
+                "last_seen_at": _utc(r["last_seen_at"]),
+            }
+            for r in items
+        ],
+        "quarantined": [
+            {**dict(r), "quarantined_at": _utc(r["quarantined_at"])} for r in quarantined
+        ],
+    }
+
+
+@app.put("/url-health/settings", dependencies=[Protected])
+async def save_url_health_settings(body: HealthSettingsIn) -> dict[str, Any]:
+    """Change the threshold or the rules. Open URLs are re-sorted at once (pending, flagged or
+    counting); nothing is quarantined by a settings change."""
+    async with connect(settings.db_path) as db:
+        await url_health_rules.save_settings(db, url_health_rules.HealthSettings(**body.model_dump()))
+        await db.commit()
+    return {"saved": body.model_dump()}
+
+
+@app.post("/url-health/actions", dependencies=[Protected])
+async def url_health_action(body: HealthActionIn) -> dict[str, Any]:
+    """A person's decision: quarantine (kept, out of search), keep (reset the count), or
+    restore a quarantined URL (fetched again at the next refresh)."""
+    do = {"quarantine": url_health_rules.quarantine, "keep": url_health_rules.keep, "restore": url_health_rules.restore}[
+        body.action
+    ]
+    async with connect(settings.db_path) as db:
+        done = await do(db, body.article_ids)
+        await db.commit()
+    return {"action": body.action, "done": done}
 
 
 @app.get("/ingestion/status", response_model=IngestionStatus, dependencies=[Protected])

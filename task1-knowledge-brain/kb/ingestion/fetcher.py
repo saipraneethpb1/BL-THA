@@ -11,6 +11,12 @@ import httpx
 RETRYABLE = {429, 500, 502, 503, 504}
 
 
+@dataclass(frozen=True)
+class Fetched:
+    text: str
+    moved_to: str | None = None  # set when the URL answered a permanent redirect (301/308)
+
+
 class FetchError(Exception):
     def __init__(self, message: str, *, permanent: bool) -> None:
         super().__init__(message)
@@ -39,6 +45,20 @@ class PoliteFetcher:
             await asyncio.sleep(wait)
 
     async def get_text(self, url: str) -> str:
+        return (await self.fetch(url)).text
+
+    async def probe(self, url: str) -> tuple[int | None, str | None]:
+        """One polite request that does not follow redirects, for URL health checks.
+        Returns (status, redirect location); status is None if the server couldn't be reached."""
+        async with self._sem:
+            await self._wait_turn()
+            try:
+                resp = await self.client.get(url, follow_redirects=False)
+            except httpx.TransportError:
+                return None, None
+            return resp.status_code, resp.headers.get("location")
+
+    async def fetch(self, url: str) -> "Fetched":
         async with self._sem:
             last_error = ""
             for attempt in range(1, self.max_attempts + 1):
@@ -50,7 +70,10 @@ class PoliteFetcher:
                 else:
                     if resp.status_code == 200:
                         self._respect_rate_limit(resp)
-                        return resp.text
+                        # A followed permanent redirect is a URL-health signal (kb/ingestion/health.py).
+                        first = resp.history[0] if resp.history else None
+                        moved = first is not None and first.status_code in (301, 308)
+                        return Fetched(resp.text, str(resp.url) if moved else None)
                     if resp.status_code in (404, 410):
                         raise FetchError(f"HTTP {resp.status_code}", permanent=True)
                     if resp.status_code not in RETRYABLE:

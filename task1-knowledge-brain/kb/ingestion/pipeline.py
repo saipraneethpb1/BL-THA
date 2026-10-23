@@ -15,6 +15,7 @@ import httpx
 
 from kb.config import Settings
 from kb.db import connect, init_db
+from kb.ingestion import health
 from kb.ingestion.fetcher import FetchError, PoliteFetcher
 from kb.ingestion.parser import ParsedArticle, ParseError, parse_article, parse_web_page
 from kb.ingestion.sitemap import ManifestRow, SitemapEntry, diff_sitemap, parse_sitemap
@@ -97,7 +98,8 @@ async def _custom_entries(
 
 async def _apply_diff(
     db: aiosqlite.Connection, entries: list[SitemapEntry], keep: frozenset[str] = frozenset()
-) -> IngestionReport:
+) -> tuple[IngestionReport, set[str]]:
+    """Returns the report and the ids missing from their sitemap, for URL health checks."""
     rows = await db.execute_fetchall("SELECT article_id, lastmod, status FROM pages")
     manifest = [ManifestRow(r["article_id"], r["lastmod"], r["status"]) for r in rows]
     diff = diff_sitemap(entries, manifest, keep)
@@ -122,10 +124,22 @@ async def _apply_diff(
                updated_at=datetime('now') WHERE article_id=?""",
             (e.url, e.lastmod, e.article_id),
         )
+    # Missing from its sitemap: re-checked by URL health, never quarantined on sight. The
+    # exception is a page whose custom sitemap was removed: that was a person's decision.
+    active = {"help-center"} | {
+        r["url"] for r in await db.execute_fetchall("SELECT url FROM custom_sitemaps")
+    }
+    absent: set[str] = set()
     for article_id in diff.removed:
-        await _quarantine(db, article_id, reason="no longer listed in its sitemap")
+        rows = list(
+            await db.execute_fetchall("SELECT source FROM pages WHERE article_id=?", (article_id,))
+        )
+        if rows and rows[0]["source"] not in active:
+            await _quarantine(db, article_id, reason="its custom sitemap was removed")
+        else:
+            absent.add(article_id)
     await db.commit()
-    return report
+    return report, absent
 
 
 async def _quarantine(db: aiosqlite.Connection, article_id: str, reason: str) -> None:
@@ -223,6 +237,70 @@ async def _log_fetch(
     )
 
 
+async def _health_checks(
+    db: aiosqlite.Connection,
+    db_lock: asyncio.Lock,
+    fetchers: dict[str, PoliteFetcher],
+    hs: health.HealthSettings,
+    report: IngestionReport,
+    absent: set[str],
+    skip: set[str],
+) -> None:
+    """Re-check the URLs that may need a decision: those missing from their sitemap and
+    those already being counted. Only these are re-checked, not every page every night."""
+    targets = (absent | await health.open_ids(db)) - skip
+    if not targets:
+        return
+    marks = ",".join("?" * len(targets))
+    rows = await db.execute_fetchall(
+        f"SELECT article_id, url, kind, source FROM pages WHERE article_id IN ({marks}) AND status != 'quarantined'",
+        list(targets),
+    )
+
+    async def check(r: aiosqlite.Row) -> None:
+        aid, url = r["article_id"], r["url"]
+        missing = aid in absent
+        try:
+            status, location = await fetchers[r["kind"]].probe(url)
+        except SitemapError as exc:  # a custom page now pointing at a private address
+            async with db_lock:
+                await _quarantine(db, aid, reason=str(exc))
+                await _log_fetch(db, report, aid, url, r["source"], "refused", str(exc))
+                await db.commit()
+            return
+        issue: str | None
+        if status in (404, 410) and missing:
+            issue, outcome = "gone", "missing"
+        elif status in (301, 308):
+            issue, outcome = "moved", "moved"
+        elif status == 200:
+            issue, outcome = None, "checked"
+        else:  # unreachable, a server error or a temporary redirect: no evidence either way
+            async with db_lock:
+                why = f"HTTP {status}" if status else "couldn't be reached"
+                await _log_fetch(db, report, aid, url, r["source"], "unreachable", why)
+                await db.commit()
+            return
+        async with db_lock:
+            state = await health.observe(
+                db, hs, aid, url, issue, status=status, redirect_to=location
+            )
+            row = list(
+                await db.execute_fetchall("SELECT count FROM url_health WHERE article_id=?", (aid,))
+            )
+            detail: str | None = None
+            if issue is not None and row:
+                detail = f"HTTP {status}, {row[0]['count']} of {hs.threshold} refreshes in a row ({state})"
+                if location:
+                    detail += f", redirects to {location}"
+            elif missing:
+                detail = "not in its sitemap, but still answers 200"
+            await _log_fetch(db, report, aid, url, r["source"], outcome, detail)
+            await db.commit()
+
+    await asyncio.gather(*(check(r) for r in rows))
+
+
 async def _process_one(
     db: aiosqlite.Connection,
     db_lock: asyncio.Lock,
@@ -233,9 +311,12 @@ async def _process_one(
     report: IngestionReport,
     kind: str = "helpcenter",
     source: str = "help-center",
+    hs: health.HealthSettings | None = None,
+    fetched_ids: set[str] | None = None,
 ) -> None:
     try:
-        html = await fetcher.get_text(url)
+        fetched = await fetcher.fetch(url)
+        html = fetched.text
         parse = parse_web_page if kind == "web" else parse_article
         article = parse(html, article_id, url)
     except SitemapError as exc:  # a custom page pointing at a private address
@@ -249,12 +330,10 @@ async def _process_one(
     except FetchError as exc:
         async with db_lock:
             report.failed += 1
-            if exc.permanent:
-                await _quarantine(db, article_id, reason=str(exc))
-            else:
-                await _mark_failed(db, article_id, str(exc))
-            outcome = "quarantined" if exc.permanent else "failed"
-            await _log_fetch(db, report, article_id, url, source, outcome, str(exc))
+            # A page still listed in its sitemap that answers 404 isn't one of the URL health
+            # rules (those need it to be missing too), so it's recorded as failed, not quarantined.
+            await _mark_failed(db, article_id, str(exc))
+            await _log_fetch(db, report, article_id, url, source, "failed", str(exc))
             await db.commit()
         log.warning("fetch failed %s: %s", url, exc)
         return
@@ -271,7 +350,24 @@ async def _process_one(
         changed = await _store_article(db, article, lastmod)
         report.fetched += 1
         report.content_changed += int(changed)
-        await _log_fetch(db, report, article_id, url, source, "updated" if changed else "unchanged")
+        detail = None
+        if hs is not None:  # a followed 301/308 counts towards URL health; a clean fetch resets it
+            issue = "moved" if fetched.moved_to else None
+            state = await health.observe(
+                db,
+                hs,
+                article_id,
+                url,
+                issue,
+                status=301 if issue else 200,
+                redirect_to=fetched.moved_to,
+            )
+            if issue:
+                detail = f"permanent redirect to {fetched.moved_to} ({state})"
+        if fetched_ids is not None:
+            fetched_ids.add(article_id)
+        outcome = "updated" if changed else "unchanged"
+        await _log_fetch(db, report, article_id, url, source, outcome, detail)
         await db.commit()
     log.info("stored %s (%s)%s", article_id, article.title, "" if changed else " [unchanged]")
 
@@ -320,7 +416,9 @@ async def run_ingestion(
         sitemap_xml = await fetcher.get_text(settings.sitemap_url)
         entries = parse_sitemap(sitemap_xml)
         custom, keep = await _custom_entries(db, web_client, settings)
-        report = await _apply_diff(db, entries + custom, keep)
+        report, absent = await _apply_diff(db, entries + custom, keep)
+        hs = await health.get_settings(db)
+        fetched_ids: set[str] = set()
         log.info(
             "sitemaps: %d help-center articles, %d custom pages, diff=%s",
             len(entries),
@@ -352,10 +450,22 @@ async def run_ingestion(
                         report,
                         r["kind"],
                         r["source"],
+                        hs,
+                        fetched_ids,
                     )
                     for r in todo
                 )
             )
+            if limit is None:  # partial runs skip health checks
+                await _health_checks(
+                    db,
+                    db_lock,
+                    {"helpcenter": fetcher, "web": web_fetcher},
+                    hs,
+                    report,
+                    absent,
+                    fetched_ids,
+                )
             status, error = "finished", None
         except BaseException as exc:  # record crashes (incl. Ctrl+C) before re-raising
             status, error = "crashed", repr(exc)
