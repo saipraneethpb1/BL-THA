@@ -252,6 +252,13 @@ body.has-usage-bar { padding-bottom: 46px; }
            background: var(--warn-bg); color: var(--warn); font-size: 12px; font-weight: 700; }
   .keybox { max-width: 520px; }
   .footer-meta { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .src { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; background: var(--bg); }
+  .src + .src { margin-top: 8px; }
+  .src .u { font: 13px ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
+  .src-check { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 4px; font-size: 13px; }
+  .src-check li { display: flex; gap: 8px; align-items: baseline; overflow-wrap: anywhere; }
+  .src-check .ic { flex: none; width: 16px; text-align: center; font-weight: 700; }
+  .src-check .good { color: var(--ok); } .src-check .bad { color: var(--err); } .src-check .wait { color: var(--muted); }
 </style>
 </head>
 <body data-app="kb">
@@ -334,6 +341,19 @@ body.has-usage-bar { padding-bottom: 46px; }
       <p class="sub">The help center is re-checked daily; only changed pages are fetched again.</p>
       <div class="stats" id="stats"></div>
       <div class="row"><button class="btn secondary" id="refresh-btn">Run refresh now</button><span class="meta" id="refresh-meta"></span></div>
+    </div>
+
+    <div class="panel">
+      <div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">Sources</h2><span class="meta" id="src-count"></span></div>
+      <p class="sub">Where knowledge comes from. Add your own sitemaps to search your site's pages alongside the help center. They're crawled at the next refresh (text only).</p>
+      <div id="sources"></div>
+      <h3 class="label">Add sitemaps</h3>
+      <form id="src-form">
+        <textarea id="src-urls" rows="3" placeholder="https://www.example.com/sitemap.xml&#10;One URL per line: each is checked before it's added" spellcheck="false" autocomplete="off" style="font:13px/1.6 ui-monospace,Consolas,monospace"></textarea>
+        <ul class="src-check" id="src-live" aria-live="polite"></ul>
+        <div class="row"><button class="btn" id="src-add" disabled>Check and add</button><span class="meta" id="src-meta"></span></div>
+      </form>
+      <ul class="src-check" id="src-results"></ul>
     </div>
   </section>
 </main>
@@ -716,6 +736,7 @@ async function loadQueue() {
 // Status
 async function loadStatus() {
   let s;
+  loadSources();
   try { s = await api("/ingestion/status"); } catch { return; }
   const pages = s.pages_by_status;
   const stat = (v, label) => `<div class="stat"><b>${v}</b><span>${label}</span></div>`;
@@ -724,17 +745,78 @@ async function loadStatus() {
     stat(s.chunks.toLocaleString(), "searchable passages"),
     stat(`${s.images_described.toLocaleString()} / ${s.images_total.toLocaleString()}`, "screenshots described"),
     stat(pages.failed ?? 0, "pages failing"),
+    stat(pages.quarantined ?? 0, "quarantined (kept, not searched)"),
     stat(s.open_escalations, "open expert tasks"),
     stat(s.answering_enabled ? "On" : "Off", "answering (Claude)"),
   ].join("");
   const last = s.last_refresh;
   $("#refresh-btn").disabled = s.refresh_running;
   $("#refresh-meta").textContent = s.refresh_running ? "Refresh running…"
-    : last ? `Last refresh ${last.status} at ${(last.finished_at || last.started_at).replace("T", " ").replace("+00:00", "")} UTC: ${last.ingestion.new ?? 0} new, ${last.ingestion.changed ?? 0} changed, ${last.ingestion.removed ?? 0} removed.`
+    : last ? `Last refresh ${last.status} at ${(last.finished_at || last.started_at).replace("T", " ").replace("+00:00", "")} UTC: ${last.ingestion.new ?? 0} new, ${last.ingestion.changed ?? 0} changed, ${last.ingestion.removed ?? 0} quarantined.`
     : s.last_run ? `Last crawl finished ${s.last_run.finished_at} UTC.` : "";
   if (s.next_scheduled_refresh) $("#refresh-meta").textContent += ` Next automatic refresh ${s.next_scheduled_refresh.replace("T", " ").replace("+00:00", "")} UTC.`;
   if (s.refresh_running) setTimeout(loadStatus, 3000);
 }
+// Sources: the built-in help-center sitemap plus custom ones.
+// The same format rules as the server (kb/ingestion/sources.py), so problems show while typing.
+function sitemapSyntax(raw) {
+  const s = raw.trim();
+  if (s.length > 2048) return "That URL is too long.";
+  let u;
+  try { u = new URL(s); } catch { return "Not a complete URL: it should look like https://www.example.com/sitemap.xml"; }
+  if (!["http:", "https:"].includes(u.protocol)) return "The URL must start with http:// or https://.";
+  if (!u.hostname.includes(".")) return "The URL needs a full domain name, such as example.com.";
+  if (u.username || u.password) return "URLs with a username or password aren't allowed.";
+  return null;
+}
+// One entry per line (a line with spaces is one bad entry, not several).
+const srcLines = () => [...new Set($("#src-urls").value.split(/\r?\n/).map((l) => l.trim()).filter(Boolean))];
+function liveCheck() {
+  const lines = srcLines();
+  const rows = lines.map((l) => ({ l, err: sitemapSyntax(l) }));
+  $("#src-live").innerHTML = rows.map(({ l, err }) => `<li><span class="ic ${err ? "bad" : "wait"}">${err ? "✗" : "·"}</span><span><span class="u">${esc(l)}</span> <span class="meta">${err ? esc(err) : "format OK, will be checked when you add it"}</span></span></li>`).join("");
+  const good = rows.filter((r) => !r.err).length;
+  $("#src-add").disabled = good === 0 || lines.length > 10;
+  $("#src-meta").textContent = lines.length > 10 ? "At most 10 URLs at a time." : good ? `${good} to check` : "";
+}
+$("#src-urls").addEventListener("input", liveCheck);
+
+async function loadSources() {
+  let s;
+  try { s = await api("/sitemaps"); } catch { return; }
+  const row = (url, meta, tail) => `<div class="src"><div><div class="u">${esc(url)}</div><div class="meta">${meta}</div></div>${tail}</div>`;
+  $("#src-count").textContent = `${s.custom.length} of ${s.max_custom} custom sitemaps`;
+  $("#sources").innerHTML = row(s.builtin.url, `Brilliant Directories help center · ${s.builtin.pages_indexed.toLocaleString()} pages indexed`, `<span class="badge">built in</span>`)
+    + s.custom.map((c) => row(c.url,
+      `${c.kind === "sitemapindex" ? "Sitemap index" : "Sitemap"} · ${c.url_count} listed · ${c.pages_indexed} pages indexed`
+      + (c.last_error ? ` · <span style="color:var(--err)">last check failed: ${esc(c.last_error)}</span>` : c.pages_indexed ? "" : " · crawled at the next refresh"),
+      `<button class="btn ghost small" data-rm="${c.id}" data-url="${esc(c.url)}">Remove</button>`)).join("");
+  $("#sources").querySelectorAll("[data-rm]").forEach((b) => b.onclick = async () => {
+    if (!confirm(`Stop using ${b.dataset.url}? Its pages are quarantined at the next refresh: kept, but no longer searched.`)) return;
+    try { await api(`/sitemaps/${b.dataset.rm}`, { method: "DELETE" }); suite.toast("Removed. Its pages are quarantined at the next refresh."); loadSources(); }
+    catch (err) { showBanner(err.message); }
+  });
+}
+
+$("#src-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const urls = srcLines().filter((l) => !sitemapSyntax(l));
+  if (!urls.length) return;
+  const btn = $("#src-add"); btn.disabled = true;
+  $("#src-meta").innerHTML = `<span style="display:inline-flex;gap:8px;align-items:center"><span class="spinner"></span>Checking ${urls.length} URL${urls.length > 1 ? "s" : ""}…</span>`;
+  try {
+    const { results } = await api("/sitemaps", { method: "POST", body: JSON.stringify({ urls }) });
+    $("#src-results").innerHTML = results.map((r) => r.ok
+      ? `<li><span class="ic good">✓</span><span><span class="u">${esc(r.url)}</span> <span class="meta">added: ${r.url_count} ${r.kind === "sitemapindex" ? "child sitemaps" : "pages"} found, crawled at the next refresh</span></span></li>`
+      : `<li><span class="ic bad">✗</span><span><span class="u">${esc(r.input)}</span> <span class="meta">${esc(r.error)}</span></span></li>`).join("");
+    const added = new Set(results.filter((r) => r.ok).map((r) => r.input));
+    $("#src-urls").value = srcLines().filter((l) => !added.has(l)).join("\n");
+    liveCheck(); loadSources();
+    if (added.size) suite.toast(`${added.size} sitemap${added.size > 1 ? "s" : ""} added. Use "Run refresh now" to crawl them.`, 4000);
+  } catch (err) { showBanner(err.message); }
+  finally { $("#src-meta").textContent = ""; liveCheck(); }
+});
+
 $("#refresh-btn").addEventListener("click", async () => {
   try { await api("/ingestion/run", { method: "POST" }); } catch (err) { $("#refresh-meta").textContent = err.message; return; }
   loadStatus();

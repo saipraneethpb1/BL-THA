@@ -5,7 +5,7 @@ import contextlib
 import os
 import secrets
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
@@ -23,7 +23,14 @@ from kb.answer.service import answer_question
 from kb.bootstrap import article_count, seed_database
 from kb.config import settings
 from kb.db import connect, init_db
-from kb.guard import RateLimiter, over_budget
+from kb.guard import RateLimiter, over_budget, visitor
+from kb.ingestion.sources import (
+    HostGuard,
+    SitemapCheck,
+    SitemapError,
+    check_url_syntax,
+    validate_sitemap,
+)
 from kb.ingestion.vision import ClaudeImageDescriber
 from kb.refresh import Refresher, daily_loop, seconds_until
 from kb.retrieval.embedder import FastEmbedder
@@ -56,6 +63,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             if os.environ.get("ANTHROPIC_API_KEY")
             else None
         )
+    if not hasattr(app.state, "sitemap_validator"):  # tests inject a fake
+        guard = HostGuard()
+        app.state.sitemap_validator = lambda url: validate_sitemap(url, guard)
     if not hasattr(app.state, "transcriber"):
         app.state.transcriber = (
             WhisperTranscriber(settings.whisper_model, settings.model_cache_dir)
@@ -129,6 +139,7 @@ Protected = Depends(require_api_key)
 query_limiter = RateLimiter(settings.query_limit_per_10min, 600, "questions")
 speech_limiter = RateLimiter(settings.transcribe_limit_per_10min, 600, "voice recordings")
 refresh_limiter = RateLimiter(settings.refresh_limit_per_hour, 3600, "refreshes")
+sitemap_limiter = RateLimiter(10, 600, "sitemap checks")
 
 
 async def spent_usd() -> float:
@@ -241,6 +252,88 @@ async def usage(request: Request) -> dict[str, Any]:
         "over_budget": settings.budget_usd is not None
         and sum(r["usd"] for r in rows) >= settings.budget_usd,
     }
+
+
+class SitemapsIn(BaseModel):
+    urls: list[str] = Field(min_length=1, max_length=10, description="One or more sitemap URLs")
+
+
+@app.get("/sitemaps", dependencies=[Protected])
+async def list_sitemaps() -> dict[str, Any]:
+    """The help center's own sitemap plus any custom ones, with how many pages each holds."""
+    async with connect(settings.db_path) as db:
+        rows = await db.execute_fetchall(
+            """SELECT s.*, (SELECT count(*) FROM pages p WHERE p.source = s.url
+                              AND p.status = 'done') AS pages_indexed
+               FROM custom_sitemaps s ORDER BY s.id"""
+        )
+        builtin = list(
+            await db.execute_fetchall(
+                "SELECT count(*) AS n FROM pages WHERE source = 'help-center' AND status = 'done'"
+            )
+        )
+    return {
+        "builtin": {"url": settings.sitemap_url, "pages_indexed": builtin[0]["n"]},
+        "custom": [dict(r) for r in rows],
+        "max_custom": settings.max_custom_sitemaps,
+    }
+
+
+@app.post("/sitemaps", dependencies=[Protected])
+async def add_sitemaps(body: SitemapsIn, request: Request) -> dict[str, Any]:
+    """Validate each URL (format, public host, reachable, a real sitemap) and add the good
+    ones. Each URL gets its own result, so one bad line doesn't block the rest. Their pages
+    are crawled at the next refresh."""
+    sitemap_limiter.check(request)
+    validate: Callable[[str], Awaitable[SitemapCheck]] = request.app.state.sitemap_validator
+    results: list[dict[str, Any]] = []
+    async with connect(settings.db_path) as db:
+        existing = {r["url"] for r in await db.execute_fetchall("SELECT url FROM custom_sitemaps")}
+        for raw in body.urls:
+            result: dict[str, Any] = {"input": raw, "ok": False}
+            results.append(result)
+            try:
+                url = check_url_syntax(raw)
+                if url == settings.sitemap_url:
+                    raise SitemapError(
+                        "That's the help center's own sitemap: it's always included."
+                    )
+                if url in existing:
+                    raise SitemapError("That sitemap is already added.")
+                if len(existing) >= settings.max_custom_sitemaps:
+                    raise SitemapError(
+                        f"This demo allows {settings.max_custom_sitemaps} custom sitemaps; remove one first."
+                    )
+                check = await validate(url)
+            except SitemapError as exc:
+                result["error"] = str(exc)
+                continue
+            cur = await db.execute(
+                """INSERT INTO custom_sitemaps(url, kind, url_count, added_by, last_checked_at)
+                   VALUES (?, ?, ?, ?, datetime('now'))""",
+                (check.url, check.kind, check.url_count, visitor(request) or "api"),
+            )
+            existing.add(check.url)
+            result.update(
+                ok=True, id=cur.lastrowid, url=check.url, kind=check.kind, url_count=check.url_count
+            )
+        await db.commit()
+    return {"results": results}
+
+
+@app.delete("/sitemaps/{sitemap_id}", dependencies=[Protected])
+async def remove_sitemap(sitemap_id: int) -> dict[str, Any]:
+    """Stop using a custom sitemap. Its pages are quarantined at the next refresh: kept, but
+    no longer searched (nothing is deleted)."""
+    async with connect(settings.db_path) as db:
+        rows = list(
+            await db.execute_fetchall("SELECT url FROM custom_sitemaps WHERE id = ?", (sitemap_id,))
+        )
+        if not rows:
+            raise HTTPException(404, "no such custom sitemap")
+        await db.execute("DELETE FROM custom_sitemaps WHERE id = ?", (sitemap_id,))
+        await db.commit()
+    return {"removed": rows[0]["url"]}
 
 
 @app.get("/ingestion/status", response_model=IngestionStatus, dependencies=[Protected])

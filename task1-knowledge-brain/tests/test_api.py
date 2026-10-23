@@ -208,3 +208,43 @@ def test_public_demo_guards_limit_visitors_and_cap_spend(
     u = client.get("/usage", headers=H).json()
     assert u["over_budget"] is True and u["budget_usd"] == 1.0
     api.query_limiter.calls.clear()
+
+
+def test_custom_sitemaps_validate_each_url_on_entry(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from kb.ingestion.sources import SitemapCheck, SitemapError
+
+    async def fake_validate(url: str) -> SitemapCheck:
+        if "broken" in url:
+            raise SitemapError("The server answered HTTP 404, not a sitemap.")
+        return SitemapCheck(url, "urlset", 12)
+
+    api.app.state.sitemap_validator = fake_validate
+    api.sitemap_limiter.calls.clear()
+    monkeypatch.setattr(api.settings, "max_custom_sitemaps", 2)
+    urls = [
+        "https://shop.example.com/sitemap.xml",
+        "not a url",
+        "https://broken.example.com/sitemap.xml",
+        "https://shop.example.com/sitemap.xml",
+        "https://blog.example.com/sitemap.xml",
+        "https://third.example.com/sitemap.xml",
+    ]
+    assert client.post("/sitemaps", json={"urls": urls}).status_code == 401
+    r = client.post("/sitemaps", json={"urls": urls}, headers=H).json()["results"]
+    assert [x["ok"] for x in r] == [True, False, False, False, True, False]
+    assert "http" in r[1]["error"] and "404" in r[2]["error"]
+    assert "already added" in r[3]["error"] and "allows 2" in r[5]["error"]
+    assert r[0]["url_count"] == 12
+
+    listed = client.get("/sitemaps", headers=H).json()
+    assert [s["url"] for s in listed["custom"]] == [urls[0], urls[4]]
+    assert listed["builtin"]["url"] == api.settings.sitemap_url
+    builtin = client.post("/sitemaps", json={"urls": [api.settings.sitemap_url]}, headers=H).json()
+    assert "always included" in builtin["results"][0]["error"]
+
+    first = listed["custom"][0]["id"]
+    assert client.delete(f"/sitemaps/{first}", headers=H).json() == {"removed": urls[0]}
+    assert client.delete(f"/sitemaps/{first}", headers=H).status_code == 404
+    del api.app.state.sitemap_validator

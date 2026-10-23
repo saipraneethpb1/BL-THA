@@ -190,7 +190,10 @@ class Searcher:
             f"""SELECT c.chunk_id, c.article_id, c.source, c.section, c.text, c.image_ids,
                        a.title, a.url
                 FROM chunks c LEFT JOIN articles a ON a.article_id = c.article_id
-                WHERE c.chunk_id IN ({marks})""",
+                LEFT JOIN pages p ON p.article_id = c.article_id
+                WHERE c.chunk_id IN ({marks})
+                  -- Quarantined URLs keep their passages but are never cited.
+                  AND (p.status IS NULL OR p.status != 'quarantined')""",
             ids,
         )
         return {

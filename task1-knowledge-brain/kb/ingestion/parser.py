@@ -171,3 +171,57 @@ def parse_article(html: str, article_id: str, url: str) -> ParsedArticle:
         body=body,
         images=renderer.images,
     )
+
+
+class _TextOnlyRenderer(_Renderer):
+    """Pages from custom sitemaps: text only. Their images aren't described (that costs
+    model calls), so they aren't recorded either."""
+
+    def _image(self, node: Node) -> None:
+        alt = (node.attributes.get("alt") or "").strip()
+        if alt:
+            self.parts.append(f" {alt} ")
+
+
+WEB_NOISE = "nav, header, footer, aside, form, script, style, noscript, iframe, svg, button"
+MIN_WEB_TEXT = 200
+
+
+def parse_web_page(html: str, article_id: str, url: str) -> ParsedArticle:
+    """A general web page (from a custom sitemap): title plus the main readable text."""
+    tree = HTMLParser(html)
+    title = ""
+    for selector, attr in (('meta[property="og:title"]', "content"), ("title", None), ("h1", None)):
+        node = tree.css_first(selector)
+        if node is not None:
+            title = (node.attributes.get(attr) if attr else node.text(strip=True)) or ""
+            title = title.strip()
+            if title:
+                break
+    main = None
+    for selector in ("article", "main", '[role="main"]', "body"):
+        main = tree.css_first(selector)
+        if main is not None:
+            break
+    if main is None:
+        raise ParseError(f"no readable content found at {url}")
+    for junk in main.css(WEB_NOISE):
+        junk.decompose()
+
+    renderer = _TextOnlyRenderer()
+    renderer.section = title or None
+    renderer.walk(main)
+    # Byte-order marks and zero-width characters slip through from some pages' text.
+    body = renderer.text().translate(dict.fromkeys(map(ord, "﻿​‌‍"))).strip()
+    if len(body) < MIN_WEB_TEXT:
+        raise ParseError(f"too little text at {url} ({len(body)} characters)")
+    host = (url.split("://", 1)[-1].split("/", 1)[0]).removeprefix("www.")
+    return ParsedArticle(
+        article_id=article_id,
+        url=url,
+        title=title or host,
+        category=host,
+        folder=None,
+        body=body,
+        images=[],
+    )

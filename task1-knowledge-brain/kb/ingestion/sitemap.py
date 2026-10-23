@@ -13,6 +13,8 @@ class SitemapEntry:
     article_id: str
     url: str
     lastmod: str | None
+    source: str = "help-center"  # or the custom sitemap's URL
+    kind: str = "helpcenter"  # which parser reads the page: helpcenter | web
 
 
 @dataclass(frozen=True)
@@ -27,7 +29,7 @@ class SitemapDiff:
     new: list[SitemapEntry]
     changed: list[SitemapEntry]
     unchanged: list[SitemapEntry]
-    removed: list[str]  # article ids no longer in the sitemap
+    removed: list[str]  # article ids no longer in the sitemap (they get quarantined)
 
 
 def parse_sitemap(xml_text: str) -> list[SitemapEntry]:
@@ -47,7 +49,10 @@ def parse_sitemap(xml_text: str) -> list[SitemapEntry]:
     return list(entries.values())
 
 
-def diff_sitemap(entries: list[SitemapEntry], manifest: list[ManifestRow]) -> SitemapDiff:
+def diff_sitemap(
+    entries: list[SitemapEntry], manifest: list[ManifestRow], keep: frozenset[str] = frozenset()
+) -> SitemapDiff:
+    """`keep`: ids not to remove even though they're missing (their sitemap failed to load)."""
     known = {row.article_id: row for row in manifest if row.status != "removed"}
     seen: set[str] = set()
     diff = SitemapDiff(new=[], changed=[], unchanged=[], removed=[])
@@ -56,9 +61,14 @@ def diff_sitemap(entries: list[SitemapEntry], manifest: list[ManifestRow]) -> Si
         row = known.get(entry.article_id)
         if row is None:
             diff.new.append(entry)
-        elif row.lastmod != entry.lastmod:
+        elif row.lastmod != entry.lastmod or row.status == "quarantined":
+            # A quarantined URL that is listed again is fetched again: if it works, it's back.
             diff.changed.append(entry)
         else:
             diff.unchanged.append(entry)
-    diff.removed = [aid for aid in known if aid not in seen]
+    diff.removed = [
+        aid
+        for aid, row in known.items()
+        if aid not in seen and aid not in keep and row.status != "quarantined"
+    ]
     return diff

@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS pages (
     article_id   TEXT PRIMARY KEY,
     url          TEXT NOT NULL,
     lastmod      TEXT,
-    status       TEXT NOT NULL DEFAULT 'pending',  -- pending | done | failed | removed
+    status       TEXT NOT NULL DEFAULT 'pending',  -- pending | done | failed | quarantined
+                                                   -- ('removed' only in databases from before
+                                                   -- quarantine: URLs are never deleted now)
     attempts     INTEGER NOT NULL DEFAULT 0,
     last_error   TEXT,
     content_hash TEXT,
@@ -123,6 +125,18 @@ CREATE TABLE IF NOT EXISTS ingestion_runs (
     error       TEXT
 );
 
+-- Sitemaps users added on top of the help center's own (see kb/ingestion/sources.py).
+CREATE TABLE IF NOT EXISTS custom_sitemaps (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    url             TEXT NOT NULL UNIQUE,
+    kind            TEXT NOT NULL,              -- urlset | sitemapindex
+    url_count       INTEGER NOT NULL DEFAULT 0, -- entries found when last checked
+    added_by        TEXT,
+    added_at        TEXT NOT NULL DEFAULT (datetime('now')),
+    last_checked_at TEXT,
+    last_error      TEXT
+);
+
 -- Screenshots, kept with the text around them so they make sense on their own.
 CREATE TABLE IF NOT EXISTS images (
     image_id       TEXT NOT NULL,
@@ -139,10 +153,28 @@ CREATE TABLE IF NOT EXISTS images (
 """
 
 
+# Columns added after the first release. init_db adds any that an older database lacks.
+MIGRATIONS = {
+    "pages": {
+        # Which sitemap listed the page: 'help-center' or a custom sitemap's URL.
+        "source": "TEXT NOT NULL DEFAULT 'help-center'",
+        # 'helpcenter' (Freshdesk article parser) or 'web' (general page parser).
+        "kind": "TEXT NOT NULL DEFAULT 'helpcenter'",
+        # When and why a URL was quarantined (kept, but not searched).
+        "quarantined_at": "TEXT",
+    },
+}
+
+
 async def init_db(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     async with aiosqlite.connect(path) as db:
         await db.executescript(SCHEMA)
+        for table, columns in MIGRATIONS.items():
+            have = {r[1] for r in await db.execute_fetchall(f"PRAGMA table_info({table})")}
+            for name, ddl in columns.items():
+                if name not in have:
+                    await db.execute(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}")
         await db.commit()
 
 

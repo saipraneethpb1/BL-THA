@@ -11,6 +11,10 @@ class Settings(BaseSettings):
 
     db_path: Path = Path("data/knowledge.db")
     sitemap_url: str = "https://support.brilliantdirectories.com/support/sitemap.xml"
+    # Custom sitemaps (kb/ingestion/sources.py). Caps keep a public demo's crawls small.
+    max_custom_sitemaps: int = 5
+    custom_sitemap_max_pages: int = 300
+    custom_sitemap_max_children: int = 10
 
     # Politeness: the help center allows ~300 requests per window; we stay far below it.
     max_concurrency: int = 2

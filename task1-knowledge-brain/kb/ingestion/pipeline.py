@@ -16,8 +16,18 @@ import httpx
 from kb.config import Settings
 from kb.db import connect, init_db
 from kb.ingestion.fetcher import FetchError, PoliteFetcher
-from kb.ingestion.parser import ParsedArticle, ParseError, parse_article
+from kb.ingestion.parser import ParsedArticle, ParseError, parse_article, parse_web_page
 from kb.ingestion.sitemap import ManifestRow, SitemapEntry, diff_sitemap, parse_sitemap
+from kb.ingestion.sources import (
+    HostGuard,
+    Resolver,
+    SitemapError,
+    fetch_sitemap,
+    guarded_client,
+    parse_any_sitemap,
+    system_resolver,
+    web_article_id,
+)
 
 log = logging.getLogger(__name__)
 
@@ -36,10 +46,61 @@ class IngestionReport:
         return asdict(self)
 
 
-async def _apply_diff(db: aiosqlite.Connection, entries: list[SitemapEntry]) -> IngestionReport:
+async def _custom_entries(
+    db: aiosqlite.Connection, client: httpx.AsyncClient, settings: Settings
+) -> tuple[list[SitemapEntry], frozenset[str]]:
+    """Pages from users' own sitemaps. A sitemap that fails to load this time keeps its
+    existing pages (returned as `keep`): a temporary outage shouldn't wipe a site."""
+    entries: list[SitemapEntry] = []
+    keep: set[str] = set()
+    for row in await db.execute_fetchall("SELECT id, url FROM custom_sitemaps ORDER BY id"):
+        found: list[tuple[str, str | None]] = []
+        try:
+            parsed = parse_any_sitemap(await fetch_sitemap(client, row["url"]))
+            if parsed.kind == "urlset":
+                found = parsed.locs
+            else:  # a sitemap index: read the first few child sitemaps
+                for child, _ in parsed.locs[: settings.custom_sitemap_max_children]:
+                    try:
+                        sub = parse_any_sitemap(await fetch_sitemap(client, child))
+                    except SitemapError as exc:
+                        log.warning("child sitemap %s skipped: %s", child, exc)
+                        continue
+                    if sub.kind == "urlset":
+                        found.extend(sub.locs)
+                    if len(found) >= settings.custom_sitemap_max_pages:
+                        break
+            found = found[: settings.custom_sitemap_max_pages]
+            await db.execute(
+                """UPDATE custom_sitemaps SET url_count=?, last_checked_at=datetime('now'),
+                   last_error=NULL WHERE id=?""",
+                (len(found), row["id"]),
+            )
+        except SitemapError as exc:
+            log.warning("custom sitemap %s failed: %s", row["url"], exc)
+            await db.execute(
+                "UPDATE custom_sitemaps SET last_checked_at=datetime('now'), last_error=? WHERE id=?",
+                (str(exc), row["id"]),
+            )
+            kept = await db.execute_fetchall(
+                "SELECT article_id FROM pages WHERE source=? AND status NOT IN ('removed', 'quarantined')",
+                (row["url"],),
+            )
+            keep.update(r["article_id"] for r in kept)
+            continue
+        entries.extend(
+            SitemapEntry(web_article_id(loc), loc, lastmod, source=row["url"], kind="web")
+            for loc, lastmod in found
+        )
+    return entries, frozenset(keep)
+
+
+async def _apply_diff(
+    db: aiosqlite.Connection, entries: list[SitemapEntry], keep: frozenset[str] = frozenset()
+) -> IngestionReport:
     rows = await db.execute_fetchall("SELECT article_id, lastmod, status FROM pages")
     manifest = [ManifestRow(r["article_id"], r["lastmod"], r["status"]) for r in rows]
-    diff = diff_sitemap(entries, manifest)
+    diff = diff_sitemap(entries, manifest, keep)
 
     cur = await db.execute("INSERT INTO ingestion_runs DEFAULT VALUES")
     report = IngestionReport(run_id=cur.lastrowid or 0)
@@ -48,10 +109,12 @@ async def _apply_diff(db: aiosqlite.Connection, entries: list[SitemapEntry]) -> 
     for e in diff.new:
         # A previously removed article can come back; reset it to pending.
         await db.execute(
-            """INSERT INTO pages(article_id, url, lastmod, status, attempts) VALUES (?, ?, ?, 'pending', 0)
+            """INSERT INTO pages(article_id, url, lastmod, status, attempts, source, kind)
+               VALUES (?, ?, ?, 'pending', 0, ?, ?)
                ON CONFLICT(article_id) DO UPDATE SET url=excluded.url, lastmod=excluded.lastmod,
-               status='pending', attempts=0, updated_at=datetime('now')""",
-            (e.article_id, e.url, e.lastmod),
+               status='pending', attempts=0, source=excluded.source, kind=excluded.kind,
+               updated_at=datetime('now')""",
+            (e.article_id, e.url, e.lastmod, e.source, e.kind),
         )
     for e in diff.changed:
         await db.execute(
@@ -60,17 +123,18 @@ async def _apply_diff(db: aiosqlite.Connection, entries: list[SitemapEntry]) -> 
             (e.url, e.lastmod, e.article_id),
         )
     for article_id in diff.removed:
-        await _remove_article(db, article_id, reason="not in sitemap")
+        await _quarantine(db, article_id, reason="no longer listed in its sitemap")
     await db.commit()
     return report
 
 
-async def _remove_article(db: aiosqlite.Connection, article_id: str, reason: str) -> None:
-    # Deleting the article cascades to its images; chunks are dropped by the indexer
-    # (it deletes chunks whose article no longer exists), so removed pages stop being cited.
-    await db.execute("DELETE FROM articles WHERE article_id=?", (article_id,))
+async def _quarantine(db: aiosqlite.Connection, article_id: str, reason: str) -> None:
+    """Nothing is ever deleted. A quarantined URL keeps its text and index entries, but
+    search skips it (kb/retrieval/search.py). If it's listed and fetched successfully again,
+    it's stored as normal and is back in search."""
     await db.execute(
-        """UPDATE pages SET status='removed', last_error=?, updated_at=datetime('now')
+        """UPDATE pages SET status='quarantined', last_error=?,
+           quarantined_at=coalesce(quarantined_at, datetime('now')), updated_at=datetime('now')
            WHERE article_id=?""",
         (reason, article_id),
     )
@@ -136,7 +200,7 @@ async def _store_article(
             "UPDATE articles SET lastmod=? WHERE article_id=?", (lastmod, article.article_id)
         )
     await db.execute(
-        """UPDATE pages SET status='done', content_hash=?, last_error=NULL,
+        """UPDATE pages SET status='done', content_hash=?, last_error=NULL, quarantined_at=NULL,
            fetched_at=datetime('now'), updated_at=datetime('now') WHERE article_id=?""",
         (new_hash, article.article_id),
     )
@@ -151,15 +215,24 @@ async def _process_one(
     url: str,
     lastmod: str | None,
     report: IngestionReport,
+    kind: str = "helpcenter",
 ) -> None:
     try:
         html = await fetcher.get_text(url)
-        article = parse_article(html, article_id, url)
+        parse = parse_web_page if kind == "web" else parse_article
+        article = parse(html, article_id, url)
+    except SitemapError as exc:  # a custom page pointing at a private address
+        async with db_lock:
+            report.failed += 1
+            await _quarantine(db, article_id, reason=str(exc))
+            await db.commit()
+        log.warning("refused %s: %s", url, exc)
+        return
     except FetchError as exc:
         async with db_lock:
             report.failed += 1
             if exc.permanent:
-                await _remove_article(db, article_id, reason=str(exc))
+                await _quarantine(db, article_id, reason=str(exc))
             else:
                 await _mark_failed(db, article_id, str(exc))
             await db.commit()
@@ -194,9 +267,11 @@ async def run_ingestion(
     *,
     limit: int | None = None,
     transport: httpx.AsyncBaseTransport | None = None,
+    resolver: Resolver | None = None,
 ) -> IngestionReport:
     await init_db(settings.db_path)
     headers = {"User-Agent": settings.user_agent}
+    guard = HostGuard(resolver or system_resolver)
     async with (
         httpx.AsyncClient(
             headers=headers,
@@ -204,18 +279,35 @@ async def run_ingestion(
             follow_redirects=True,
             transport=transport,
         ) as client,
+        # Custom sitemaps and their pages come from users: every request is address-checked.
+        guarded_client(
+            guard,
+            headers=headers,
+            timeout=settings.request_timeout_s,
+            follow_redirects=True,
+            transport=transport,
+        ) as web_client,
         connect(settings.db_path) as db,
     ):
         fetcher = PoliteFetcher(
             client, settings.max_concurrency, settings.min_interval_s, settings.max_attempts
         )
+        web_fetcher = PoliteFetcher(
+            web_client, settings.max_concurrency, settings.min_interval_s, settings.max_attempts
+        )
         sitemap_xml = await fetcher.get_text(settings.sitemap_url)
         entries = parse_sitemap(sitemap_xml)
-        report = await _apply_diff(db, entries)
-        log.info("sitemap: %d articles, diff=%s", len(entries), report.as_dict())
+        custom, keep = await _custom_entries(db, web_client, settings)
+        report = await _apply_diff(db, entries + custom, keep)
+        log.info(
+            "sitemaps: %d help-center articles, %d custom pages, diff=%s",
+            len(entries),
+            len(custom),
+            report.as_dict(),
+        )
 
         # Work queue = everything not yet stored, including leftovers from a crashed run.
-        sql = """SELECT article_id, url, lastmod FROM pages
+        sql = """SELECT article_id, url, lastmod, kind FROM pages
                  WHERE status='pending' OR (status='failed' AND attempts < ?)
                  ORDER BY article_id"""
         params: list[object] = [settings.max_attempts]
@@ -229,7 +321,14 @@ async def run_ingestion(
             await asyncio.gather(
                 *(
                     _process_one(
-                        db, db_lock, fetcher, r["article_id"], r["url"], r["lastmod"], report
+                        db,
+                        db_lock,
+                        web_fetcher if r["kind"] == "web" else fetcher,
+                        r["article_id"],
+                        r["url"],
+                        r["lastmod"],
+                        report,
+                        r["kind"],
                     )
                     for r in todo
                 )

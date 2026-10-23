@@ -75,10 +75,18 @@ async def test_first_run_then_incremental_update(site: FakeSite, settings: Setti
     assert (report.new, report.changed, report.removed) == (1, 1, 1)
     fetched = sorted(p.rsplit("/", 1)[-1] for p in site.calls if "articles" in p)
     assert fetched == ["2", "4"]
-    assert statuses(settings) == {"1": "done", "2": "done", "3": "removed", "4": "done"}
+    # Nothing is deleted: the missing article is quarantined and keeps its text.
+    assert statuses(settings) == {"1": "done", "2": "done", "3": "quarantined", "4": "done"}
     with sqlite3.connect(settings.db_path) as c:
-        assert c.execute("SELECT count(*) FROM articles WHERE article_id='3'").fetchone()[0] == 0
-        assert c.execute("SELECT count(*) FROM images WHERE article_id='3'").fetchone()[0] == 0
+        assert c.execute("SELECT count(*) FROM articles WHERE article_id='3'").fetchone()[0] == 1
+        assert c.execute("SELECT count(*) FROM images WHERE article_id='3'").fetchone()[0] > 0
+
+    # It's listed again: fetched again and back to normal, even with the same lastmod.
+    site.sitemap = sitemap(("1", "d1"), ("2", "d2"), ("3", "d1"), ("4", "d2"))
+    site.calls.clear()
+    await run_ingestion(settings, transport=t)
+    assert [p.rsplit("/", 1)[-1] for p in site.calls if "articles" in p] == ["3"]
+    assert statuses(settings)["3"] == "done"
 
 
 async def test_failures_are_isolated_and_resumed(site: FakeSite, settings: Settings) -> None:
@@ -95,11 +103,16 @@ async def test_failures_are_isolated_and_resumed(site: FakeSite, settings: Setti
     assert statuses(settings) == {"1": "done", "2": "done"}
 
 
-async def test_404_marks_article_removed(site: FakeSite, settings: Settings) -> None:
+async def test_404_quarantines_instead_of_deleting(site: FakeSite, settings: Settings) -> None:
     site.sitemap = sitemap(("1", "d1"))
     site.gone = {"1"}
     await run_ingestion(settings, transport=httpx.MockTransport(site.handler))
-    assert statuses(settings) == {"1": "removed"}
+    assert statuses(settings) == {"1": "quarantined"}
+    with sqlite3.connect(settings.db_path) as c:
+        assert c.execute("SELECT last_error, quarantined_at IS NOT NULL FROM pages").fetchone() == (
+            "HTTP 404",
+            1,
+        )
 
 
 async def test_limit_allows_a_partial_run(site: FakeSite, settings: Settings) -> None:
