@@ -17,6 +17,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
+from kb import session
 from kb.answer import escalations as esc
 from kb.answer.llm import Answerer, ClaudeAnswerer
 from kb.answer.service import answer_question
@@ -255,6 +256,69 @@ async def usage(request: Request) -> dict[str, Any]:
     }
 
 
+class LoginIn(BaseModel):
+    account: str = Field(min_length=1, max_length=40)
+    password: str = Field(min_length=1, max_length=200)
+
+
+login_limiter = RateLimiter(10, 600, "sign-in attempts")
+
+
+def signed_in(request: Request) -> str | None:
+    return session.account_from_token(request.cookies.get(session.COOKIE))
+
+
+def require_signed_in(request: Request) -> None:
+    """Changing shared Knowledge Brain settings needs a demo account when it comes through the
+    public site. Internal calls (the other services, tests, local use) have no visitor address."""
+    if visitor(request) is not None and signed_in(request) is None:
+        raise HTTPException(401, "Sign in with a demo account to change this.")
+
+
+SignedIn = Depends(require_signed_in)
+
+
+@app.get("/auth/me")
+async def auth_me(request: Request) -> dict[str, Any]:
+    """Who is signed in, plus the demo accounts for the sign-in screen (their passwords are
+    deliberately public: they separate demo workspaces, they don't protect secrets)."""
+    account = signed_in(request)
+    return {
+        "account": account,
+        "workspace": account or session.GUEST,
+        "demo_accounts": [{"account": a, "password": p} for a, p in session.DEMO_ACCOUNTS.items()],
+    }
+
+
+@app.post("/auth/login")
+async def auth_login(body: LoginIn, request: Request) -> JSONResponse:
+    login_limiter.check(request)
+    account = body.account.strip().lower()
+    if not session.check_password(account, body.password):
+        raise HTTPException(401, "That demo account and password don't match.")
+    resp = JSONResponse({"account": account})
+    resp.set_cookie(
+        session.COOKIE,
+        session.make_token(account),
+        max_age=session.MAX_AGE_S,
+        httponly=True,
+        samesite="lax",
+        secure=request.headers.get("x-forwarded-proto") == "https",
+        domain=session.cookie_domain(request.headers.get("host")),
+        path="/",
+    )
+    return resp
+
+
+@app.post("/auth/logout")
+async def auth_logout(request: Request) -> JSONResponse:
+    resp = JSONResponse({"account": None})
+    resp.delete_cookie(
+        session.COOKIE, domain=session.cookie_domain(request.headers.get("host")), path="/"
+    )
+    return resp
+
+
 class SitemapsIn(BaseModel):
     urls: list[str] = Field(min_length=1, max_length=10, description="One or more sitemap URLs")
 
@@ -280,7 +344,7 @@ async def list_sitemaps() -> dict[str, Any]:
     }
 
 
-@app.post("/sitemaps", dependencies=[Protected])
+@app.post("/sitemaps", dependencies=[Protected, SignedIn])
 async def add_sitemaps(body: SitemapsIn, request: Request) -> dict[str, Any]:
     """Validate each URL (format, public host, reachable, a real sitemap) and add the good
     ones. Each URL gets its own result, so one bad line doesn't block the rest. Their pages
@@ -322,7 +386,7 @@ async def add_sitemaps(body: SitemapsIn, request: Request) -> dict[str, Any]:
     return {"results": results}
 
 
-@app.delete("/sitemaps/{sitemap_id}", dependencies=[Protected])
+@app.delete("/sitemaps/{sitemap_id}", dependencies=[Protected, SignedIn])
 async def remove_sitemap(sitemap_id: int) -> dict[str, Any]:
     """Stop using a custom sitemap. Its pages are quarantined at the next refresh: kept, but
     no longer searched (nothing is deleted)."""
@@ -457,23 +521,27 @@ async def url_health() -> dict[str, Any]:
     }
 
 
-@app.put("/url-health/settings", dependencies=[Protected])
+@app.put("/url-health/settings", dependencies=[Protected, SignedIn])
 async def save_url_health_settings(body: HealthSettingsIn) -> dict[str, Any]:
     """Change the threshold or the rules. Open URLs are re-sorted at once (pending, flagged or
     counting); nothing is quarantined by a settings change."""
     async with connect(settings.db_path) as db:
-        await url_health_rules.save_settings(db, url_health_rules.HealthSettings(**body.model_dump()))
+        await url_health_rules.save_settings(
+            db, url_health_rules.HealthSettings(**body.model_dump())
+        )
         await db.commit()
     return {"saved": body.model_dump()}
 
 
-@app.post("/url-health/actions", dependencies=[Protected])
+@app.post("/url-health/actions", dependencies=[Protected, SignedIn])
 async def url_health_action(body: HealthActionIn) -> dict[str, Any]:
     """A person's decision: quarantine (kept, out of search), keep (reset the count), or
     restore a quarantined URL (fetched again at the next refresh)."""
-    do = {"quarantine": url_health_rules.quarantine, "keep": url_health_rules.keep, "restore": url_health_rules.restore}[
-        body.action
-    ]
+    do = {
+        "quarantine": url_health_rules.quarantine,
+        "keep": url_health_rules.keep,
+        "restore": url_health_rules.restore,
+    }[body.action]
     async with connect(settings.db_path) as db:
         done = await do(db, body.article_ids)
         await db.commit()
@@ -523,7 +591,7 @@ async def ingestion_status(request: Request) -> IngestionStatus:
     )
 
 
-@app.post("/ingestion/run", status_code=202, dependencies=[Protected])
+@app.post("/ingestion/run", status_code=202, dependencies=[Protected, SignedIn])
 async def run_refresh(request: Request) -> dict[str, str]:
     """Start a refresh now (crawl changes, describe new screenshots, re-index).
     Returns at once; poll `/ingestion/status` for progress."""

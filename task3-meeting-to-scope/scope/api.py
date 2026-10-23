@@ -16,8 +16,10 @@ from scope.guard import RateLimiter, over_budget
 from scope.knowledge import HttpKnowledgeClient
 from scope.llm import ClaudeLLM
 from scope.pipeline import ScopeBuilder, export_proposal
+from scope.session import COOKIE, GUEST, account_from_token
 from scope.store import StateError, Store, Version
 from scope.transcript import TranscriptError, parse_transcript
+from scope.workspaces import SingleWorkspace, Workspaces, merge_usage
 
 UI = Path(__file__).parent / "ui" / "index.html"
 build_limiter = RateLimiter(settings.build_limit_per_hour, 3600, "scope builds")
@@ -33,22 +35,23 @@ SAMPLES = {
 }
 
 
+def _make_builder(store: Store) -> ScopeBuilder | None:
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        return None
+    return ScopeBuilder(
+        store, ClaudeLLM(), HttpKnowledgeClient(settings.kb_url, settings.kb_api_key), settings
+    )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    if not hasattr(app.state, "store"):
-        app.state.store = Store(settings.db_path)
-    await app.state.store.init()
-    if not hasattr(app.state, "builder"):
-        app.state.builder = (
-            ScopeBuilder(
-                app.state.store,
-                ClaudeLLM(),
-                HttpKnowledgeClient(settings.kb_url, settings.kb_api_key),
-                settings,
-            )
-            if os.environ.get("ANTHROPIC_API_KEY")
-            else None
-        )
+    if hasattr(app.state, "store"):  # a test injected one store (and builder) for everyone
+        await app.state.store.init()
+        app.state.workspaces = SingleWorkspace(app.state)
+    else:
+        starter = settings.starter_db_path or settings.db_path.parent / "starter.db"
+        app.state.workspaces = Workspaces(settings.db_path, _make_builder, starter)
+        await app.state.workspaces.get(GUEST)
     app.state.tasks = set()
     yield
 
@@ -61,9 +64,26 @@ app = FastAPI(
 )
 
 
-def store(request: Request) -> Store:
-    s: Store = request.app.state.store
-    return s
+def account(request: Request) -> str:
+    """The signed-in demo account, or "guest" (the shared workspace)."""
+    return account_from_token(request.cookies.get(COOKIE)) or GUEST
+
+
+async def workspace(request: Request) -> tuple[Store, ScopeBuilder | None]:
+    pair: tuple[Store, ScopeBuilder | None] = await request.app.state.workspaces.get(
+        account(request)
+    )
+    return pair
+
+
+async def store(request: Request) -> Store:
+    return (await workspace(request))[0]
+
+
+async def site_usage(request: Request) -> dict[str, Any]:
+    """Spend across every workspace: budgets and the usage bar are site-wide."""
+    stores = await request.app.state.workspaces.all_stores()
+    return merge_usage([await s.usage() for s in stores])
 
 
 class NewProject(BaseModel):
@@ -89,13 +109,13 @@ async def ui() -> FileResponse:
 
 @app.get("/health")
 async def health(request: Request) -> dict[str, Any]:
-    return {"status": "ok", "building_enabled": request.app.state.builder is not None}
+    return {"status": "ok", "building_enabled": request.app.state.workspaces.building}
 
 
 @app.get("/api/usage")
 async def usage(request: Request) -> dict[str, Any]:
     """For the usage bar: Claude spend recorded on builds, and the latest build failure."""
-    u = await store(request).usage()
+    u = await site_usage(request)
     budget = settings.budget_usd
     return {
         **u,
@@ -123,17 +143,17 @@ async def get_sample(name: str) -> str:
 
 @app.get("/api/projects")
 async def list_projects(request: Request) -> list[dict[str, Any]]:
-    return await store(request).projects()
+    return await (await store(request)).projects()
 
 
 @app.post("/api/projects", status_code=201)
 async def create_project(body: NewProject, request: Request) -> dict[str, int]:
-    return {"id": await store(request).create_project(body.name, body.client)}
+    return {"id": await (await store(request)).create_project(body.name, body.client)}
 
 
 @app.get("/api/projects/{pid}")
 async def get_project(pid: int, request: Request) -> dict[str, Any]:
-    s = store(request)
+    s = await store(request)
     project = await s.project(pid)
     if project is None:
         raise HTTPException(404, "project not found")
@@ -161,7 +181,7 @@ async def get_project(pid: int, request: Request) -> dict[str, Any]:
 
 @app.post("/api/projects/{pid}/meetings", status_code=201)
 async def add_meeting(pid: int, body: NewMeeting, request: Request) -> dict[str, Any]:
-    s = store(request)
+    s = await store(request)
     if await s.project(pid) is None:
         raise HTTPException(404, "project not found")
     try:
@@ -179,11 +199,11 @@ async def add_meeting(pid: int, body: NewMeeting, request: Request) -> dict[str,
 @app.post("/api/projects/{pid}/build", status_code=202)
 async def build(pid: int, request: Request) -> dict[str, int]:
     """Starts building a new draft version in the background; poll the version for status."""
-    builder: ScopeBuilder | None = request.app.state.builder
+    builder = (await workspace(request))[1]
     if builder is None:
         raise HTTPException(503, "building is disabled: ANTHROPIC_API_KEY is not configured")
     build_limiter.check(request)
-    over_budget((await store(request).usage())["total_usd"], settings.budget_usd)
+    over_budget((await site_usage(request))["total_usd"], settings.budget_usd)
     try:
         number = await builder.start(pid)
     except StateError as exc:
@@ -196,7 +216,7 @@ async def build(pid: int, request: Request) -> dict[str, int]:
 
 @app.get("/api/projects/{pid}/versions/{number}")
 async def get_version(pid: int, number: int, request: Request) -> Version:
-    v = await store(request).version(pid, number)
+    v = await (await store(request)).version(pid, number)
     if v is None:
         raise HTTPException(404, "version not found")
     return v
@@ -205,7 +225,7 @@ async def get_version(pid: int, number: int, request: Request) -> Version:
 @app.post("/api/projects/{pid}/versions/{number}/approve")
 async def approve(pid: int, number: int, body: Approval, request: Request) -> dict[str, str]:
     try:
-        await store(request).approve(pid, number, body.actor, body.note)
+        await (await store(request)).approve(pid, number, body.actor, body.note)
     except StateError as exc:
         raise HTTPException(409, str(exc)) from exc
     return {"status": "approved"}
@@ -215,7 +235,7 @@ async def approve(pid: int, number: int, body: Approval, request: Request) -> di
 async def export(pid: int, number: int, request: Request, actor: str = "user") -> str:
     """Client-ready proposal as Markdown. 409 unless the version is approved."""
     try:
-        return await export_proposal(store(request), pid, number, actor)
+        return await export_proposal(await store(request), pid, number, actor)
     except StateError as exc:
         status = 404 if "not found" in str(exc) else 409
         raise HTTPException(status, str(exc)) from exc

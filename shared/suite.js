@@ -28,6 +28,59 @@
     document.cookie = `theme=${next}; path=/; max-age=31536000; SameSite=Lax${deployed ? `; domain=${base}` : ""}`;
   };
 
+  // Demo accounts. Signing in is optional: guests share one workspace; a demo account keeps
+  // its own inbox and scope projects across visits. Deployed only (the proxy routes /_auth).
+  const acctSlot = document.getElementById("s-account");
+  async function accountWidget() {
+    if (!acctSlot || !deployed) return;
+    let me;
+    try { me = await fetch("/_auth/me").then((r) => r.ok ? r.json() : null); } catch { return; }
+    if (!me) return;
+    const initial = (me.account || "g").replace(/^demo/, "")[0].toUpperCase();
+    acctSlot.innerHTML = me.account
+      ? `<button class="s-acct" type="button" title="Signed in as ${me.account}: your own inbox and projects. Click to sign out."><span class="who">${initial}</span>${me.account}</button>`
+      : `<button class="s-acct guest" type="button" title="You're in the shared guest workspace. Sign in with a demo account to keep your own work."><span class="who">G</span>Guest · Sign in</button>`;
+    acctSlot.querySelector("button").onclick = me.account ? signOut : () => signInDialog(me.demo_accounts);
+  }
+  async function signOut() {
+    if (!confirm("Sign out? Your work stays saved in this demo account for next time.")) return;
+    await fetch("/_auth/logout", { method: "POST" }).catch(() => null);
+    location.reload();
+  }
+  function signInDialog(accounts) {
+    const wrap = Object.assign(document.createElement("div"), { className: "s-modal" });
+    wrap.innerHTML = `<div class="s-modal-box" role="dialog" aria-modal="true" aria-labelledby="s-si-title">
+      <h2 id="s-si-title">Sign in with a demo account</h2>
+      <p class="meta" style="margin:0">Your inbox, drafts, learning and scope projects are saved to the account, so you can come back and pick up where you left off. Without signing in you share the guest workspace.</p>
+      <div class="s-accts">${accounts.map((a) => `<button type="button" data-a="${a.account}" data-p="${a.password}">${a.account}<small>${a.password}</small></button>`).join("")}</div>
+      <form><input name="account" placeholder="Account, e.g. demo1" autocomplete="username" required>
+        <input name="password" type="password" placeholder="Password" autocomplete="current-password" required>
+        <div class="row" style="margin-top:4px"><button class="btn">Sign in</button><button class="btn ghost" type="button" data-close>Cancel</button><span class="meta" data-msg></span></div></form></div>`;
+    document.body.append(wrap);
+    const form = wrap.querySelector("form");
+    const close = () => { wrap.remove(); document.removeEventListener("keydown", onKey); };
+    const onKey = (e) => { if (e.key === "Escape") close(); };
+    document.addEventListener("keydown", onKey);
+    wrap.onclick = (e) => { if (e.target === wrap) close(); };
+    wrap.querySelector("[data-close]").onclick = close;
+    wrap.querySelectorAll("[data-a]").forEach((b) => b.onclick = () => {
+      form.account.value = b.dataset.a; form.password.value = b.dataset.p;
+      wrap.querySelectorAll("[data-a]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      form.querySelector(".btn").focus();
+    });
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const msg = wrap.querySelector("[data-msg]");
+      try {
+        const r = await fetch("/_auth/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ account: form.account.value, password: form.password.value }) });
+        if (!r.ok) { msg.textContent = (await r.json().catch(() => ({}))).detail || "Sign-in failed."; return; }
+        location.reload();
+      } catch { msg.textContent = "Couldn't reach the server."; }
+    };
+    form.account.focus();
+  }
+  accountWidget();
+
   // Footer with the documents reviewers usually want next to the running app.
   const repo = "https://github.com/saipraneethpb1/BL-THA";
   if (current !== "hub") {

@@ -17,6 +17,12 @@
 # Shared routes on every host, so any page can use them without cross-origin requests:
 # Claude usage from all three services (the usage bar), and speech to text (the mic buttons).
 (suite_routes) {
+	# Demo accounts: sign in / out / who am I, from any host (kb/session.py sets the cookie
+	# for the parent domain, so one sign-in covers all three services).
+	handle_path /_auth/* {
+		rewrite * /auth{uri}
+		reverse_proxy knowledge-brain:8001
+	}
 	# A demo, not a product: keep it out of search engines.
 	header X-Robots-Tag "noindex, nofollow"
 	handle /robots.txt {

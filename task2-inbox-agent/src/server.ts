@@ -2,10 +2,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
-import Fastify, { type FastifyInstance } from "fastify";
+import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
 import { z } from "zod";
 import { loadConfig, type Config } from "./config.js";
-import { EmailCase } from "./dataset/schema.js";
 import { CATEGORIES, CATEGORY_IDS } from "./email/taxonomy.js";
 import { HttpKnowledgeClient } from "./knowledge-client/client.js";
 import { ClaudeClassifier, ClaudeDrafter } from "./llm/models.js";
@@ -13,6 +12,8 @@ import { ClaudeLessonMiner, LearningError, LearningService, LearningUnavailableE
 import { InboxAgent, ReviewError, type ReviewAction } from "./pipeline.js";
 import { checkBudget, GuardError, RateLimiter } from "./guard.js";
 import { InboxStore } from "./store/db.js";
+import { accountFromToken, cookieValue, GUEST, sessionSecret } from "./session.js";
+import { seedEmails, Workspaces, type Workspace } from "./workspaces.js";
 
 const ROOT = join(import.meta.dirname, "..");
 
@@ -33,23 +34,26 @@ const Review = z.discriminatedUnion("action", [
   z.object({ action: z.literal("spot_check"), ok: z.boolean(), reviewer: z.string().min(1), reason: z.string().optional() }),
 ]);
 
-export interface AppDeps {
+export interface AppDeps extends Workspace {
   config: Config;
-  store: InboxStore;
-  /** null when no ANTHROPIC_API_KEY: the inbox and reviews still work, drafting does not. */
-  agent: InboxAgent | null;
-  learning: LearningService;
+  /** One inbox per demo account (src/workspaces.ts). Without it, everyone shares the one
+   *  inbox above: that's how the tests run. */
+  workspaces?: Workspaces;
+  sessionSecret?: string;
 }
 
 export function defaultDeps(config = loadConfig()): AppDeps {
-  const store = new InboxStore(config.dbPath);
   const kb = new HttpKnowledgeClient(config.kbUrl, config.kbApiKey);
-  const drafter = config.llmEnabled ? new ClaudeDrafter(config.draftModel) : null;
-  const agent = drafter
-    ? new InboxAgent(store, new ClaudeClassifier(config.classifyModel), drafter, kb, config)
-    : null;
-  const miner = config.llmEnabled ? new ClaudeLessonMiner(config.lessonModel) : null;
-  return { config, store, agent, learning: new LearningService(store, miner, drafter) };
+  const make = (store: InboxStore): Workspace => {
+    const drafter = config.llmEnabled ? new ClaudeDrafter(config.draftModel) : null;
+    const agent = drafter
+      ? new InboxAgent(store, new ClaudeClassifier(config.classifyModel), drafter, kb, config)
+      : null;
+    const miner = config.llmEnabled ? new ClaudeLessonMiner(config.lessonModel) : null;
+    return { store, agent, learning: new LearningService(store, miner, drafter) };
+  };
+  const workspaces = new Workspaces(config.dbPath, make, ROOT);
+  return { config, ...workspaces.get(GUEST), workspaces, sessionSecret: sessionSecret() };
 }
 
 /** Anthropic's own one-line reason (e.g. out of credit), not the whole error body. */
@@ -65,7 +69,22 @@ function compact<T extends object>(o: T): T {
 
 export function buildApp(deps: AppDeps): FastifyInstance {
   const app = Fastify({ logger: false });
-  const { store } = deps;
+  // Which inbox a request uses: the signed-in demo account's own, or the shared guest inbox.
+  const secret = deps.sessionSecret ?? sessionSecret();
+  const single: Workspace = { store: deps.store, agent: deps.agent, learning: deps.learning };
+  const accountOf = (req: FastifyRequest) => accountFromToken(secret, cookieValue(req.headers.cookie)) ?? GUEST;
+  const ws = (req: FastifyRequest): Workspace => (deps.workspaces ? deps.workspaces.get(accountOf(req)) : single);
+  // Spend is site-wide: budgets and the usage bar count every inbox together.
+  const siteUsage = () => {
+    const parts = (deps.workspaces ? deps.workspaces.all() : [single]).map((w) => w.store.usage());
+    const ok = parts.map((u) => u.last_success_at).filter((t): t is string => t !== null).sort().at(-1) ?? null;
+    return {
+      total_usd: parts.reduce((a, u) => a + u.total_usd, 0),
+      today_usd: parts.reduce((a, u) => a + u.today_usd, 0),
+      calls: parts.reduce((a, u) => a + u.calls, 0),
+      last_success_at: ok,
+    };
+  };
   let lastClaudeError: { message: string; at: string } | null = null;
   // Public demo guards: per-visitor limits on what costs money, and a spending cap.
   const draftLimiter = new RateLimiter(deps.config.draftLimitPer10Min, 600, "drafts");
@@ -73,7 +92,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   // A lesson check re-drafts past emails and its cost isn't recorded, so it is also
   // limited for the whole site, not only per visitor.
   const siteLessonChecks = new RateLimiter(deps.config.lessonChecksPerDay, 86400, "lesson checks on this demo today");
-  const guardSpend = () => checkBudget(store.usage().total_usd, deps.config.budgetUsd);
+  const guardSpend = () => checkBudget(siteUsage().total_usd, deps.config.budgetUsd);
 
   // Accept an empty body sent as JSON (browsers and curl often label body-less POSTs).
   app.removeContentTypeParser("application/json");
@@ -107,27 +126,27 @@ export function buildApp(deps: AppDeps): FastifyInstance {
 
   app.get("/", (_req, reply) => reply.type("text/html").send(readFileSync(join(ROOT, "ui/index.html"), "utf8")));
 
-  app.get("/health", async () => ({ status: "ok", drafting_enabled: deps.agent !== null }));
+  app.get("/health", async () => ({ status: "ok", drafting_enabled: single.agent !== null }));
 
-  app.get("/api/emails", async () => store.listEmails());
+  app.get("/api/emails", async (req) => ws(req).store.listEmails());
 
   // For the usage bar: Claude spend recorded here, and the last Claude API failure.
   // `includes_kb_lookups` tells the bar not to count those Knowledge Brain calls twice.
   app.get("/api/usage", async () => {
-    const u = store.usage();
+    const u = siteUsage();
     const budget = deps.config.budgetUsd;
     return { service: "inbox", ...u, includes_kb_lookups: true, last_error: lastClaudeError, budget_usd: budget, over_budget: budget !== null && u.total_usd >= budget };
   });
 
   app.get<{ Params: { id: string } }>("/api/emails/:id", async (req, reply) => {
-    const email = store.getEmail(req.params.id);
+    const email = ws(req).store.getEmail(req.params.id);
     if (!email) return reply.status(404).send({ error: "not found" });
-    return { email, draft: store.latestDraft(email.id) ?? null, reviews: store.reviewsFor(email.id) };
+    return { email, draft: ws(req).store.latestDraft(email.id) ?? null, reviews: ws(req).store.reviewsFor(email.id) };
   });
 
   app.post("/api/emails", async (req, reply) => {
     const e = IncomingEmail.parse(req.body);
-    const added = store.addEmail({
+    const added = ws(req).store.addEmail({
       id: e.id, from_name: e.from.name, from_email: e.from.email, subject: e.subject, body: e.body,
       thread: e.thread, received_at: e.receivedAt ?? new Date().toISOString(),
     });
@@ -135,72 +154,72 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   });
 
   app.post<{ Params: { id: string } }>("/api/emails/:id/process", async (req, reply) => {
-    if (!deps.agent) return reply.status(503).send({ error: "drafting is disabled: ANTHROPIC_API_KEY is not configured" });
+    const agent = ws(req).agent;
+    if (!agent) return reply.status(503).send({ error: "drafting is disabled: ANTHROPIC_API_KEY is not configured" });
     draftLimiter.check(req);
     guardSpend();
-    return deps.agent.process(req.params.id);
+    return agent.process(req.params.id);
   });
 
   app.post<{ Params: { id: string } }>("/api/emails/:id/review", async (req, reply) => {
-    if (!deps.agent) return reply.status(503).send({ error: "drafting is disabled: ANTHROPIC_API_KEY is not configured" });
+    const agent = ws(req).agent;
+    if (!agent) return reply.status(503).send({ error: "drafting is disabled: ANTHROPIC_API_KEY is not configured" });
     const action = compact(Review.parse(req.body)) as ReviewAction;
-    return deps.agent.review(req.params.id, action);
+    return agent.review(req.params.id, action);
   });
 
-  app.get("/api/autonomy", async () => {
-    const states = new Map(store.allAutonomy().map((s) => [s.kind, s]));
+  app.get("/api/autonomy", async (req) => {
+    const states = new Map(ws(req).store.allAutonomy().map((s) => [s.kind, s]));
     return {
       threshold: deps.config.autonomyThreshold,
       categories: CATEGORY_IDS.map((k) => ({
         ...(states.get(k) ?? { kind: k, streak: 0, status: "supervised" }),
         eligible: CATEGORIES[k].autonomy === "eligible",
       })),
-      events: store.autonomyEvents(30),
-      pending_spot_checks: store.pendingSpotChecks(),
+      events: ws(req).store.autonomyEvents(30),
+      pending_spot_checks: ws(req).store.pendingSpotChecks(),
     };
   });
 
   app.post<{ Params: { kind: string } }>("/api/autonomy/:kind/revoke", async (req, reply) => {
     const kind = z.enum(CATEGORY_IDS).parse(req.params.kind);
     const { reason } = z.object({ reason: z.string().min(1) }).parse(req.body);
-    if (!deps.agent) return reply.status(503).send({ error: "drafting is disabled" });
-    deps.agent.revokeAutonomy(kind, reason);
+    const agent = ws(req).agent;
+    if (!agent) return reply.status(503).send({ error: "drafting is disabled" });
+    agent.revokeAutonomy(kind, reason);
     return { revoked: kind };
   });
 
-  /** Loads the labelled dataset into the inbox (labels are not shown to the agent). */
+  /** Loads the labelled dataset into this inbox (labels are not shown to the agent). */
   app.post<{ Params: { split: string } }>("/api/seed/:split", async (req) => {
     const split = z.enum(["dev", "test"]).parse(req.params.split);
-    const lines = readFileSync(join(ROOT, `data/emails/${split}.jsonl`), "utf8").split(/\r?\n/).filter(Boolean);
-    let added = 0;
-    for (const line of lines) {
-      const e = EmailCase.parse(JSON.parse(line));
-      if (store.addEmail({ id: e.id, from_name: e.from.name, from_email: e.from.email, subject: e.subject, body: e.body, thread: e.thread, received_at: e.receivedAt })) added++;
-    }
-    return { split, added, total: lines.length };
+    return { split, ...seedEmails(ws(req).store, ROOT, split) };
   });
+
+  /** Which inbox this visitor is using (for the UI). */
+  app.get("/api/session", async (req) => ({ workspace: accountOf(req) }));
 
   // ----- learning from edits -----
 
   const Actor = z.object({ actor: z.string().min(1), note: z.string().min(1).optional() });
   const kindParam = (raw: string) => z.enum(CATEGORY_IDS).parse(raw);
 
-  app.get("/api/learning", async () => ({
+  app.get("/api/learning", async (req) => ({
     categories: CATEGORY_IDS.map((c) => ({
       category: c,
-      active: store.activeLessons(c),
-      versions: store.lessonVersions(c),
-      corrections_since_active: deps.learning.corrections(c).length,
-      metrics: deps.learning.metrics(c),
+      active: ws(req).store.activeLessons(c),
+      versions: ws(req).store.lessonVersions(c),
+      corrections_since_active: ws(req).learning.corrections(c).length,
+      metrics: ws(req).learning.metrics(c),
     })),
-    events: store.lessonEvents(40),
+    events: ws(req).store.lessonEvents(40),
   }));
 
   app.post<{ Params: { category: string } }>("/api/learning/:category/propose", async (req, reply) => {
     const { actor } = Actor.parse(req.body);
     lessonLimiter.check(req);
     guardSpend();
-    const version = await deps.learning.propose(kindParam(req.params.category), actor);
+    const version = await ws(req).learning.propose(kindParam(req.params.category), actor);
     return reply.status(201).send({ version });
   });
 
@@ -211,7 +230,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       lessonLimiter.check(req); // a check re-drafts past emails: the costliest action here
       siteLessonChecks.checkKey("site");
       guardSpend();
-      return deps.learning.evaluate(kindParam(req.params.category), Number(req.params.version), actor);
+      return ws(req).learning.evaluate(kindParam(req.params.category), Number(req.params.version), actor);
     },
   );
 
@@ -219,7 +238,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     "/api/learning/:category/:version/promote",
     async (req) => {
       const { actor, note } = Actor.parse(req.body);
-      deps.learning.promote(kindParam(req.params.category), Number(req.params.version), actor, note ?? null);
+      ws(req).learning.promote(kindParam(req.params.category), Number(req.params.version), actor, note ?? null);
       return { promoted: Number(req.params.version) };
     },
   );
@@ -228,14 +247,14 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     "/api/learning/:category/:version/reject",
     async (req) => {
       const { actor, note } = Actor.extend({ note: z.string().min(1) }).parse(req.body);
-      deps.learning.reject(kindParam(req.params.category), Number(req.params.version), actor, note);
+      ws(req).learning.reject(kindParam(req.params.category), Number(req.params.version), actor, note);
       return { rejected: Number(req.params.version) };
     },
   );
 
   app.post<{ Params: { category: string } }>("/api/learning/:category/rollback", async (req) => {
     const { actor, note } = Actor.extend({ note: z.string().min(1) }).parse(req.body);
-    return { active_version: deps.learning.rollback(kindParam(req.params.category), actor, note) };
+    return { active_version: ws(req).learning.rollback(kindParam(req.params.category), actor, note) };
   });
 
   return app;

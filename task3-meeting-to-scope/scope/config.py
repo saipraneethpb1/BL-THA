@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_prefix="SCOPE_", extra="ignore")
 
     db_path: Path = Path("data/scope.db")
+    # A new demo account's workspace starts as a copy of this (the pre-built demo project).
+    # (Default: starter.db next to the main database.)
+    starter_db_path: Path | None = None
     kb_url: str = "http://localhost:8001"
     kb_api_key: str | None = None
 
