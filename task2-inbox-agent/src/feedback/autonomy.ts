@@ -3,11 +3,14 @@
  * rule is unit-tested and easy to explain.
  *
  * Definitions (our answers to the brief's open questions):
- * - "Same kind" = same category (e.g. how_to). One counter per category.
+ * - "Same kind" = same label (e.g. how_to). One counter per label.
  * - "Without changing" = the sent text equals the draft after trimming and collapsing
  *   whitespace. Any word change counts as an edit. Strict on purpose: easy to audit.
- * - Earning freedom: `threshold` (20) unedited approvals in a row, in a category that
- *   taxonomy.ts marks eligible. Drafts with a blocking policy violation never count.
+ * - Earning freedom: `threshold` (X, set per inbox in settings; 20 by default) unedited
+ *   approvals in a row, in a label allowed to auto-send (taxonomy.ts sets the default,
+ *   settings can override it). Drafts with a blocking policy violation never count.
+ * - Changing X or a label's switch applies at once (`reconsider`): lowering X grants
+ *   labels already past it; raising it takes autonomy back until the streak catches up.
  * - Losing freedom: any edit, rejection or escalation of that category; any human
  *   correction of a spot-checked auto-sent email; or a manual revoke. The counter goes
  *   back to 0 and must be earned again from scratch.
@@ -74,6 +77,29 @@ export function revoke(state: AutonomyState, reason: string): { state: AutonomyS
   };
 }
 
+/** Re-applies the rules after a settings change: X changed, or a label was switched. */
+export function reconsider(
+  state: AutonomyState,
+  opts: { eligible: boolean; threshold: number },
+): { state: AutonomyState; events: AutonomyEvent[] } {
+  if (!opts.eligible) {
+    return state.status === "autonomous" ? revoke(state, "auto-send switched off in settings") : { state, events: [] };
+  }
+  if (state.status === "supervised" && state.streak >= opts.threshold) {
+    return {
+      state: { ...state, status: "autonomous" },
+      events: [{ kind: state.kind, event: "granted", detail: `${state.streak} unedited approvals in a row; threshold is now ${opts.threshold}` }],
+    };
+  }
+  if (state.status === "autonomous" && state.streak < opts.threshold) {
+    return {
+      state: { ...state, status: "supervised" },
+      events: [{ kind: state.kind, event: "revoked", detail: `threshold raised to ${opts.threshold}: ${opts.threshold - state.streak} more unedited approval(s) needed` }],
+    };
+  }
+  return { state, events: [] };
+}
+
 export interface SendCheck {
   category: CategoryId;
   urgency: Urgency;
@@ -82,12 +108,14 @@ export interface SendCheck {
   secretsFound: boolean;
   suspectedInjection: boolean;
   knowledgeGap: boolean;
+  /** Whether this label may auto-send at all (settings); defaults to taxonomy.ts. */
+  eligible?: boolean;
 }
 
 /** Returns null if this email may be auto-sent, otherwise the reason it may not. */
 export function autoSendBlocker(state: AutonomyState, c: SendCheck): string | null {
   if (state.status !== "autonomous") return `category is supervised (${state.streak} clean approvals so far)`;
-  if (!canEverAutoSend(c.category, c.urgency)) return "category or urgency always needs a human";
+  if (!canEverAutoSend(c.category, c.urgency, c.eligible)) return "label or urgency always needs a human";
   if (c.hasBlockingViolation) return "draft failed a policy check";
   if (c.secretsFound) return "email contained secrets";
   if (c.suspectedInjection) return "email looks like a prompt injection";

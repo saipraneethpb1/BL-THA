@@ -5,12 +5,13 @@ import Anthropic from "@anthropic-ai/sdk";
 import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
 import { z } from "zod";
 import { loadConfig, type Config } from "./config.js";
-import { CATEGORIES, CATEGORY_IDS } from "./email/taxonomy.js";
+import { CATEGORIES, CATEGORY_IDS, eligibleByDefault, PARENT_IDS, PARENTS } from "./email/taxonomy.js";
 import { HttpKnowledgeClient } from "./knowledge-client/client.js";
 import { ClaudeClassifier, ClaudeDrafter } from "./llm/models.js";
 import { ClaudeLessonMiner, LearningError, LearningService, LearningUnavailableError } from "./feedback/learning.js";
 import { InboxAgent, ReviewError, type ReviewAction } from "./pipeline.js";
-import { checkBudget, GuardError, RateLimiter } from "./guard.js";
+import { checkBudget, GuardError, RateLimiter, visitor } from "./guard.js";
+import { readSettings, THRESHOLD_MAX, THRESHOLD_MIN, updateSettings } from "./settings.js";
 import { InboxStore } from "./store/db.js";
 import { accountFromToken, cookieValue, GUEST, sessionSecret } from "./session.js";
 import { seedEmails, Workspaces, type Workspace } from "./workspaces.js";
@@ -111,6 +112,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       if (err.retryAfterS) void reply.header("Retry-After", String(err.retryAfterS));
       return reply.status(429).send({ error: err.message });
     }
+    if (err instanceof RangeError) return reply.status(422).send({ error: err.message });
     if (err instanceof z.ZodError) return reply.status(422).send({ error: "invalid input", issues: err.issues });
     if (err instanceof ReviewError) return reply.status(409).send({ error: err.message });
     if (err instanceof LearningUnavailableError) return reply.status(503).send({ error: err.message });
@@ -168,13 +170,17 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     return agent.review(req.params.id, action);
   });
 
+  const settingsOf = (req: FastifyRequest) => readSettings(ws(req).store, deps.config.autonomyThreshold);
+
   app.get("/api/autonomy", async (req) => {
     const states = new Map(ws(req).store.allAutonomy().map((s) => [s.kind, s]));
+    const settings = settingsOf(req);
     return {
-      threshold: deps.config.autonomyThreshold,
+      threshold: settings.autonomyThreshold,
       categories: CATEGORY_IDS.map((k) => ({
         ...(states.get(k) ?? { kind: k, streak: 0, status: "supervised" }),
-        eligible: CATEGORIES[k].autonomy === "eligible",
+        parent: CATEGORIES[k].parent,
+        eligible: settings.autoSend[k],
       })),
       events: ws(req).store.autonomyEvents(30),
       pending_spot_checks: ws(req).store.pendingSpotChecks(),
@@ -188,6 +194,39 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     if (!agent) return reply.status(503).send({ error: "drafting is disabled" });
     agent.revokeAutonomy(kind, reason);
     return { revoked: kind };
+  });
+
+  /** Labels, their parent types, X and the auto-send switches for this inbox. */
+  app.get("/api/settings", async (req) => {
+    const settings = settingsOf(req);
+    return {
+      autonomy_threshold: settings.autonomyThreshold,
+      default_threshold: deps.config.autonomyThreshold,
+      threshold_range: [THRESHOLD_MIN, THRESHOLD_MAX],
+      parents: PARENT_IDS.map((id) => ({ id, ...PARENTS[id] })),
+      labels: CATEGORY_IDS.map((id) => ({
+        id, label: CATEGORIES[id].label, parent: CATEGORIES[id].parent, risk: CATEGORIES[id].risk,
+        definition: CATEGORIES[id].definition, auto_send: settings.autoSend[id], default_auto_send: eligibleByDefault(id),
+      })),
+    };
+  });
+
+  const SettingsIn = z.object({
+    autonomy_threshold: z.number().int().optional(),
+    auto_send: z.partialRecord(z.enum(CATEGORY_IDS), z.boolean()).optional(),
+    actor: z.string().min(1).max(80).optional(),
+  });
+
+  app.put("/api/settings", async (req, reply) => {
+    const body = SettingsIn.parse(req.body);
+    const account = accountOf(req);
+    // The guest inbox is shared by every visitor, so its settings need a demo account.
+    if (deps.workspaces && account === GUEST && visitor(req) !== null) {
+      return reply.status(401).send({ error: "Sign in with a demo account to change settings: the guest inbox is shared." });
+    }
+    const r = updateSettings(ws(req).store, deps.config.autonomyThreshold,
+      { autonomyThreshold: body.autonomy_threshold, autoSend: body.auto_send }, body.actor ?? account);
+    return { autonomy_threshold: r.settings.autonomyThreshold, auto_send: r.settings.autoSend, events: r.events };
   });
 
   /** Loads the labelled dataset into this inbox (labels are not shown to the agent). */

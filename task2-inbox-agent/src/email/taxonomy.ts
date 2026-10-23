@@ -33,15 +33,32 @@ export type Urgency = (typeof URGENCY_LEVELS)[number];
 
 export type Risk = "low" | "medium" | "high";
 
+/**
+ * Parent types: the settings group each label sits under (the inbox sidebar and the
+ * settings page group labels by these). A label is the precise kind of email; its parent
+ * says which part of the business handles it.
+ */
+export const PARENT_IDS = ["support", "account", "sales", "care", "other"] as const;
+export type ParentId = (typeof PARENT_IDS)[number];
+export const PARENTS: Readonly<Record<ParentId, { label: string; description: string }>> = {
+  support: { label: "Product support", description: "Questions and problems with the product itself" },
+  account: { label: "Account & billing", description: "Logins, owners, invoices, refunds and cancellations" },
+  sales: { label: "Sales & projects", description: "New work, changes to a site, and estimates" },
+  care: { label: "Customer care", description: "Complaints, chasers and ideas: the relationship" },
+  other: { label: "Other", description: "Mail that needs no reply" },
+};
+
 export interface CategoryRule {
   readonly id: CategoryId;
   readonly label: string;
+  readonly parent: ParentId;
   /** Shown to the classifier. Says what belongs here and what does not. */
   readonly definition: string;
   readonly risk: Risk;
   /**
-   * "eligible": may earn auto-send after 20 unedited approvals in a row.
-   * "never": a human always sends it, however good the drafts get.
+   * The default for whether this label may earn auto-send (after X unedited approvals in
+   * a row, X set in settings). "never": a human always sends it unless an account's
+   * settings deliberately switch auto-send on for it.
    */
   readonly autonomy: "eligible" | "never";
   /** Whether the draft should be grounded in the Knowledge Brain. */
@@ -56,6 +73,7 @@ export const CATEGORIES: Readonly<Record<CategoryId, CategoryRule>> = {
   how_to: {
     id: "how_to",
     label: "How-to question",
+    parent: "support",
     definition:
       "Asks how to do something in the product (settings, features, setup). Nothing is broken.",
     risk: "low",
@@ -67,6 +85,7 @@ export const CATEGORIES: Readonly<Record<CategoryId, CategoryRule>> = {
   troubleshooting: {
     id: "troubleshooting",
     label: "Something isn't working",
+    parent: "support",
     definition:
       "Reports a problem: an error, a broken page, emails not arriving, payments failing, site down.",
     risk: "medium",
@@ -83,6 +102,7 @@ export const CATEGORIES: Readonly<Record<CategoryId, CategoryRule>> = {
   billing_question: {
     id: "billing_question",
     label: "Billing question",
+    parent: "account",
     definition:
       "Asks about an invoice, a charge, plan prices or payment methods, without asking for money back or to cancel.",
     risk: "medium",
@@ -94,6 +114,7 @@ export const CATEGORIES: Readonly<Record<CategoryId, CategoryRule>> = {
   refund_cancellation: {
     id: "refund_cancellation",
     label: "Refund or cancellation",
+    parent: "account",
     definition: "Asks for money back, to cancel a plan or service, or to stop a subscription.",
     risk: "high",
     autonomy: "never",
@@ -108,6 +129,7 @@ export const CATEGORIES: Readonly<Record<CategoryId, CategoryRule>> = {
   complaint: {
     id: "complaint",
     label: "Complaint",
+    parent: "care",
     definition:
       "Expresses dissatisfaction with our work, service or communication. Can contain a problem report too.",
     risk: "high",
@@ -119,6 +141,7 @@ export const CATEGORIES: Readonly<Record<CategoryId, CategoryRule>> = {
   project_request: {
     id: "project_request",
     label: "New project or change request",
+    parent: "sales",
     definition:
       "Asks us to build, change or add something on their site (new feature, redesign, integration).",
     risk: "high",
@@ -130,6 +153,7 @@ export const CATEGORIES: Readonly<Record<CategoryId, CategoryRule>> = {
   quote_request: {
     id: "quote_request",
     label: "Quote request",
+    parent: "sales",
     definition: "Asks how much something would cost or for a formal estimate.",
     risk: "high",
     autonomy: "never",
@@ -140,6 +164,7 @@ export const CATEGORIES: Readonly<Record<CategoryId, CategoryRule>> = {
   follow_up: {
     id: "follow_up",
     label: "Follow-up on earlier request",
+    parent: "care",
     definition:
       "Chases a previous email, ticket or job ('any update?', 'did you get my email?').",
     risk: "medium",
@@ -151,6 +176,7 @@ export const CATEGORIES: Readonly<Record<CategoryId, CategoryRule>> = {
   account_access: {
     id: "account_access",
     label: "Login or account access",
+    parent: "account",
     definition:
       "Cannot log in, wants a password reset, a change of account owner or email, or access for someone else.",
     risk: "high",
@@ -166,6 +192,7 @@ export const CATEGORIES: Readonly<Record<CategoryId, CategoryRule>> = {
   feedback: {
     id: "feedback",
     label: "Feedback or idea",
+    parent: "care",
     definition: "Praise, a suggestion, or a feature idea, with no request that needs action now.",
     risk: "low",
     autonomy: "eligible",
@@ -176,6 +203,7 @@ export const CATEGORIES: Readonly<Record<CategoryId, CategoryRule>> = {
   not_actionable: {
     id: "not_actionable",
     label: "No reply needed",
+    parent: "other",
     definition:
       "Spam, vendor sales pitches, auto-replies, newsletters, or 'thanks!' messages that need no answer.",
     risk: "low",
@@ -186,7 +214,16 @@ export const CATEGORIES: Readonly<Record<CategoryId, CategoryRule>> = {
   },
 };
 
-export function canEverAutoSend(category: CategoryId, urgency: Urgency): boolean {
-  // Critical issues always reach a human, whatever their category.
-  return CATEGORIES[category].autonomy === "eligible" && urgency !== "critical";
+/** Whether a label may earn auto-send by default (settings can override per account). */
+export function eligibleByDefault(category: CategoryId): boolean {
+  return CATEGORIES[category].autonomy === "eligible";
+}
+
+export function canEverAutoSend(
+  category: CategoryId,
+  urgency: Urgency,
+  eligible: boolean = eligibleByDefault(category),
+): boolean {
+  // Critical issues always reach a human, whatever their label or settings.
+  return eligible && urgency !== "critical";
 }

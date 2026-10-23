@@ -26,7 +26,7 @@ flowchart LR
     E[email] --> C[classify] --> D[draft] --> P[policy checks in code] --> R{human review}
     R -->|edits| L[lessons: propose → check → promote / rollback]
     L --> D
-    R -->|20 clean in a row| A[auto-send, with spot checks]
+    R -->|X clean in a row| A[auto-send, with spot checks]
   end
   subgraph SB[Task 3 · Scope Builder · Python]
     T[transcripts] --> AN[Analyst] --> F[Feasibility] --> S[Scope] --> ES[Estimator] --> PR[Proposal + review] --> H{human approval}
@@ -60,10 +60,10 @@ The rule that holds it together: **Tasks 2 and 3 use Task 1 only through its HTT
 
 | Feature | Why |
 |---|---|
-| **11 categories, with risk and auto-send rules in code** | Refunds, complaints, quotes, project work, follow-ups and account access never auto-send. That is a business rule, not something the model decides. |
+| **11 labels under 5 parent types, with risk and auto-send defaults in code** | Each email gets one label (how-to, refund...) and its parent type (Product support, Account & billing, Sales & projects, Customer care, Other); the inbox sidebar and Settings group labels by parent. Refunds, complaints, quotes, project work, follow-ups and account access start with auto-send switched off: a business rule, not something the model decides. An account can switch a label on in Settings, after a warning for high-risk ones. |
 | **Policy checks in code** on every draft | The prompt asks for good behaviour; the code blocks drafts that promise refunds, prices, hours or deadlines, claim a fix, change accounts, or repeat secrets. |
 | **Secrets removed before any model sees them** | Card numbers (Luhn-checked) and pasted passwords. On the 40 dev emails it caught all 3 labelled cases, with 0 false alarms. |
-| **"20 in a row"** | My definitions: *same kind* = same category; *unchanged* = identical text after whitespace. Autonomy is lost on any edit, rejection or escalation, a failed spot check (20% of auto-sent emails are re-checked), a manual revoke, or a lesson change. Even when autonomous, an email still goes to a person if it is critical, angry, contained secrets, looks like an injection, or the knowledge base could not answer it. |
+| **"X in a row"** | X is a per-account setting (default 20, 1–100). Changing it applies at once: lowering X grants labels already past it; raising it puts autonomous labels back under review until their streak catches up. My definitions: *same kind* = same category; *unchanged* = identical text after whitespace. Autonomy is lost on any edit, rejection or escalation, a failed spot check (20% of auto-sent emails are re-checked), a manual revoke, or a lesson change. Even when autonomous, an email still goes to a person if it is critical, angry, contained secrets, looks like an injection, or the knowledge base could not answer it. |
 | **Learning from edits** | A model reads recent corrections and proposes lessons. Past emails are re-drafted with and without them and scored against what the human actually sent. A lesson goes live only if it helps on emails the miner never saw, or a person writes a reason. Rollback is one click, and both promote and rollback reset autonomy. |
 | **Simulated outbox** | Real sending (Gmail or IMAP) is plumbing, not judgement. Everything up to the send is real. |
 

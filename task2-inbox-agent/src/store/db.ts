@@ -66,6 +66,12 @@ CREATE TABLE IF NOT EXISTS autonomy_events (
   email_id TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+-- This inbox's own settings (auto-send threshold, which labels may auto-send), as JSON values.
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 -- Simulated outbox: what would have been emailed. Real sending is out of scope.
 CREATE TABLE IF NOT EXISTS outbox (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -190,11 +196,12 @@ export class InboxStore {
     return r ? toEmail(r) : undefined;
   }
 
-  listEmails(): (EmailRow & { category: string | null; urgency: string | null; blocker: string | null })[] {
+  listEmails(): (EmailRow & { category: string | null; urgency: string | null; blocker: string | null; sent_mode: string | null })[] {
     const rows = this.db
       .prepare(
         `SELECT e.*, json_extract(d.classification, '$.category') AS category,
-                json_extract(d.classification, '$.urgency') AS urgency, d.auto_send_blocker AS blocker
+                json_extract(d.classification, '$.urgency') AS urgency, d.auto_send_blocker AS blocker,
+                (SELECT mode FROM outbox o WHERE o.email_id = e.id ORDER BY o.id DESC LIMIT 1) AS sent_mode
          FROM emails e LEFT JOIN drafts d ON d.id = (SELECT max(id) FROM drafts WHERE email_id = e.id)
          ORDER BY CASE json_extract(d.classification, '$.urgency')
                     WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'normal' THEN 2 ELSE 3 END,
@@ -206,6 +213,7 @@ export class InboxStore {
       category: (r.category as string | null) ?? null,
       urgency: (r.urgency as string | null) ?? null,
       blocker: (r.blocker as string | null) ?? null,
+      sent_mode: (r.sent_mode as string | null) ?? null,
     }));
   }
 
@@ -314,8 +322,27 @@ export class InboxStore {
     for (const e of events) add.run(e.kind, e.event, e.detail, emailId);
   }
 
+  /** An event that isn't about one label's state, e.g. a settings change ("settings"). */
+  logAutonomyEvent(kind: string, event: string, detail: string): void {
+    this.db.prepare("INSERT INTO autonomy_events(kind, event, detail, email_id) VALUES (?, ?, ?, NULL)").run(kind, event, detail);
+  }
+
   autonomyEvents(limit = 50): Row[] {
     return this.db.prepare("SELECT * FROM autonomy_events ORDER BY id DESC LIMIT ?").all(limit) as Row[];
+  }
+
+  getSetting(key: string): unknown {
+    const r = this.db.prepare("SELECT value FROM settings WHERE key = ?").get(key) as Row | undefined;
+    return r ? JSON.parse(String(r.value)) : undefined;
+  }
+
+  setSetting(key: string, value: unknown): void {
+    this.db
+      .prepare(
+        `INSERT INTO settings(key, value, updated_at) VALUES (?, ?, datetime('now'))
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
+      )
+      .run(key, JSON.stringify(value));
   }
 
   send(emailId: string, to: string, subject: string, body: string, mode: "human" | "auto"): void {

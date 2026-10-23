@@ -9,6 +9,7 @@ import type { Config } from "./config.js";
 import { checkDraft, type Violation } from "./drafting/policy.js";
 import { findSecrets, redact } from "./email/pii.js";
 import { CATEGORIES, canEverAutoSend, type CategoryId } from "./email/taxonomy.js";
+import { readSettings, type InboxSettings } from "./settings.js";
 import {
   applyReview,
   autoSendBlocker,
@@ -142,6 +143,7 @@ export class InboxAgent {
     const state = this.store.autonomy(category);
     const blocker = autoSendBlocker(state, {
       category,
+      eligible: this.settings().autoSend[category],
       urgency: classification.urgency,
       sentiment: classification.sentiment,
       hasBlockingViolation: violations.some((v) => v.severity === "block"),
@@ -192,7 +194,8 @@ export class InboxAgent {
     const c = draft.classification as Classification;
     const category = c.category;
     const hadBlock = draft.violations.some((v) => v.severity === "block");
-    const eligible = canEverAutoSend(category, c.urgency);
+    const settings = this.settings();
+    const eligible = canEverAutoSend(category, c.urgency, settings.autoSend[category]);
     let state = this.store.autonomy(category);
 
     if (a.action === "spot_check") {
@@ -245,9 +248,14 @@ export class InboxAgent {
         break;
       }
     }
-    const next = applyReview(state, outcome, { eligible, hadBlockingViolation: hadBlock, threshold: this.config.autonomyThreshold });
+    const next = applyReview(state, outcome, { eligible, hadBlockingViolation: hadBlock, threshold: settings.autonomyThreshold });
     this.store.saveAutonomy(next.state, next.events, emailId);
     return { outcome, autonomy: next.state };
+  }
+
+  /** This inbox's X and auto-send switches (settings.ts); the env value is the default X. */
+  settings(): InboxSettings {
+    return readSettings(this.store, this.config.autonomyThreshold);
   }
 
   revokeAutonomy(kind: CategoryId, reason: string): void {
