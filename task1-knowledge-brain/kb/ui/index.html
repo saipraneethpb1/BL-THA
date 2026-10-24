@@ -240,14 +240,17 @@ body.has-usage-bar { padding-bottom: 46px; }
 <!-- /suite:css -->
 <style>
   .ask-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
-  @media (max-width: 980px) { .ask-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 980px) { .ask-grid { grid-template-columns: minmax(0, 1fr); } }
   .ask-box textarea { min-height: 86px; font-size: 16px; }
   .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; margin-top: 14px; }
   .chips .chip { width: 100%; }
   .answer-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
-  .answer { font-size: 15.5px; }
-  .sources { display: grid; gap: 10px; margin-top: 8px; }
-  .source { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: var(--bg); }
+  .answer { font-size: 15.5px; overflow-wrap: anywhere; }
+  .answer pre, .answer table { display: block; max-width: 100%; overflow-x: auto; }
+  .answer img { max-width: 100%; height: auto; }
+  /* minmax(0, 1fr) and min-width: 0 let a card shrink to the panel; its screenshots scroll inside it. */
+  .sources { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin-top: 8px; }
+  .source { min-width: 0; overflow-wrap: anywhere; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: var(--bg); }
   .source a.title { font-weight: 650; text-decoration: none; }
   .source a.title:hover { text-decoration: underline; }
   .thumbs { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; padding-bottom: 2px; }
@@ -350,7 +353,7 @@ body.has-usage-bar { padding-bottom: 46px; }
   .source-pipeline b { font: 10px ui-monospace,Consolas,monospace; margin-right: 5px; opacity: .7; }
   .source-pipeline .arrow { opacity: .5; }
   #src-activity:not(:empty) { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
-  @media (max-width: 850px) { .source-workspace { grid-template-columns: 1fr; } .source-library { border-right: 0; border-bottom: 1px solid var(--line); } .source-heading { flex-wrap: wrap; gap: 12px; } }
+  @media (max-width: 850px) { .source-workspace { grid-template-columns: minmax(0, 1fr); } .source-library { border-right: 0; border-bottom: 1px solid var(--line); } .source-heading { flex-wrap: wrap; gap: 12px; } }
   @media (max-width: 560px) { .source-heading,.source-library,.source-composer { padding: 20px; } .source-pipeline { padding: 14px 20px; } }
   /* Activity: what the agent is doing, step by step, as it happens */
   .activity { margin: 4px 0 14px; }
@@ -400,7 +403,7 @@ body.has-usage-bar { padding-bottom: 46px; }
   .chipbtn { border: 1px solid var(--line-strong); background: var(--panel); color: var(--text); border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
   .chipbtn[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--panel)); }
   .health-settings { display: grid; grid-template-columns: 140px repeat(2, minmax(180px, 1fr)) auto; gap: 12px; align-items: end; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
-  @media (max-width: 860px) { .health-settings { grid-template-columns: 1fr; } }
+  @media (max-width: 860px) { .health-settings { grid-template-columns: minmax(0, 1fr); } }
   .health-settings label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; }
   .health-settings input, .health-settings select { padding: 7px 10px; }
   .hgroup { margin-top: 16px; }
@@ -547,7 +550,7 @@ body.has-usage-bar { padding-bottom: 46px; }
     <div class="panel" id="runs-panel">
       <div class="row" style="margin-top:0;justify-content:space-between">
         <h2 style="margin:0">Refresh runs</h2>
-        <label class="meta" style="display:flex;gap:8px;align-items:center">Run <select id="run-pick" style="width:auto;min-width:260px"></select></label>
+        <label class="meta" style="display:flex;gap:8px;align-items:center;max-width:100%;min-width:0">Run <select id="run-pick" style="width:auto;min-width:min(260px, 100%);max-width:100%"></select></label>
       </div>
       <p class="sub">What each refresh fetched. Times are in your time zone; hover a time to see it in UTC.</p>
       <div id="run-body"><div class="empty"><span class="spinner" style="display:inline-block"></span></div></div>

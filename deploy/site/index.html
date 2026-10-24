@@ -243,7 +243,7 @@ body.has-usage-bar { padding-bottom: 46px; }
   .hero h1 { font-size: clamp(28px, 4vw, 40px); letter-spacing: -.02em; margin: 0 0 10px; line-height: 1.15; }
   .hero p { font-size: 17px; color: var(--muted); max-width: 760px; margin: 0; }
   .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-  @media (max-width: 980px) { .grid3 { grid-template-columns: 1fr; } }
+  @media (max-width: 980px) { .grid3 { grid-template-columns: minmax(0, 1fr); } }
   .svc { display: flex; flex-direction: column; gap: 10px; border-top: 4px solid var(--c); }
   .svc h2 { font-size: 19px; display: flex; gap: 8px; align-items: baseline; }
   .svc h2 small { color: var(--muted); font-weight: 600; font-size: 13px; }

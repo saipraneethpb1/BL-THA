@@ -240,7 +240,7 @@ body.has-usage-bar { padding-bottom: 46px; }
 <!-- /suite:css -->
 <style>
   .layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 16px; align-items: start; }
-  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
   .side { position: sticky; top: 72px; }
   @media (max-width: 900px) { .side { position: static; } }
   .proj { display: block; width: 100%; text-align: left; background: none; border: 0; border-radius: 9px; padding: 9px 10px; cursor: pointer; font: inherit; color: inherit; }
