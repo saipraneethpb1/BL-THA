@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     # Rephrase questions into help-center vocabulary before searching (needs the API key).
     query_rewrite: bool = True
     rewrite_model: str = "claude-haiku-5-5"
+    # Self-directed prompt engineering (kb/tuning): the model that rewrites the rewrite
+    # prompt, and how often the agent checks and improves it on its own (0 = only on demand).
+    prompt_writer_model: str = "claude-sonnet-5-5"
+    prompt_tune_days: int = 7
 
     # Screenshots. Haiku is the starting point; the vision eval compares it with Sonnet.
     vision_model: str = "claude-haiku-5-5"

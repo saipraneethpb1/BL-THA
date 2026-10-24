@@ -3,6 +3,7 @@
 import asyncio
 import contextlib
 import json
+import logging
 import os
 import secrets
 import time
@@ -47,6 +48,9 @@ from kb.retrieval.embedder import FastEmbedder
 from kb.retrieval.rewrite import ClaudeQueryRewriter
 from kb.retrieval.search import Searcher
 from kb.speech import Transcriber, WhisperTranscriber
+from kb.tuning import registry as prompt_registry
+from kb.tuning import robustness
+from kb.tuning import writer as prompt_tuning
 
 UI_FILE = Path(__file__).parent / "ui" / "index.html"
 
@@ -64,6 +68,20 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.searcher = Searcher(
             FastEmbedder(settings.embedding_model, settings.model_cache_dir), rewriter=rewriter
         )
+    # The rewrite prompt is data the agent maintains: start with its active version.
+    async with connect(settings.db_path) as db:
+        await prompt_registry.ensure_seeded(db, prompt_tuning.NAME, "rewrite_v1")
+        live = await prompt_registry.active(db, prompt_tuning.NAME)
+    rw = getattr(app.state.searcher, "rewriter", None)
+    if isinstance(rw, ClaudeQueryRewriter):
+        rw.use_prompt(live["text"], f"rewrite v{live['version']}")
+    if not hasattr(app.state, "prompt_writer"):
+        app.state.prompt_writer = (
+            prompt_tuning.ClaudePromptWriter(settings.prompt_writer_model)
+            if os.environ.get("ANTHROPIC_API_KEY")
+            else None
+        )
+    app.state.tuning = asyncio.Lock()
     if not hasattr(app.state, "answerer"):
         # Without a key the service still searches; only /query is unavailable.
         app.state.answerer = (
@@ -103,16 +121,25 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         if settings.refresh_enabled
         else None
     )
+    # The agent re-checks its own rewrite prompt every few days and improves it if it can.
+    maintainer = (
+        asyncio.create_task(prompt_maintenance_loop(app))
+        if settings.refresh_enabled and settings.prompt_tune_days > 0
+        else None
+    )
     # Nothing to start from: crawl the help center in the background. The API is
     # usable (and reports progress on /ingestion/status) while it runs.
     if settings.bootstrap_crawl and article_count(settings.db_path) == 0:
         app.state.bootstrap_task = asyncio.create_task(app.state.refresher.run(trigger="bootstrap"))
     yield
-    if scheduler is not None:
-        scheduler.cancel()
-        with contextlib.suppress(asyncio.CancelledError):
-            await scheduler
+    for task in (scheduler, maintainer):
+        if task is not None:
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
 
+
+log = logging.getLogger(__name__)
 
 app = FastAPI(
     lifespan=lifespan,
@@ -1190,6 +1217,239 @@ async def clear_chat_history(request: Request) -> dict[str, Any]:
         cur = await db.execute("DELETE FROM chat_history WHERE owner=?", (owner,))
         await db.commit()
     return {"cleared": cur.rowcount}
+
+
+# ---------- Self-directed prompt engineering ----------
+
+tune_limiter = RateLimiter(3, 3600, "prompt improvement rounds")
+
+
+class PromptDecisionIn(BaseModel):
+    note: str | None = Field(default=None, max_length=500)
+
+
+def _apply_live_prompt(app: FastAPI, version: dict[str, Any]) -> None:
+    rw = getattr(app.state.searcher, "rewriter", None)
+    if isinstance(rw, ClaudeQueryRewriter):
+        rw.use_prompt(version["text"], f"rewrite v{version['version']}")
+
+
+def _brief(v: dict[str, Any]) -> dict[str, Any]:
+    ev = v.get("evaluation") or {}
+    return {
+        **{
+            k: v[k]
+            for k in (
+                "version",
+                "status",
+                "author",
+                "based_on",
+                "rationale",
+                "created_at",
+                "decided_at",
+                "decided_by",
+                "note",
+            )
+        },
+        "summary": ev.get("summary"),
+        "recommended": ev.get("recommended"),
+        "verdict": ev.get("verdict"),
+        "chars": len(v["text"]),
+    }
+
+
+@app.get("/prompts", dependencies=[Protected])
+async def prompts(request: Request) -> dict[str, Any]:
+    """The prompts the agent maintains itself: every version with its robustness scores."""
+    async with connect(settings.db_path) as db:
+        vs = await prompt_registry.versions(db, prompt_tuning.NAME)
+        last = list(
+            await db.execute_fetchall(
+                "SELECT value FROM kb_settings WHERE key='prompt_last_tuned_at'"
+            )
+        )
+    cases = robustness.load_cases()
+    return {
+        "name": prompt_tuning.NAME,
+        "purpose": "Rewrites customer questions into help-center vocabulary before searching",
+        "active_version": next((v["version"] for v in vs if v["status"] == "active"), None),
+        "versions": [_brief(v) for v in vs],
+        "tune_every_days": settings.prompt_tune_days,
+        "last_tuned_at": last[0]["value"] if last else None,
+        "can_tune": request.app.state.prompt_writer is not None
+        and isinstance(getattr(request.app.state.searcher, "rewriter", None), ClaudeQueryRewriter),
+        "test_set": {
+            "groups": len(cases),
+            "wordings": len(cases) * len(robustness.KINDS),
+            "kinds": list(robustness.KINDS),
+        },
+    }
+
+
+@app.get("/prompts/rewrite/{version}", dependencies=[Protected])
+async def prompt_version(version: int) -> dict[str, Any]:
+    """One version: its full text, what changed from the one it was based on, and how every
+    question group scored."""
+    import difflib
+
+    async with connect(settings.db_path) as db:
+        try:
+            v = await prompt_registry.get(db, prompt_tuning.NAME, version)
+            base = (
+                await prompt_registry.get(db, prompt_tuning.NAME, v["based_on"])
+                if v["based_on"]
+                else None
+            )
+        except prompt_registry.PromptError as exc:
+            raise HTTPException(404, str(exc)) from exc
+    diff = (
+        list(
+            difflib.unified_diff(
+                base["text"].splitlines(),
+                v["text"].splitlines(),
+                f"v{base['version']}",
+                f"v{version}",
+                lineterm="",
+            )
+        )
+        if base
+        else []
+    )
+    return {**_brief(v), "text": v["text"], "diff": diff, "evaluation": v["evaluation"]}
+
+
+async def _tune(app: FastAPI, actor: str, progress: Progress | None) -> dict[str, Any]:
+    writer = app.state.prompt_writer
+    if writer is None or not isinstance(
+        getattr(app.state.searcher, "rewriter", None), ClaudeQueryRewriter
+    ):
+        raise HTTPException(
+            503, "prompt improvement needs ANTHROPIC_API_KEY and query rewriting on"
+        )
+
+    async def before_spend() -> None:
+        over_budget(await spent_usd(), settings.budget_usd)
+
+    if app.state.tuning.locked():
+        raise HTTPException(409, "an improvement round is already running")
+    async with app.state.tuning, connect(settings.db_path) as db:
+        r = await prompt_tuning.tune(
+            db,
+            app.state.searcher,
+            writer,
+            settings.rewrite_model,
+            actor=actor,
+            progress=progress,
+            before_spend=before_spend,
+        )
+        await db.execute(
+            "INSERT INTO kb_settings(key, value) VALUES ('prompt_last_tuned_at', strftime('%Y-%m-%dT%H:%M:%SZ', 'now')) "
+            "ON CONFLICT(key) DO UPDATE SET value=excluded.value"
+        )
+        await db.commit()
+        if r.promoted:
+            _apply_live_prompt(app, await prompt_registry.active(db, prompt_tuning.NAME))
+    return {
+        "version": r.version,
+        "promoted": r.promoted,
+        "verdict": r.verdict,
+        "before": r.before,
+        "after": r.after,
+        "cost_usd": round(r.cost_usd, 4),
+    }
+
+
+@app.post("/prompts/rewrite/tune/stream", dependencies=[Protected, SignedIn])
+async def tune_prompt(request: Request) -> StreamingResponse:
+    """One improvement round, live: test the current prompt on every wording, have the agent
+    write a new version from what failed, test that, and make it live only if it's better on
+    questions it never saw."""
+    if request.app.state.prompt_writer is None or not isinstance(
+        getattr(request.app.state.searcher, "rewriter", None), ClaudeQueryRewriter
+    ):
+        raise HTTPException(
+            503, "prompt improvement needs ANTHROPIC_API_KEY and query rewriting on"
+        )
+    if request.app.state.tuning.locked():
+        raise HTTPException(409, "an improvement round is already running")
+    tune_limiter.check(request)
+    over_budget(await spent_usd(), settings.budget_usd)
+    actor = signed_in(request) or visitor(request) or "api"
+    return _event_stream(lambda progress: _tune(request.app, actor, progress))
+
+
+@app.post("/prompts/rewrite/{version}/promote", dependencies=[Protected, SignedIn])
+async def promote_prompt(version: int, body: PromptDecisionIn, request: Request) -> dict[str, Any]:
+    async with connect(settings.db_path) as db:
+        try:
+            v = await prompt_registry.get(db, prompt_tuning.NAME, version)
+            if not (v.get("evaluation") or {}).get("recommended") and not body.note:
+                raise HTTPException(
+                    422, "the check didn't recommend this version: say why it should go live"
+                )
+            await prompt_registry.activate(
+                db,
+                prompt_tuning.NAME,
+                version,
+                signed_in(request) or "api",
+                body.note,
+                override=True,
+            )
+            _apply_live_prompt(request.app, await prompt_registry.active(db, prompt_tuning.NAME))
+        except prompt_registry.PromptError as exc:
+            raise HTTPException(409, str(exc)) from exc
+    return {"active_version": version}
+
+
+@app.post("/prompts/rewrite/{version}/reject", dependencies=[Protected, SignedIn])
+async def reject_prompt(version: int, body: PromptDecisionIn, request: Request) -> dict[str, Any]:
+    if not body.note:
+        raise HTTPException(422, "say why")
+    async with connect(settings.db_path) as db:
+        try:
+            await prompt_registry.reject(
+                db, prompt_tuning.NAME, version, signed_in(request) or "api", body.note
+            )
+        except prompt_registry.PromptError as exc:
+            raise HTTPException(409, str(exc)) from exc
+    return {"rejected": version}
+
+
+@app.post("/prompts/rewrite/rollback", dependencies=[Protected, SignedIn])
+async def rollback_prompt(body: PromptDecisionIn, request: Request) -> dict[str, Any]:
+    if not body.note:
+        raise HTTPException(422, "say why")
+    async with connect(settings.db_path) as db:
+        try:
+            version = await prompt_registry.rollback(
+                db, prompt_tuning.NAME, signed_in(request) or "api", body.note
+            )
+        except prompt_registry.PromptError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        _apply_live_prompt(request.app, await prompt_registry.active(db, prompt_tuning.NAME))
+    return {"active_version": version}
+
+
+async def prompt_maintenance_loop(app: FastAPI) -> None:
+    """Every `prompt_tune_days`, an hour after the daily refresh, the agent re-checks its own
+    rewrite prompt and improves it if it can (within the budget)."""
+    while True:
+        await asyncio.sleep(seconds_until((settings.refresh_hour_utc + 1) % 24))
+        try:
+            async with connect(settings.db_path) as db:
+                last = list(
+                    await db.execute_fetchall(
+                        "SELECT value FROM kb_settings WHERE key='prompt_last_tuned_at'"
+                    )
+                )
+            if last and datetime.now(UTC) - datetime.fromisoformat(
+                last[0]["value"].replace("Z", "+00:00")
+            ) < timedelta(days=settings.prompt_tune_days) - timedelta(hours=3):
+                continue
+            result = await _tune(app, "scheduled self-check", None)
+            log.info("prompt self-check: %s", result["verdict"])
+        except Exception as exc:  # out of budget, no key, or a failed call: try next time
+            log.warning("prompt self-check skipped: %s", exc)
 
 
 # ---------- Human experts ----------

@@ -25,6 +25,17 @@ Every number here comes from a saved run in `*/evaluation/results/`. Each harnes
   - Rewriting scored 93% in one run and 98% in the next, with identical settings: Haiku simply wrote slightly different rewrites.
   - **So on 42 questions, differences under about 5 points (2 questions) are noise.** I kept keyword ×0.3. Lower weights reached 100% top-5 once, within the same noise, and that's not a reason to change.
 
+### Wording robustness: 42 questions × 4 wordings, the agent's own prompt
+
+Does the way a question is worded change what the customer gets? Each retrieval question also comes with synonyms (*customized* for *custom*, *colour* for *color*), misspellings, and other names for the same feature (*coupon* for *discount code*): 168 wordings, in `kb/tuning/robustness_cases.jsonl`. A question passes when every wording finds the right article in the top 5 **and** the same article first. Odd-numbered questions are "train" (the prompt writer sees their failures); even-numbered ones are held out.
+
+| Rewrite prompt | Every wording same + right | Train (seen) | Held out (never seen) | Wordings right, top 5 | Misspelled right |
+|---|---|---|---|---|---|
+| v1, written by hand | 9 / 42 | 4 / 21 | 5 / 21 | 92% | 90% |
+| v2, written by the agent (Sonnet) from v1's failures | **16 / 42** | 10 / 21 | 6 / 21 | 93% | 93% |
+
+Almost every wording already *finds* the article; what varied was which article came *first*. The agent's v2 adds a spell-fix → unify → name-the-feature order and a glossary of term groups ("custom, customize, customise, customized"), and nearly doubled the questions where wording makes no difference. The gain on held-out questions is small (+1), and that is what the gate requires before a version goes live, so the honest headline is: clearly better on what it learned from, slightly better on what it didn't. One round cost $0.032 (Haiku rewrites for 2 × 168 wordings, one Sonnet call) and took about 10 minutes. Run it: `uv run python -m evaluation.run_robustness_eval`.
+
 ### Screenshot descriptions: 26 real screenshots, 66 labels read by eye
 
 A label counts as found when the stored description contains it (ignoring case and punctuation). V25 and V26 are the image-only answers: Chrome's "Always use secure connections" and Firefox's "Don't enable HTTPS-Only Mode".

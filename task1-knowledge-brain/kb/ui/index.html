@@ -312,6 +312,12 @@ body.has-usage-bar { padding-bottom: 46px; }
   .source-submit-row .btn { border-radius: 9px; padding: 11px 17px; box-shadow: inset 0 1px 0 #ffffff20,0 2px 3px #0000000a; }
   .source-submit-row .btn:not(:disabled):hover { box-shadow: 0 3px 9px color-mix(in srgb,var(--accent) 18%,transparent); }
   /* Preview before ingesting */
+  .pver { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: var(--bg); margin-top: 8px; }
+  .pver-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .pver .why { color: var(--muted); font-size: 13px; margin-top: 6px; white-space: pre-wrap; }
+  .pdiff { font: 12px/1.5 ui-monospace, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 360px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--panel); margin-top: 8px; }
+  .pdiff .add { color: var(--ok); } .pdiff .del { color: var(--err); } .pdiff .hunk { color: var(--muted); }
+  .pfail { font-size: 12.5px; margin-top: 6px; } .pfail li { margin-bottom: 4px; }
   .src-preview-wide:not(:empty) { padding: 4px 26px 22px; border-top: 1px solid var(--line); }
   @media (max-width: 560px) { .src-preview-wide:not(:empty) { padding: 4px 16px 18px; } }
   .pv { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: var(--bg); margin-top: 12px; }
@@ -526,6 +532,16 @@ body.has-usage-bar { padding-bottom: 46px; }
       <div class="stats" id="stats"></div>
       <div class="runbar" id="runbar" hidden></div>
       <div class="row"><button class="btn secondary" id="refresh-btn">Run refresh now</button><span class="meta" id="refresh-meta"></span></div>
+    </div>
+
+    <div class="panel" id="prompts-panel">
+      <div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">Self-maintained prompts</h2><span class="meta" id="prompts-meta"></span></div>
+      <p class="sub">The agent writes and maintains its own query-rewrite prompt (the step that turns customer wording into help-center terms). Every version is tested on <b id="pt-wordings">168</b> wordings of <b id="pt-groups">42</b> questions: as asked, with synonyms ("custom", "customize", "customise"), misspelled, and with other names for the same feature. A question passes when every wording finds the same right article. A new version goes live only if it does better on questions it never saw.</p>
+      <div class="stats" id="prompt-scores"></div>
+      <div class="row"><button class="btn secondary" id="tune-btn">Improve the prompt now</button><span class="meta" id="tune-meta">Tests the live prompt, writes a new one from what failed, tests that: a few cents, about 10 minutes.</span></div>
+      <div id="tune-activity"></div>
+      <h3 class="label">Versions</h3>
+      <div id="prompt-versions"></div>
     </div>
 
     <div class="panel" id="runs-panel">
@@ -1116,7 +1132,7 @@ async function loadQueue() {
 let wasRunning = false;
 async function loadStatus() {
   let s;
-  if (!wasRunning) { loadSources(); loadRuns(); loadHealth(); loadArchive(); loadChanges(); }
+  if (!wasRunning) { loadSources(); loadRuns(); loadHealth(); loadArchive(); loadChanges(); loadPrompts(); }
   try { s = await api("/ingestion/status"); } catch { return; }
   const c = s.counts;
   const stat = (v, label, title = "") => `<div class="stat" title="${esc(title)}"><b>${typeof v === "number" ? v.toLocaleString() : v}</b><span>${label}</span></div>`;
@@ -1447,6 +1463,77 @@ $("#src-form").addEventListener("submit", async (e) => {
     else if (err.message !== "offline") showBanner(suite.friendlyError(err.message), "err");
   }
   finally { sourceBusy = false; liveCheck(); }
+});
+
+
+// Self-maintained prompts: versions, robustness scores, improve now, promote/reject/rollback.
+const pct0 = (x) => x == null ? "–" : `${Math.round(x * 100)}%`;
+const KIND_LABEL = { original: "as asked", synonym: "synonyms", misspelling: "misspelled", naming: "other names" };
+async function loadPrompts() {
+  let p;
+  try { p = await api("/prompts"); } catch { return; }
+  $("#pt-wordings").textContent = p.test_set.wordings; $("#pt-groups").textContent = p.test_set.groups;
+  const active = p.versions.find((v) => v.status === "active");
+  const sum = active?.summary;
+  $("#prompts-meta").textContent = `v${p.active_version} live` + (p.last_tuned_at ? ` · last checked ${new Date(p.last_tuned_at).toLocaleDateString(undefined, { dateStyle: "medium" })}` : "") + (p.tune_every_days ? ` · re-checks itself every ${p.tune_every_days} days` : "");
+  const stat = (v, label) => `<div class="stat"><b>${v}</b><span>${label}</span></div>`;
+  $("#prompt-scores").innerHTML = sum ? [
+    stat(`${sum.all.passed} / ${sum.all.groups}`, "questions where every wording finds the same right article"),
+    stat(`${sum.holdout.passed} / ${sum.holdout.groups}`, "of those, held-out questions (never shown to the writer)"),
+    stat(pct0(sum.all.hit_rate), "wordings that find the right article"),
+    ...Object.entries(sum.all.by_kind).map(([k, v]) => stat(pct0(v), `${KIND_LABEL[k] || k}: right article in the top 5`)),
+  ].join("") : `<p class="meta">v${p.active_version} hasn't been tested yet: "Improve the prompt now" tests it first.</p>`;
+  $("#tune-btn").disabled = !p.can_tune;
+  if (!p.can_tune) $("#tune-meta").textContent = "Needs the Claude API key and query rewriting.";
+  const latestRetired = p.versions.find((v) => v.status === "retired");
+  $("#prompt-versions").innerHTML = p.versions.map((v) => {
+    const badge = { active: "ok", candidate: "info", rejected: "err", retired: "" }[v.status] || "";
+    const sc = v.summary ? `${v.summary.all.passed}/${v.summary.all.groups} questions pass · held-out ${v.summary.holdout.passed}/${v.summary.holdout.groups} · ${pct0(v.summary.all.hit_rate)} of wordings find it` : "not tested yet";
+    const canPromote = v.status === "candidate" || (v.status === "rejected" && v.decided_by === "robustness check");
+    return `<div class="pver" data-v="${v.version}"><div class="pver-head"><b>v${v.version}</b><span class="badge ${badge}">${esc(v.status)}</span><span class="meta">${esc(v.author)}${v.based_on ? `, from v${v.based_on}` : ""} · ${esc(new Date(v.created_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }))}</span><span class="spacer"></span><span class="meta">${sc}</span></div>
+      ${v.verdict ? `<div class="why"><b>Check:</b> ${esc(v.verdict)}</div>` : ""}
+      ${v.rationale ? `<div class="why">${esc(v.rationale)}</div>` : ""}
+      ${v.note && v.note !== v.verdict ? `<div class="why"><b>Note:</b> ${esc(v.note)}${v.decided_by ? ` (${esc(v.decided_by)})` : ""}</div>` : ""}
+      <div class="row" style="margin-top:8px"><button class="btn ghost small" data-view="${v.version}">View prompt and results</button>
+        ${canPromote ? `<button class="btn secondary small" data-promote="${v.version}" data-rec="${v.recommended ? 1 : 0}">Make live</button>` : ""}
+        ${v.status === "candidate" ? `<button class="btn ghost small" data-reject="${v.version}">Reject</button>` : ""}
+        ${v.status === "active" && latestRetired && latestRetired.version < v.version ? `<button class="btn ghost small" data-rollback="1">Roll back to v${latestRetired.version}</button>` : ""}</div>
+      <div data-detail></div></div>`;
+  }).join("");
+  const decide = async (path, body, msg) => {
+    try { await api(path, { method: "POST", body: JSON.stringify(body) }); suite.toast(msg); loadPrompts(); }
+    catch (err) { showBanner(err.status === 401 ? `${err.message} Use Guest · Sign in at the top right.` : err.message); }
+  };
+  $("#prompt-versions").querySelectorAll("[data-promote]").forEach((b) => b.onclick = () => {
+    let note = null;
+    if (b.dataset.rec !== "1") { note = prompt("The check didn't recommend this version. Why make it live?"); if (!note) return; }
+    decide(`/prompts/rewrite/${b.dataset.promote}/promote`, { note }, `v${b.dataset.promote} is live`);
+  });
+  $("#prompt-versions").querySelectorAll("[data-reject]").forEach((b) => b.onclick = () => { const note = prompt("Why reject it?"); if (note) decide(`/prompts/rewrite/${b.dataset.reject}/reject`, { note }, "Rejected"); });
+  $("#prompt-versions").querySelectorAll("[data-rollback]").forEach((b) => b.onclick = () => { const note = prompt("Why roll back?"); if (note) decide("/prompts/rewrite/rollback", { note }, "Rolled back"); });
+  $("#prompt-versions").querySelectorAll("[data-view]").forEach((b) => b.onclick = async () => {
+    const box = b.closest(".pver").querySelector("[data-detail]");
+    if (box.innerHTML) { box.innerHTML = ""; return; }
+    const d = await api(`/prompts/rewrite/${b.dataset.view}`);
+    const fails = (d.evaluation?.groups || []).filter((g) => !g.passed);
+    const diff = d.diff.length ? d.diff.map((l) => `<span class="${l.startsWith("+") && !l.startsWith("+++") ? "add" : l.startsWith("-") && !l.startsWith("---") ? "del" : l.startsWith("@@") ? "hunk" : ""}">${esc(l)}</span>`).join("\n") : esc(d.text);
+    box.innerHTML = `<details open><summary>${d.diff.length ? `What changed from v${d.based_on}` : "The prompt"}</summary><div class="pdiff">${diff}</div></details>
+      ${d.diff.length ? `<details><summary>Full prompt</summary><div class="pdiff">${esc(d.text)}</div></details>` : ""}
+      ${d.evaluation?.groups ? `<details><summary>${fails.length} question${fails.length === 1 ? "" : "s"} where wordings still behave differently</summary><ul class="pfail">${fails.map((g) => `<li><b>${esc(g.id)}</b> (${esc(g.split)}) should find “${esc(g.gold_title || g.gold[0])}”: ${g.variants.filter((x) => !x.hit || x.top_article !== g.variants[0].top_article).map((x) => `${esc(KIND_LABEL[x.kind])} “${esc(x.question)}” → ${x.hit ? "found, not first" : `“${esc(x.top_title || "nothing")}”`}`).join("; ")}</li>`).join("")}</ul></details>` : ""}`;
+  });
+}
+$("#tune-btn").addEventListener("click", async () => {
+  const btn = $("#tune-btn"); btn.disabled = true;
+  const act = activity($("#tune-activity"));
+  try {
+    const r = await apiStream("/prompts/rewrite/tune/stream", {}, act.step);
+    act.finish();
+    suite.toast(r.promoted ? `v${r.version} is live: ${r.verdict}` : r.verdict, 6000);
+    window.dispatchEvent(new Event("suite:usage-changed"));
+  } catch (err) {
+    act.step({ icon: "error", text: "Stopped", detail: err.message }); act.finish();
+    if (err.status === 401) $("#tune-meta").innerHTML = `${esc(err.message)} Use <b>Guest · Sign in</b> at the top right.`;
+  } finally { btn.disabled = false; loadPrompts(); }
 });
 
 // Archived KB: browse, search on its own, restore.

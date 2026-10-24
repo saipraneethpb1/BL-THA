@@ -170,6 +170,25 @@ CREATE TABLE IF NOT EXISTS custom_sitemaps (
     last_error      TEXT
 );
 
+-- Prompts the agent maintains itself (kb/tuning): every version, who wrote it, why, how
+-- it scored on the robustness check, and who decided. Exactly one active per prompt.
+CREATE TABLE IF NOT EXISTS prompt_versions (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT NOT NULL,       -- 'rewrite' (the query rewriter)
+    version    INTEGER NOT NULL,
+    text       TEXT NOT NULL,
+    status     TEXT NOT NULL,       -- active | candidate | retired | rejected
+    author     TEXT NOT NULL,
+    based_on   INTEGER,
+    rationale  TEXT,
+    evaluation TEXT,                -- JSON: robustness scores and per-group results
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    decided_at TEXT,
+    decided_by TEXT,
+    note       TEXT,
+    UNIQUE (name, version)
+);
+
 -- The chat's history, per person: a signed-in account ("acct:demo1"), or a guest's
 -- browser ("anon:<random id>"). Only questions asked in the chat are kept, with the
 -- full answer, so a past answer opens exactly as it was given.

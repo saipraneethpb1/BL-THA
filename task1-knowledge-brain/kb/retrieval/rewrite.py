@@ -28,15 +28,27 @@ class QueryRewriter(Protocol):
 
 class ClaudeQueryRewriter:
     def __init__(
-        self, model: str, prompt_version: str = "rewrite_v1", cache_size: int = 512
+        self,
+        model: str,
+        prompt_version: str = "rewrite_v1",
+        cache_size: int = 512,
+        system: str | None = None,
     ) -> None:
         self.client = anthropic.AsyncAnthropic(max_retries=2, timeout=20.0)
         self.model = model
-        self.system = (PROMPTS / f"{prompt_version}.md").read_text(encoding="utf-8")
+        # The prompt is data the agent maintains (kb/tuning): the active version is loaded
+        # at start-up and swapped in when a better one is promoted.
+        self.prompt_version = prompt_version
+        self.system = system or (PROMPTS / f"{prompt_version}.md").read_text(encoding="utf-8")
         self._cache: OrderedDict[str, list[str]] = OrderedDict()
         self._cache_size = cache_size
         self.input_tokens = 0
         self.output_tokens = 0
+
+    def use_prompt(self, text: str, version: str) -> None:
+        """Switch to another prompt version (answers cached under the old one are dropped)."""
+        self.system, self.prompt_version = text, version
+        self._cache.clear()
 
     async def rewrite(self, question: str) -> list[str]:
         key = " ".join(question.lower().split())
