@@ -12,6 +12,7 @@ from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Any, Literal
+from urllib.parse import urlsplit
 
 import anthropic
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
@@ -26,13 +27,18 @@ from kb.bootstrap import article_count, seed_database
 from kb.config import settings
 from kb.db import connect, init_db
 from kb.guard import RateLimiter, over_budget, visitor
+from kb.ingestion import catalog
 from kb.ingestion import health as url_health_rules
+from kb.ingestion.pipeline import _known_urls
 from kb.ingestion.sources import (
     HostGuard,
     SitemapCheck,
     SitemapError,
     check_url_syntax,
+    guarded_client,
+    normalize_url,
     validate_sitemap,
+    walk_sitemap,
 )
 from kb.ingestion.vision import ClaudeImageDescriber
 from kb.progress import Progress, report
@@ -67,6 +73,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             if os.environ.get("ANTHROPIC_API_KEY")
             else None
         )
+    if not hasattr(app.state, "sitemap_client"):  # tests inject a fake site
+        app.state.sitemap_client = lambda: guarded_client(HostGuard(), timeout=15.0)
+    app.state.previews = {}  # sitemap URL -> its last preview, saved with it when confirmed
     if not hasattr(app.state, "sitemap_validator"):  # tests inject a fake
         guard = HostGuard()
         app.state.sitemap_validator = lambda url, progress=None: validate_sitemap(
@@ -162,6 +171,13 @@ class Health(BaseModel):
 
 
 class IngestionStatus(BaseModel):
+    counts: dict[str, int] = Field(
+        description="Pages: total, embedded, pending_embed, pending_fetch, duplicates, "
+        "listed_twice, archived, failed"
+    )
+    current_run: dict[str, Any] | None = Field(
+        default=None, description="The refresh running now: pages planned and done"
+    )
     pages_by_status: dict[str, int]
     last_run: dict[str, str | int | None] | None = Field(description="Last crawl run")
     chunks: int
@@ -323,8 +339,33 @@ async def auth_logout(request: Request) -> JSONResponse:
     return resp
 
 
+RecheckDays = Literal[1, 7, 15, 30]
+
+
 class SitemapsIn(BaseModel):
     urls: list[str] = Field(min_length=1, max_length=10, description="One or more sitemap URLs")
+    recheck_days: RecheckDays = Field(
+        default=1, description="Re-check every 1 (daily), 7, 15 or 30 days"
+    )
+    ingest: bool = Field(
+        default=False, description="Crawl the new pages now instead of at the next check"
+    )
+
+
+class PreviewIn(BaseModel):
+    urls: list[str] = Field(min_length=1, max_length=10)
+
+
+class ScheduleIn(BaseModel):
+    recheck_days: RecheckDays
+
+
+def _duration(seconds: float) -> str:
+    if seconds < 90:
+        return f"about {max(1, round(seconds))} s"
+    if seconds < 5400:
+        return f"about {round(seconds / 60)} min"
+    return f"about {seconds / 3600:.1f} h"
 
 
 @app.get("/sitemaps", dependencies=[Protected])
@@ -333,7 +374,10 @@ async def list_sitemaps() -> dict[str, Any]:
     async with connect(settings.db_path) as db:
         rows = await db.execute_fetchall(
             """SELECT s.*, (SELECT count(*) FROM pages p WHERE p.source = s.url
-                              AND p.status = 'done') AS pages_indexed
+                              AND p.status = 'done') AS pages_indexed,
+                      (SELECT count(*) FROM page_listings l WHERE l.source = s.url
+                         AND (SELECT count(*) FROM page_listings x WHERE x.article_id = l.article_id) > 1
+                      ) AS listed_elsewhere
                FROM custom_sitemaps s ORDER BY s.id"""
         )
         builtin = list(
@@ -341,10 +385,26 @@ async def list_sitemaps() -> dict[str, Any]:
                 "SELECT count(*) AS n FROM pages WHERE source = 'help-center' AND status = 'done'"
             )
         )
+        hc_days, hc_last = await catalog.helpcenter_schedule(db, settings)
     return {
-        "builtin": {"url": settings.sitemap_url, "pages_indexed": builtin[0]["n"]},
-        "custom": [dict(r) for r in rows],
+        "builtin": {
+            "url": settings.sitemap_url,
+            "pages_indexed": builtin[0]["n"],
+            "recheck_days": hc_days,
+            "last_checked_at": _utc(hc_last),
+            "next_check_at": catalog.next_check(hc_last, hc_days),
+        },
+        "custom": [
+            {
+                **{k: r[k] for k in r.keys() if k != "summary"},
+                "summary": json.loads(r["summary"]) if r["summary"] else None,
+                "last_checked_at": _utc(r["last_checked_at"]),
+                "next_check_at": catalog.next_check(r["last_checked_at"], r["recheck_days"]),
+            }
+            for r in rows
+        ],
         "max_custom": settings.max_custom_sitemaps,
+        "recheck_choices": catalog.RECHECK_CHOICES,
     }
 
 
@@ -395,8 +455,101 @@ def _event_stream(work: Callable[[Progress], Awaitable[dict[str, Any]]]) -> Stre
     )
 
 
+async def _preview(urls: list[str], request: Request, progress: Progress) -> dict[str, Any]:
+    """Read each sitemap and every sitemap nested in it, without storing anything: what
+    would be ingested, how many pages are new, and roughly how long it would take."""
+    previews: list[dict[str, Any]] = []
+    async with connect(settings.db_path) as db:
+        existing = {r["url"] for r in await db.execute_fetchall("SELECT url FROM custom_sitemaps")}
+        known = await _known_urls(db)
+    for i, raw in enumerate(urls):
+        out: dict[str, Any] = {"input": raw, "ok": False}
+        previews.append(out)
+
+        async def step(event: dict[str, Any], i: int = i, raw: str = raw) -> None:
+            await progress({**event, "group": i, "group_label": raw})
+
+        try:
+            url = check_url_syntax(raw)
+            if url == settings.sitemap_url:
+                raise SitemapError("That's the help center's own sitemap: it's always included.")
+            if url in existing:
+                raise SitemapError("That sitemap is already added.")
+            host = urlsplit(url).hostname or ""
+            await report(step, "shield", f"Checking that {host} is a public site")
+            async with request.app.state.sitemap_client() as client:
+                await report(step, "globe", "Reading the sitemap", url)
+                tree = await walk_sitemap(
+                    client,
+                    url,
+                    max_pages=settings.custom_sitemap_max_pages,
+                    max_children=settings.custom_sitemap_max_children,
+                    progress=step,
+                )
+        except SitemapError as exc:
+            out["error"] = str(exc)
+            await report(step, "warn", "Can't be added", str(exc))
+            continue
+        keys = [normalize_url(loc) for loc, _ in tree.locs]
+        already = sum(1 for k in keys if k in known)
+        new = len(keys) - already
+        estimate = catalog.estimate_seconds(new, settings)
+        out.update(
+            ok=True,
+            url=url,
+            kind=tree.kind,
+            total=len(keys),
+            new=new,
+            already_stored=already,
+            listed_twice=tree.listed_twice,
+            first=tree.locs[0][0] if tree.locs else None,
+            last=tree.locs[-1][0] if tree.locs else None,
+            children=[vars(c) for c in tree.children],
+            failed_children=sum(1 for c in tree.children if c.error),
+            truncated=tree.truncated,
+            estimate_s=estimate,
+            estimate=_duration(estimate),
+        )
+        request.app.state.previews[url] = {
+            k: out[k]
+            for k in (
+                "total",
+                "new",
+                "already_stored",
+                "listed_twice",
+                "first",
+                "last",
+                "children",
+                "truncated",
+            )
+        }
+        nested = f" in {len(tree.children)} nested sitemaps" if tree.children else ""
+        await report(
+            step,
+            "check",
+            f"{len(keys):,} pages{nested}: {new:,} new, {already:,} already stored",
+            f"ingesting them takes {_duration(estimate)}"
+            + (
+                f" · {tree.listed_twice:,} listed twice (counted once)" if tree.listed_twice else ""
+            ),
+        )
+    return {"previews": previews}
+
+
+@app.post("/sitemaps/preview/stream", dependencies=[Protected])
+async def preview_sitemaps(body: PreviewIn, request: Request) -> StreamingResponse:
+    """Before anything is ingested: every nested sitemap with its page count and first and
+    last URL, the totals, what's new, and a time estimate. Nothing is stored."""
+    sitemap_limiter.check(request)
+    return _event_stream(lambda progress: _preview(body.urls, request, progress))
+
+
 async def _add_sitemaps(
-    urls: list[str], request: Request, progress: Progress | None = None
+    urls: list[str],
+    request: Request,
+    progress: Progress | None = None,
+    recheck_days: int = 1,
+    ingest: bool = False,
 ) -> dict[str, Any]:
     validate: Callable[..., Awaitable[SitemapCheck]] = request.app.state.sitemap_validator
     results: list[dict[str, Any]] = []
@@ -428,24 +581,39 @@ async def _add_sitemaps(
                 result["error"] = str(exc)
                 await report(step, "warn", "Not added", str(exc))
                 continue
+            summary = request.app.state.previews.get(check.url)
             cur = await db.execute(
-                """INSERT INTO custom_sitemaps(url, kind, url_count, added_by, last_checked_at)
-                   VALUES (?, ?, ?, ?, datetime('now'))""",
-                (check.url, check.kind, check.url_count, visitor(request) or "api"),
+                """INSERT INTO custom_sitemaps(url, kind, url_count, added_by, recheck_days, summary)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (
+                    check.url,
+                    check.kind,
+                    summary["total"] if summary else check.url_count,
+                    visitor(request) or "api",
+                    recheck_days,
+                    json.dumps(summary) if summary else None,
+                ),
             )
             existing.add(check.url)
             result.update(
                 ok=True, id=cur.lastrowid, url=check.url, kind=check.kind, url_count=check.url_count
             )
-            what = "child sitemaps" if check.kind == "sitemapindex" else "pages"
-            await report(
-                step,
-                "check",
-                f"Added: {check.url_count} {what} found",
-                "their text is fetched at the next refresh",
+            pages = summary["total"] if summary else check.url_count
+            what = "pages" if summary or check.kind == "urlset" else "nested sitemaps"
+            when = (
+                f"crawling now, {_duration(catalog.estimate_seconds(summary['new'], settings))}"
+                if ingest and summary
+                else "crawling now"
+                if ingest
+                else f"crawled at the next check ({catalog.RECHECK_CHOICES[recheck_days].lower()})"
             )
+            await report(step, "check", f"Added: {pages:,} {what}", when)
         await db.commit()
-    return {"results": results}
+    added = {r["url"] for r in results if r["ok"]}
+    if ingest and added:
+        refresher: Refresher = request.app.state.refresher
+        request.app.state.refresh_task = asyncio.create_task(refresher.ingest_sources(added))
+    return {"results": results, "ingesting": bool(ingest and added)}
 
 
 @app.post("/sitemaps", dependencies=[Protected, SignedIn])
@@ -454,14 +622,54 @@ async def add_sitemaps(body: SitemapsIn, request: Request) -> dict[str, Any]:
     ones. Each URL gets its own result, so one bad line doesn't block the rest. Their pages
     are crawled at the next refresh."""
     sitemap_limiter.check(request)
-    return await _add_sitemaps(body.urls, request)
+    return await _add_sitemaps(body.urls, request, None, body.recheck_days, body.ingest)
 
 
 @app.post("/sitemaps/stream", dependencies=[Protected, SignedIn])
 async def add_sitemaps_stream(body: SitemapsIn, request: Request) -> StreamingResponse:
     """Same as POST /sitemaps, reporting each check as it happens (server-sent events)."""
     sitemap_limiter.check(request)
-    return _event_stream(lambda progress: _add_sitemaps(body.urls, request, progress))
+    return _event_stream(
+        lambda progress: _add_sitemaps(body.urls, request, progress, body.recheck_days, body.ingest)
+    )
+
+
+@app.put("/sitemaps/{sitemap_id}/schedule", dependencies=[Protected, SignedIn])
+async def set_sitemap_schedule(sitemap_id: int, body: ScheduleIn) -> dict[str, Any]:
+    """How often a custom sitemap is re-checked: daily, weekly, every 15 or 30 days."""
+    async with connect(settings.db_path) as db:
+        cur = await db.execute(
+            "UPDATE custom_sitemaps SET recheck_days=? WHERE id=?", (body.recheck_days, sitemap_id)
+        )
+        if not cur.rowcount:
+            raise HTTPException(404, "no such custom sitemap")
+        await db.commit()
+    return {"id": sitemap_id, "recheck_days": body.recheck_days}
+
+
+@app.put("/sources/help-center/schedule", dependencies=[Protected, SignedIn])
+async def set_helpcenter_schedule(body: ScheduleIn) -> dict[str, Any]:
+    """How often the help center's own sitemap is re-checked."""
+    async with connect(settings.db_path) as db:
+        await catalog.set_helpcenter_days(db, body.recheck_days)
+        await db.commit()
+    return {"source": "help-center", "recheck_days": body.recheck_days}
+
+
+@app.post("/sitemaps/{sitemap_id}/ingest", status_code=202, dependencies=[Protected, SignedIn])
+async def ingest_sitemap(sitemap_id: int, request: Request) -> dict[str, Any]:
+    """Check one custom sitemap now and crawl what changed (queued if a refresh is running)."""
+    refresh_limiter.check(request)
+    async with connect(settings.db_path) as db:
+        rows = list(
+            await db.execute_fetchall("SELECT url FROM custom_sitemaps WHERE id=?", (sitemap_id,))
+        )
+    if not rows:
+        raise HTTPException(404, "no such custom sitemap")
+    refresher: Refresher = request.app.state.refresher
+    queued = refresher.running
+    request.app.state.refresh_task = asyncio.create_task(refresher.ingest_sources({rows[0]["url"]}))
+    return {"url": rows[0]["url"], "status": "queued" if queued else "started"}
 
 
 @app.delete("/sitemaps/{sitemap_id}", dependencies=[Protected, SignedIn])
@@ -549,12 +757,17 @@ async def refresh_run_urls(run_id: int) -> dict[str, Any]:
 
 class HealthSettingsIn(BaseModel):
     threshold: int = Field(
-        ge=1, le=30, description="Consecutive refreshes before a non-404 URL issue needs a decision"
+        ge=1,
+        le=30,
+        description="Checks in a row before a URL needs a decision (presets: 2, 15, 30)",
     )
     action_gone: Literal["quarantine", "flag"] = Field(
-        description="410 and no longer in its sitemap; HTTP 404 always quarantines automatically"
+        description="404 while still listed in its sitemap (a 404 that's also missing from it "
+        "is archived at once)"
     )
-    action_moved: Literal["quarantine", "flag"] = Field(description="301/308 permanent redirect")
+    action_moved: Literal["quarantine", "flag"] = Field(
+        description="301/308 with no new address (with one, the page is re-pointed and re-indexed)"
+    )
 
 
 class HealthActionIn(BaseModel):
@@ -585,6 +798,7 @@ async def url_health() -> dict[str, Any]:
             "action_moved": hs.action_moved,
         },
         "issues": url_health_rules.ISSUES,
+        "threshold_presets": url_health_rules.THRESHOLD_PRESETS,
         "items": [
             {
                 **dict(r),
@@ -626,6 +840,86 @@ async def url_health_action(body: HealthActionIn) -> dict[str, Any]:
     return {"action": body.action, "done": done}
 
 
+@app.get("/archive", dependencies=[Protected])
+async def archived_kb(request: Request, q: str | None = None, limit: int = 100) -> dict[str, Any]:
+    """The Archived KB: pages taken out of normal answers (gone, or archived after review),
+    kept with their text and passages. `q` searches only the archive."""
+    limit = max(1, min(limit, 500))
+    async with connect(settings.db_path) as db:
+        if q and len(q.strip()) >= 3:
+            searcher: Searcher = request.app.state.searcher
+            hits = await searcher.search(db, q.strip(), k=20, mode="hybrid", archived=True)
+            ids = list(dict.fromkeys(h.article_id for h in hits))[:limit]
+            snippets = {h.article_id: h.text[:240] for h in reversed(hits)}
+        else:
+            ids, snippets = [], {}
+        where = (
+            f"AND p.article_id IN ({','.join('?' * len(ids))})" if q and len(q.strip()) >= 3 else ""
+        )
+        rows = await db.execute_fetchall(
+            f"""SELECT p.article_id, p.url, p.source, p.last_error AS reason, p.quarantined_at,
+                       a.title, (SELECT count(*) FROM chunks c WHERE c.article_id = p.article_id) AS passages
+                FROM pages p LEFT JOIN articles a USING (article_id)
+                WHERE p.status = 'quarantined' {where}
+                ORDER BY p.quarantined_at DESC, p.url LIMIT ?""",
+            [*ids, limit],
+        )
+        [total] = list(
+            await db.execute_fetchall("SELECT count(*) AS n FROM pages WHERE status='quarantined'")
+        )
+    order = {aid: i for i, aid in enumerate(ids)}
+    items = [
+        {
+            **dict(r),
+            "archived_at": _utc(r["quarantined_at"]),
+            "snippet": snippets.get(r["article_id"]),
+        }
+        for r in rows
+    ]
+    if ids:
+        items.sort(key=lambda r: order.get(r["article_id"], 1_000_000))
+    return {"total": total["n"], "query": q, "items": items}
+
+
+@app.get("/history", dependencies=[Protected])
+async def change_history(article_id: str | None = None, limit: int = 100) -> dict[str, Any]:
+    """Every change to a page (added, content changed, moved, archived, restored, marked
+    duplicate, broken), newest first: for one page, or across the knowledge base."""
+    limit = max(1, min(limit, 500))
+    async with connect(settings.db_path) as db:
+        rows = await db.execute_fetchall(
+            f"""SELECT h.*, a.title FROM page_history h LEFT JOIN articles a USING (article_id)
+                {"WHERE h.article_id = ?" if article_id else ""}
+                ORDER BY h.id DESC LIMIT ?""",
+            [article_id, limit] if article_id else [limit],
+        )
+    return {"items": [dict(r) for r in rows]}
+
+
+@app.get("/duplicates", dependencies=[Protected])
+async def duplicates() -> dict[str, Any]:
+    """Pages stored once but found twice: the same content at another URL (searched once),
+    and pages listed by more than one sitemap."""
+    async with connect(settings.db_path) as db:
+        same_content = await db.execute_fetchall(
+            """SELECT p.article_id, p.url, p.source, p.duplicate_of, o.url AS original_url,
+                      a.title FROM pages p LEFT JOIN pages o ON o.article_id = p.duplicate_of
+                      LEFT JOIN articles a ON a.article_id = p.article_id
+               WHERE p.status = 'duplicate' ORDER BY p.url"""
+        )
+        multi = await db.execute_fetchall(
+            """SELECT l.article_id, p.url, a.title, group_concat(l.source, '
+') AS sources
+               FROM page_listings l JOIN pages p USING (article_id)
+               LEFT JOIN articles a USING (article_id)
+               GROUP BY l.article_id HAVING count(*) > 1 ORDER BY p.url"""
+        )
+    return {
+        "same_content": [dict(r) for r in same_content],
+        "listed_twice": [{**dict(r), "sources": r["sources"].split("\n")} for r in multi],
+    }
+
+
 @app.get("/ingestion/status", response_model=IngestionStatus, dependencies=[Protected])
 async def ingestion_status(request: Request) -> IngestionStatus:
     """Crawl progress, index size, screenshot coverage and the refresh schedule."""
@@ -644,9 +938,30 @@ async def ingestion_status(request: Request) -> IngestionStatus:
                              AND described_with NOT LIKE 'failed:%') AS images_described,
                           (SELECT count(*) FROM images WHERE described_with LIKE 'failed:%')
                              AS images_failed,
-                          (SELECT count(*) FROM escalations WHERE status='open') AS open_esc"""
+                          (SELECT count(*) FROM escalations WHERE status='open') AS open_esc,
+                          (SELECT count(*) FROM pages) AS pages_total,
+                          (SELECT count(*) FROM articles a JOIN pages p USING (article_id)
+                             WHERE p.status = 'done' AND a.indexed_hash IS NOT NULL) AS embedded,
+                          (SELECT count(*) FROM articles a JOIN pages p USING (article_id)
+                             WHERE p.status = 'done' AND a.indexed_hash IS NULL) AS pending_embed,
+                          (SELECT count(*) FROM pages WHERE status = 'pending'
+                             OR (status = 'failed' AND attempts < ?)) AS pending_fetch,
+                          (SELECT count(*) FROM pages WHERE status = 'duplicate') AS duplicates,
+                          (SELECT count(*) FROM (SELECT article_id FROM page_listings
+                             GROUP BY article_id HAVING count(*) > 1)) AS listed_twice,
+                          (SELECT count(*) FROM pages WHERE status = 'quarantined') AS archived,
+                          (SELECT count(*) FROM pages WHERE status = 'failed'
+                             AND attempts >= ?) AS failed""",
+                [settings.max_attempts, settings.max_attempts],
             )
         )
+        progress_row = None
+        if request.app.state.refresher.running and last:
+            [progress_row] = list(
+                await db.execute_fetchall(
+                    "SELECT count(*) AS done FROM fetch_log WHERE run_id=?", (last[0]["id"],)
+                )
+            )
     refresher: Refresher = request.app.state.refresher
     next_run = None
     if settings.refresh_enabled:
@@ -654,6 +969,29 @@ async def ingestion_status(request: Request) -> IngestionStatus:
             datetime.now(UTC) + timedelta(seconds=seconds_until(settings.refresh_hour_utc))
         ).isoformat(timespec="minutes")
     return IngestionStatus(
+        counts={
+            k: stats[k]
+            for k in (
+                "pages_total",
+                "embedded",
+                "pending_embed",
+                "pending_fetch",
+                "duplicates",
+                "listed_twice",
+                "archived",
+                "failed",
+            )
+        },
+        current_run=(
+            {
+                "run_id": last[0]["id"],
+                "planned": last[0]["planned"],
+                "done": progress_row["done"],
+                "sources": json.loads(last[0]["sources"]) if last[0]["sources"] else None,
+            }
+            if progress_row is not None and last
+            else None
+        ),
         pages_by_status={r["status"]: r["n"] for r in counts},
         last_run=dict(last[0]) if last else None,
         chunks=stats["chunks"],

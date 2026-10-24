@@ -11,10 +11,16 @@ class Settings(BaseSettings):
 
     db_path: Path = Path("data/knowledge.db")
     sitemap_url: str = "https://support.brilliantdirectories.com/support/sitemap.xml"
-    # Custom sitemaps (kb/ingestion/sources.py). Caps keep a public demo's crawls small.
+    # Custom sitemaps (kb/ingestion/sources.py). Every nested sitemap is followed; these are
+    # safety ceilings for a small server, and the preview says so if a sitemap reaches one.
     max_custom_sitemaps: int = 5
-    custom_sitemap_max_pages: int = 300
-    custom_sitemap_max_children: int = 10
+    custom_sitemap_max_pages: int = 5000
+    custom_sitemap_max_children: int = 500
+    # How often the help center is re-checked by default: 1, 7, 15 or 30 days.
+    helpcenter_recheck_days: int = 1
+    # For the time estimate before an ingest: embedding one page on this server (measured
+    # on a 2-vCPU instance, about 9 passages a page).
+    embed_s_per_page: float = 0.7
 
     # Politeness: the help center allows ~300 requests per window; we stay far below it.
     max_concurrency: int = 2

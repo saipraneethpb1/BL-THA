@@ -41,7 +41,10 @@ def events(r: httpx.Response) -> list[dict[str, Any]]:
 
 
 def test_a_question_streams_its_steps_then_the_answer(client: TestClient) -> None:  # noqa: F811
-    assert client.post("/query/stream", json={"question": "refund a member"}, headers=H).status_code == 503
+    assert (
+        client.post("/query/stream", json={"question": "refund a member"}, headers=H).status_code
+        == 503
+    )
     api.app.state.answerer = FakeAnswerer()
     ev = events(client.post("/query/stream", json={"question": "refund a member"}, headers=H))
     steps = [e["text"] for e in ev if "text" in e]
@@ -60,7 +63,9 @@ def test_a_failing_claude_call_ends_the_stream_with_its_reason(
 ) -> None:
     msg = "Your credit balance is too low to access the Anthropic API."
 
-    async def out_of_credit(*_args: object, progress: Progress | None = None, **_kw: object) -> None:
+    async def out_of_credit(
+        *_args: object, progress: Progress | None = None, **_kw: object
+    ) -> None:
         await report(progress, "think", "Writing the answer from 6 passages")
         response = httpx.Response(400, request=httpx.Request("POST", "https://api.anthropic.com"))
         raise anthropic.BadRequestError(msg, response=response, body={"error": {"message": msg}})
@@ -96,7 +101,7 @@ def test_adding_sitemaps_streams_each_check_per_url(client: TestClient) -> None:
         "The address is a valid URL",
         "Checking that the host is a public site",
         "Downloading the sitemap",
-        "Added: 7 pages found",
+        "Added: 7 pages",
     ]
     assert second[-1] == "Not added" and ev[-2]["detail"].startswith("The server answered HTTP 404")
     assert {e.get("group_label") for e in ev if "group" in e} == set(urls)

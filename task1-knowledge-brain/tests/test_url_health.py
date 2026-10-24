@@ -1,4 +1,5 @@
-"""404s quarantine immediately; other problems retain review rules. Content is kept."""
+"""A 404 that's also missing from its sitemap is archived at once; a 404 that's still
+listed is counted; a 301 re-points the page to its new URL. Content is always kept."""
 
 import sqlite3
 from pathlib import Path
@@ -65,7 +66,7 @@ def status(settings: Settings, aid: str) -> str:
         return db.execute("SELECT status FROM pages WHERE article_id=?", (aid,)).fetchone()[0]
 
 
-async def test_404_quarantines_immediately_despite_preferences(settings: Settings) -> None:
+async def test_404_and_missing_from_its_sitemap_is_archived_at_once(settings: Settings) -> None:
     await set_rules(settings, threshold=30, action_gone="flag")
     site = Site()
     t = httpx.MockTransport(site.handler)
@@ -80,59 +81,64 @@ async def test_404_quarantines_immediately_despite_preferences(settings: Setting
     with sqlite3.connect(settings.db_path) as db:
         assert db.execute("SELECT count(*) FROM articles WHERE article_id='2'").fetchone()[0] == 1
         reason = db.execute("SELECT last_error FROM pages WHERE article_id='2'").fetchone()[0]
-    assert reason == "HTTP 404 (automatically quarantined)"
+    assert reason == "HTTP 404 and missing from its sitemap (archived automatically)"
 
     async with connect(settings.db_path) as db:  # restore: fetched again at the next refresh
         assert await health.restore(db, ["2"]) == 1
         await db.commit()
     assert status(settings, "2") == "pending" and tracked(settings) == {}
+    assert history(settings, "2") == ["added", "archived", "restored"]
 
 
-async def test_a_recovered_url_resets_its_count(settings: Settings) -> None:
-    await set_rules(settings, threshold=3)
+async def test_a_broken_page_is_counted_once_per_check_and_resets_when_it_recovers(
+    settings: Settings,
+) -> None:
+    await set_rules(settings, threshold=2)
     site = Site()
-    site.gone_status = 410  # non-404 problems still use consecutive-refresh review
     t = httpx.MockTransport(site.handler)
     site.sitemap = sitemap(("1", "d1"), ("2", "d1"))
     await run_ingestion(settings, transport=t)
-    site.sitemap, site.gone = sitemap(("1", "d1")), {"2"}
+    site.gone = {"2"}  # still listed, but 404
+    site.sitemap = sitemap(("1", "d1"), ("2", "d2"))
     await run_ingestion(settings, transport=t)
+    assert tracked(settings) == {"2": ("broken", 1, "counting")}
     await run_ingestion(settings, transport=t)
-    assert tracked(settings) == {"2": ("gone", 2, "counting")}
-    site.gone = set()  # it answers again (still unlisted): no longer a 404, so the count resets
+    assert tracked(settings) == {"2": ("broken", 2, "pending")}  # waits for a person
+    assert status(settings, "2") == "failed"  # not archived on its own
+    site.gone = set()  # it answers again: the count resets
     await run_ingestion(settings, transport=t)
-    assert tracked(settings) == {}
+    assert tracked(settings) == {} and status(settings, "2") == "done"
 
 
-async def test_permanent_redirects_are_counted_and_the_flag_rule_never_quarantines(
+async def test_a_permanent_redirect_repoints_the_page_and_reindexes_it(
     settings: Settings,
 ) -> None:
-    await set_rules(settings, threshold=2, action_moved="flag")
     site = Site()
     t = httpx.MockTransport(site.handler)
-    site.sitemap = sitemap(("1", "d1"), ("9", "d1"))
-    site.moved = {"1": "9"}
-    await run_ingestion(settings, transport=t)  # 1 is fetched through its redirect: count 1
-    assert tracked(settings) == {"1": ("moved", 1, "counting")}
-    assert status(settings, "1") == "done"
-    await run_ingestion(settings, transport=t)  # unchanged, but re-checked because it's counted
-    assert tracked(settings) == {"1": ("moved", 2, "flagged")}
+    site.sitemap = sitemap(("1", "d1"))
+    site.moved = {"1": "1-new"}  # fetched through its 301
+    await run_ingestion(settings, transport=t)
     with sqlite3.connect(settings.db_path) as db:
-        to = db.execute("SELECT redirect_to FROM url_health").fetchone()[0]
-    assert to == f"{BASE}/9"
+        page_url, article_url = db.execute(
+            "SELECT p.url, a.url FROM pages p JOIN articles a USING (article_id) WHERE article_id='1'"
+        ).fetchone()
+        alias = db.execute("SELECT article_id FROM url_aliases").fetchall()
+        outcome = db.execute("SELECT outcome FROM fetch_log").fetchone()[0]
+    assert page_url == article_url == f"{BASE}/1-new"
+    assert alias == [("1",)] and outcome == "moved"
+    assert tracked(settings) == {} and status(settings, "1") == "done"
+    assert history(settings, "1") == ["moved", "added"]
 
-    # The rule changes to quarantine: it becomes pending, still waiting for a person.
-    async with connect(settings.db_path) as db:
-        await health.save_settings(
-            db, health.HealthSettings(threshold=2, action_moved="quarantine")
-        )
-        await db.commit()
-    assert tracked(settings)["1"][2] == "pending"
-    # A higher threshold moves it back to counting.
-    async with connect(settings.db_path) as db:
-        await health.save_settings(db, health.HealthSettings(threshold=5))
-        await db.commit()
-    assert tracked(settings)["1"][2] == "counting"
+
+async def test_a_redirect_onto_a_stored_page_makes_a_duplicate(settings: Settings) -> None:
+    site = Site()
+    t = httpx.MockTransport(site.handler)
+    site.sitemap = sitemap(("9", "d1"))
+    await run_ingestion(settings, transport=t)
+    site.sitemap = sitemap(("1", "d1"), ("9", "d1"))
+    site.moved = {"1": "9"}  # 1 now redirects to a page that's already stored
+    await run_ingestion(settings, transport=t)
+    assert status(settings, "1") == "duplicate" and status(settings, "9") == "done"
 
 
 async def test_keep_resets_and_settings_round_trip(tmp_path: Path) -> None:
@@ -147,3 +153,13 @@ async def test_keep_resets_and_settings_round_trip(tmp_path: Path) -> None:
         await health.observe(raw, s, "7", "https://help.test/7", "moved", status=301)
         assert await health.keep(raw, ["7"]) == 1
         assert await health.open_ids(raw) == set()
+
+
+def history(settings: Settings, aid: str) -> list[str]:
+    with sqlite3.connect(settings.db_path) as db:
+        return [
+            e
+            for (e,) in db.execute(
+                "SELECT event FROM page_history WHERE article_id=? ORDER BY id", (aid,)
+            )
+        ]

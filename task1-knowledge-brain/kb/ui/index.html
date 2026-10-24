@@ -305,6 +305,35 @@ body.has-usage-bar { padding-bottom: 46px; }
   .source-submit-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
   .source-submit-row .btn { border-radius: 9px; padding: 11px 17px; box-shadow: inset 0 1px 0 #ffffff20,0 2px 3px #0000000a; }
   .source-submit-row .btn:not(:disabled):hover { box-shadow: 0 3px 9px color-mix(in srgb,var(--accent) 18%,transparent); }
+  /* Preview before ingesting */
+  .src-preview-wide:not(:empty) { padding: 4px 26px 22px; border-top: 1px solid var(--line); }
+  @media (max-width: 560px) { .src-preview-wide:not(:empty) { padding: 4px 16px 18px; } }
+  .pv { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: var(--bg); margin-top: 12px; }
+  .pv-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; margin-bottom: 10px; }
+  .pv-head .u { font: 12.5px ui-monospace, Consolas, monospace; color: var(--muted); overflow-wrap: anywhere; }
+  .pv-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 10px; }
+  .pv-stats div { border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; background: var(--panel); }
+  .pv-stats b { display: block; font-size: 18px; } .pv-stats span { font-size: 12px; color: var(--muted); }
+  .pv-range { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; font-size: 12.5px; margin-bottom: 8px; }
+  .pv-range span:nth-child(odd) { color: var(--muted); } .pv-range span:nth-child(even) { font-family: ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
+  .pv-table { width: 100%; font-size: 12.5px; border-collapse: collapse; }
+  .pv-table th, .pv-table td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+  .pv-table td.m { font-family: ui-monospace, Consolas, monospace; overflow-wrap: anywhere; max-width: 260px; }
+  .pv-table td.n { text-align: right; white-space: nowrap; }
+  .pv-scroll { max-height: 280px; overflow: auto; border: 1px solid var(--line); border-radius: 9px; margin-top: 6px; }
+  .pv-confirm { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .pv-confirm select { width: auto; }
+  .src-sched { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); margin-top: 6px; flex-wrap: wrap; }
+  .src-sched select { width: auto; padding: 3px 8px; font-size: 12px; }
+  .runbar { margin-top: 12px; } .runbar .track { height: 8px; border-radius: 4px; background: var(--panel-2); overflow: hidden; margin-top: 6px; }
+  .runbar .track span { display: block; height: 100%; background: var(--accent); transition: width .4s; }
+  .presets { display: inline-flex; gap: 4px; margin-top: 6px; } .presets button { border: 1px solid var(--line-strong); background: var(--bg); color: var(--text); border-radius: 999px; padding: 3px 12px; font: inherit; font-size: 12.5px; cursor: pointer; }
+  .presets button[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--bg)); font-weight: 650; }
+  .hist { list-style: none; padding: 0; margin: 0; max-height: 380px; overflow: auto; border: 1px solid var(--line); border-radius: 10px; }
+  .hist li { display: grid; grid-template-columns: 130px 92px minmax(0, 1fr); gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); font-size: 13px; background: var(--bg); }
+  .hist li:last-child { border-bottom: 0; }
+  .hist .ev { font-weight: 650; } .hist .ev.archived, .hist .ev.broken { color: var(--err); } .hist .ev.moved, .hist .ev.duplicate { color: var(--warn); } .hist .ev.added, .hist .ev.restored { color: var(--ok); }
+  @media (max-width: 640px) { .hist li { grid-template-columns: 1fr; gap: 2px; } }
   .source-pipeline { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; padding: 14px 26px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); }
   .source-pipeline b { font: 10px ui-monospace,Consolas,monospace; margin-right: 5px; opacity: .7; }
   .source-pipeline .arrow { opacity: .5; }
@@ -469,18 +498,20 @@ body.has-usage-bar { padding-bottom: 46px; }
               </div>
             </div>
             <ul class="src-check" id="src-live" aria-live="polite"></ul>
-            <div class="source-submit-row"><button class="btn source-action" id="src-add" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7l8-4Z"/><path d="m8 12 3 3 5-6"/></svg><span id="src-add-label">Validate & connect</span></button><span class="meta" id="src-meta" role="status"></span></div>
+            <div class="source-submit-row"><button class="btn source-action" id="src-add" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7l8-4Z"/><path d="m8 12 3 3 5-6"/></svg><span id="src-add-label">Check & preview</span></button><span class="meta" id="src-meta" role="status"></span></div>
           </form>
           <div id="src-activity"></div>
         </div>
       </div>
-      <div class="source-pipeline"><span><b>01</b>Validate now</span><span class="arrow" aria-hidden="true">→</span><span><b>02</b>Crawl at next refresh</span><span class="arrow" aria-hidden="true">→</span><span><b>03</b>Search & cite</span></div>
+      <div id="src-preview" class="src-preview-wide"></div>
+      <div class="source-pipeline"><span><b>01</b>Preview every nested sitemap</span><span class="arrow" aria-hidden="true">→</span><span><b>02</b>Confirm</span><span class="arrow" aria-hidden="true">→</span><span><b>03</b>Crawl & embed</span><span class="arrow" aria-hidden="true">→</span><span><b>04</b>Re-check on its schedule</span></div>
     </div>
 
     <div class="panel">
       <h2>Knowledge status</h2>
-      <p class="sub">The help center is re-checked daily; only changed pages are fetched again.</p>
+      <p class="sub">Each source is re-checked on its own schedule (set in Sources); only changed pages are fetched again. "Run refresh now" checks every source.</p>
       <div class="stats" id="stats"></div>
+      <div class="runbar" id="runbar" hidden></div>
       <div class="row"><button class="btn secondary" id="refresh-btn">Run refresh now</button><span class="meta" id="refresh-meta"></span></div>
     </div>
 
@@ -495,15 +526,29 @@ body.has-usage-bar { padding-bottom: 46px; }
 
     <div class="panel" id="health-panel">
       <div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">URL health</h2><span class="meta" id="health-summary"></span></div>
-      <p class="sub">Pages returning HTTP 404 are automatically quarantined as soon as a fetch or health check detects them, even if still listed in a sitemap. Their content is kept, but excluded from search. You can restore them below. Other URL problems follow the review rules.</p>
-      <div class="banner info" style="margin-bottom:14px"><strong>404 · Automatic quarantine</strong><br>No confirmation or repeated failures required. Detection happens during crawling or URL health checks.</div>
+      <p class="sub">A page that answers 404 <b>and</b> is missing from its sitemap moves to the Archived KB at once. A 404 on a page its sitemap still lists may be a passing fault, so it's counted check by check. A 301 is followed: the page is re-pointed to its new URL and re-indexed there. Nothing is deleted.</p>
       <form id="health-form" class="health-settings">
-        <label>Review threshold <span class="meta">other URL problems only</span><input id="h-threshold" type="number" min="1" max="30" required></label>
-        <label>410 and no longer in its sitemap<select id="h-gone"><option value="quarantine">Quarantine, after I confirm</option><option value="flag">Flag only</option></select></label>
-        <label>301 permanent redirect<select id="h-moved"><option value="quarantine">Quarantine, after I confirm</option><option value="flag">Flag only</option></select></label>
+        <label>Threshold <span class="meta">checks in a row</span><input id="h-threshold" type="number" min="1" max="30" required><span class="presets" id="h-presets"></span></label>
+        <label>404 while still listed in its sitemap<select id="h-gone"><option value="quarantine">Archive, after I confirm</option><option value="flag">Flag only</option></select></label>
+        <label>301 with no new address<select id="h-moved"><option value="quarantine">Archive, after I confirm</option><option value="flag">Flag only</option></select></label>
         <div class="row" style="margin-top:0;align-self:end"><button class="btn secondary" id="h-save">Save settings</button><span class="meta" id="h-msg"></span></div>
       </form>
       <div id="health-lists"></div>
+    </div>
+
+    <div class="panel" id="archive-panel">
+      <div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">Archived KB</h2><span class="meta" id="archive-count"></span></div>
+      <p class="sub">Pages taken out of normal answers: gone from their site, or archived after review. They keep their text and passages and can be searched here on their own. Restore brings a page back: it's fetched again at the next check.</p>
+      <form id="archive-form" class="row" style="margin-top:0"><input id="archive-q" placeholder="Search the archive, e.g. coupon codes" style="flex:1;min-width:200px"><button class="btn secondary">Search archive</button><button class="btn ghost" type="button" id="archive-clear" hidden>Show all</button></form>
+      <div id="archive-list" style="margin-top:12px"></div>
+    </div>
+
+    <div class="panel" id="changes-panel">
+      <h2>Duplicates and change history</h2>
+      <p class="sub">A page found twice is stored and searched once: the same address spelled differently, the same page in two sitemaps, or the same text at two URLs. Every change to a page is recorded.</p>
+      <div id="dup-list"></div>
+      <h3 class="label">Change history <span class="meta" style="text-transform:none;letter-spacing:0">newest first</span></h3>
+      <ul class="hist" id="history"></ul>
     </div>
 
   </section>
@@ -1024,34 +1069,49 @@ async function loadQueue() {
 }
 
 // Status
+let wasRunning = false;
 async function loadStatus() {
   let s;
-  loadSources();
-  loadRuns();
-  loadHealth();
+  if (!wasRunning) { loadSources(); loadRuns(); loadHealth(); loadArchive(); loadChanges(); }
   try { s = await api("/ingestion/status"); } catch { return; }
-  const pages = s.pages_by_status;
-  const stat = (v, label) => `<div class="stat"><b>${v}</b><span>${label}</span></div>`;
+  const c = s.counts;
+  const stat = (v, label, title = "") => `<div class="stat" title="${esc(title)}"><b>${typeof v === "number" ? v.toLocaleString() : v}</b><span>${label}</span></div>`;
   $("#stats").innerHTML = [
-    stat((pages.done ?? 0).toLocaleString(), "articles indexed"),
-    stat(s.chunks.toLocaleString(), "searchable passages"),
+    stat(c.pages_total, "pages known", "Every URL from the help center and your sitemaps"),
+    stat(c.embedded, "embedded and searchable", "Stored, split into passages and embedded"),
+    stat(c.pending_embed, "waiting to be embedded", "Fetched, embedded at the end of the current refresh"),
+    stat(c.pending_fetch, "waiting to be fetched", "New, changed, or failing and still being retried"),
+    stat(c.duplicates, "duplicates (searched once)", "The same text as another stored page"),
+    stat(c.listed_twice, "listed in 2+ sitemaps", "Stored once"),
+    stat(c.archived, "in the Archived KB", "Kept, out of normal answers"),
+    stat(c.failed, "failing (gave up)", "Retries used up; checked again at the next change"),
+    stat(s.chunks, "searchable passages"),
     stat(`${s.images_described.toLocaleString()} / ${s.images_total.toLocaleString()}`, "screenshots described"),
-    stat(pages.failed ?? 0, "pages failing"),
-    stat(pages.quarantined ?? 0, "quarantined (kept, not searched)"),
     stat(s.open_escalations, "open expert tasks"),
-    stat(s.answering_enabled ? "On" : "Off", "answering (Claude)"),
   ].join("");
+  const run = s.current_run;
+  $("#runbar").hidden = !s.refresh_running;
+  if (s.refresh_running) {
+    const pct = run && run.planned ? Math.min(100, Math.round((run.done / run.planned) * 100)) : 0;
+    const which = run?.sources ? run.sources.map((x) => x === "help-center" ? "the help center" : new URL(x).hostname).join(", ") : "all sources";
+    $("#runbar").innerHTML = run && run.planned
+      ? `<div class="row" style="margin:0;justify-content:space-between"><span><span class="spinner" style="display:inline-block;vertical-align:-3px;margin-right:8px"></span>Crawling ${esc(which)}: <b>${run.done.toLocaleString()}</b> of ${run.planned.toLocaleString()} pages</span><span class="meta">${pct}%</span></div><div class="track"><span style="width:${pct}%"></span></div>`
+      : `<span class="spinner" style="display:inline-block;vertical-align:-3px;margin-right:8px"></span>Reading sitemaps (${esc(which)})… then fetching and embedding.`;
+  }
   const last = s.last_refresh;
   $("#refresh-btn").disabled = s.refresh_running;
   $("#refresh-meta").textContent = s.refresh_running ? "Refresh running…"
     : last ? `Last refresh ${last.status} at ${(last.finished_at || last.started_at).replace("T", " ").replace("+00:00", "")} UTC: ${last.ingestion.new ?? 0} new, ${last.ingestion.changed ?? 0} changed, ${last.ingestion.removed ?? 0} quarantined.`
     : s.last_run ? `Last crawl finished ${s.last_run.finished_at} UTC.` : "";
   if (s.next_scheduled_refresh) $("#refresh-meta").textContent += ` Next automatic refresh ${s.next_scheduled_refresh.replace("T", " ").replace("+00:00", "")} UTC.`;
-  if (s.refresh_running) setTimeout(loadStatus, 3000);
+  if (s.refresh_running) setTimeout(() => { loadStatus(); }, 3000);
+  else if (wasRunning) { wasRunning = false; loadSources(); loadRuns(); loadHealth(); loadArchive(); loadChanges(); }
+  if (s.refresh_running) wasRunning = true;
 }
 // Refresh runs: first and last fetch, totals, and every fetched URL.
-const OUTCOME = { updated: ["Updated", "ok"], unchanged: ["Unchanged", ""], failed: ["Failed, will retry", "warn"], quarantined: ["Quarantined", "err"], refused: ["Refused (private address)", "err"],
-  checked: ["Re-checked: fine", "ok"], missing: ["Re-checked: 404, not in sitemap", "err"], moved: ["Re-checked: moved (301)", "warn"], unreachable: ["Re-check inconclusive", ""] };
+const OUTCOME = { updated: ["Updated", "ok"], unchanged: ["Unchanged", ""], failed: ["Failed, will retry", "warn"], quarantined: ["Archived", "err"], refused: ["Refused (private address)", "err"],
+  checked: ["Re-checked: fine", "ok"], missing: ["404 + not in sitemap: archived", "err"], broken: ["404, still listed: counted", "warn"], moved: ["Moved (301): re-pointed", "warn"],
+  duplicate: ["Duplicate: stored once", ""], unreachable: ["Re-check inconclusive", ""] };
 
 // URL health: settings, URLs waiting for a decision, and quarantined URLs.
 let healthData = null;
@@ -1059,6 +1119,12 @@ async function loadHealth() {
   try { healthData = await api("/url-health"); } catch { return; }
   const s = healthData.settings;
   $("#h-threshold").value = s.threshold; $("#h-gone").value = s.action_gone; $("#h-moved").value = s.action_moved;
+  const presets = healthData.threshold_presets || [2, 15, 30];
+  $("#h-presets").innerHTML = presets.map((n) => `<button type="button" data-n="${n}" aria-pressed="${n === s.threshold}">${n}</button>`).join("");
+  $("#h-presets").querySelectorAll("button").forEach((b) => b.onclick = () => {
+    $("#h-threshold").value = b.dataset.n;
+    $("#h-presets").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  });
   renderHealth();
 }
 function renderHealth() {
@@ -1071,18 +1137,18 @@ function renderHealth() {
     const why = `${esc(issues[i.issue] || i.issue)}${i.last_status ? ` · last answer HTTP ${i.last_status}` : ""}${i.redirect_to ? ` · redirects to <span style="overflow-wrap:anywhere">${esc(i.redirect_to)}</span>` : ""}`;
     return `<div class="hrow ${i.state}">${check ? `<input type="checkbox" data-id="${esc(i.article_id)}" aria-label="Select ${esc(i.url)}">` : "<span></span>"}
       <div><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.title || i.url)}</a>${i.title ? `<div class="meta" style="overflow-wrap:anywhere">${esc(i.url)}</div>` : ""}<div class="why">${why}</div></div>
-      <div class="hcount"><span><b>${i.count}</b> of ${s.threshold} refreshes</span><span class="hmeter"><span style="width:${pct}%"></span></span></div></div>`;
+      <div class="hcount"><span><b>${i.count}</b> of ${s.threshold} checks</span><span class="hmeter"><span style="width:${pct}%"></span></span></div></div>`;
   };
   const section = (title, list, note, actions) => list.length ? `<div class="hgroup" data-group="${title}">
       <div class="hgroup-head"><h3 class="label" style="margin:0">${title} (${list.length})</h3>${actions ? `<div class="row" style="margin:0">
         <label class="meta" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-all> Select all</label>${actions}</div>` : ""}</div>
       ${note ? `<p class="meta" style="margin:0 0 8px">${note}</p>` : ""}<div class="hlist">${list.map((i) => row(i, Boolean(actions))).join("")}</div></div>` : "";
-  const acts = `<button class="btn small" data-act="quarantine" disabled>Quarantine selected</button><button class="btn secondary small" data-act="keep" disabled>Keep (reset count)</button>`;
+  const acts = `<button class="btn small" data-act="quarantine" disabled>Archive selected</button><button class="btn secondary small" data-act="keep" disabled>Keep (reset count)</button>`;
   $("#health-lists").innerHTML =
     section("Pending your decision", pending, "These reached the threshold. They stay searchable until you choose.", acts)
     + section("Flagged", flagged, "These reached the threshold under a \"Flag only\" rule: shown for information, never quarantined automatically.", acts)
-    + section("Counting", counting, "Problems seen in recent refreshes, not yet at the threshold. The count resets if the URL recovers.", "")
-    + (quarantined.length ? `<div class="hgroup"><div class="hgroup-head"><h3 class="label" style="margin:0">Quarantined (${quarantined.length})</h3></div>
+    + section("Counting", counting, "Problems seen in recent checks, not yet at the threshold. The count resets if the URL recovers.", "")
+    + (false && quarantined.length ? `<div class="hgroup"><div class="hgroup-head"><h3 class="label" style="margin:0">Quarantined (${quarantined.length})</h3></div>
         <p class="meta" style="margin:0 0 8px">Kept, but left out of search. Restore brings a URL back: it's fetched again at the next refresh.</p>
         <div class="hlist">${quarantined.map((q) => `<div class="hrow"><span></span><div><a href="${esc(q.url)}" target="_blank" rel="noopener">${esc(q.title || q.url)}</a>${q.title ? `<div class="meta" style="overflow-wrap:anywhere">${esc(q.url)}</div>` : ""}<div class="why">${esc(q.reason || "")}${q.quarantined_at ? ` · since ${when(q.quarantined_at, { dateStyle: "medium" })}` : ""}</div></div>
           <div class="hcount"><button class="btn secondary small" data-restore="${esc(q.article_id)}">Restore</button></div></div>`).join("")}</div></div>` : "")
@@ -1101,14 +1167,14 @@ function renderHealth() {
 async function healthAct(action, ids) {
   if (!ids.length) return;
   const n = ids.length, what = n === 1 ? "this URL" : `these ${n} URLs`;
-  const ask = { quarantine: `Quarantine ${what}? ${n === 1 ? "It's" : "They're"} kept, but left out of search until restored.`,
+  const ask = { quarantine: `Archive ${what}? ${n === 1 ? "It moves" : "They move"} to the Archived KB: kept and searchable there, but left out of answers until restored.`,
     keep: `Keep ${what}? The count resets; it starts again if the problem comes back.`,
     restore: `Restore ${what}? It's fetched again at the next refresh and returns to search if it works.` }[action];
   if (!confirm(ask)) return;
   try {
     const r = await api("/url-health/actions", { method: "POST", body: JSON.stringify({ action, article_ids: ids }) });
-    suite.toast({ quarantine: `Quarantined ${r.done}`, keep: `Kept ${r.done}; count reset`, restore: `Restored ${r.done}; fetched at the next refresh` }[action]);
-    loadHealth(); loadStatus();
+    suite.toast({ quarantine: `Archived ${r.done}`, keep: `Kept ${r.done}; count reset`, restore: `Restored ${r.done}; fetched at the next check` }[action]);
+    loadHealth(); loadStatus(); loadArchive(); loadChanges();
   } catch (err) { showBanner(err.message); }
 }
 $("#health-form").addEventListener("submit", async (e) => {
@@ -1205,11 +1271,11 @@ function liveCheck() {
   $("#src-live").innerHTML = rows.map(({ l, err }) => `<li><span class="ic ${err ? "bad" : "wait"}">${err ? "✗" : "·"}</span><span><span class="u">${esc(l)}</span> <span class="meta">${err ? esc(err) : "format OK, will be checked when you add it"}</span></span></li>`).join("");
   const good = rows.filter((r) => !r.err).length;
   $("#src-add").disabled = sourceBusy || good === 0 || lines.length > 10;
-  $("#src-add-label").textContent = sourceBusy ? "Checking sources…" : "Validate & connect";
+  $("#src-add-label").textContent = sourceBusy ? "Reading sitemaps…" : "Check & preview";
   $("#src-urls").readOnly = sourceBusy;
   $("#src-new-line").disabled = sourceBusy;
   $("#src-import").disabled = sourceBusy;
-  $("#src-meta").textContent = lines.length > 10 ? "At most 10 URLs at a time." : good ? `${good} to check` : "";
+  $("#src-meta").textContent = lines.length > 10 ? "At most 10 URLs at a time." : good ? `${good} to preview: nothing is ingested until you confirm` : "";
 }
 $("#src-urls").addEventListener("input", liveCheck);
 $("#src-new-line").onclick = () => {
@@ -1235,21 +1301,88 @@ $("#src-file").onchange = async (e) => {
   finally { e.target.value = ""; }
 };
 
+let recheckChoices = { 1: "Daily", 7: "Weekly", 15: "Every 15 days", 30: "Every 30 days" };
+const schedSelect = (attr, days) => `<select ${attr} aria-label="Re-check schedule">${Object.entries(recheckChoices).map(([d, l]) => `<option value="${d}" ${Number(d) === days ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+const day = (iso) => iso ? esc(new Date(iso.endsWith("Z") || iso.includes("+") ? iso : iso + "Z").toLocaleDateString(undefined, { dateStyle: "medium" })) : "at the next refresh";
 async function loadSources() {
   let s;
   try { s = await api("/sitemaps"); } catch { return; }
-  const row = (url, title, meta, tail) => `<div class="src"><span class="src-icon">${actIcon("globe")}</span><div><div class="src-title">${esc(title)}${tail}</div><div class="u">${esc(url)}</div><div class="src-metrics">${meta}</div></div></div>`;
+  recheckChoices = s.recheck_choices || recheckChoices;
+  const row = (url, title, meta, tail, extra = "") => `<div class="src"><span class="src-icon">${actIcon("globe")}</span><div><div class="src-title">${esc(title)}${tail}</div><div class="u">${esc(url)}</div><div class="src-metrics">${meta}</div>${extra}</div></div>`;
+  const nested = (sum) => sum && sum.children && sum.children.length ? `<details style="margin-top:6px"><summary>${sum.children.length} nested sitemap${sum.children.length > 1 ? "s" : ""} · first ${esc(sum.first || "")}${sum.last && sum.last !== sum.first ? ` · last ${esc(sum.last)}` : ""}</summary>${childTable(sum.children)}</details>` : "";
+  const b = s.builtin;
   $("#src-count").textContent = `${s.custom.length} / ${s.max_custom} custom sources`;
-  $("#sources").innerHTML = row(s.builtin.url, "Brilliant Directories", `<strong>${s.builtin.pages_indexed.toLocaleString()}</strong> pages indexed · Help center`, `<span class="badge">Built in</span>`)
+  $("#sources").innerHTML = row(b.url, "Brilliant Directories", `<strong>${b.pages_indexed.toLocaleString()}</strong> pages indexed · Help center`, `<span class="badge">Built in</span>`,
+      `<div class="src-sched">Re-check ${schedSelect('data-sched="help-center"', b.recheck_days)} · next check ${day(b.next_check_at)}</div>`)
     + s.custom.map((c) => row(c.url, new URL(c.url).hostname,
-      `${c.kind === "sitemapindex" ? "Sitemap index" : "Sitemap"} · <strong>${c.url_count}</strong> listed · <strong>${c.pages_indexed}</strong> indexed`
-      + (c.last_error ? ` · <span style="color:var(--err)">last check failed: ${esc(c.last_error)}</span>` : c.pages_indexed ? "" : " · crawled at the next refresh"),
-      `<button class="btn ghost small" data-rm="${c.id}" data-url="${esc(c.url)}">Remove</button>`)).join("");
-  $("#sources").querySelectorAll("[data-rm]").forEach((b) => b.onclick = async () => {
-    if (!confirm(`Stop using ${b.dataset.url}? Its pages are quarantined at the next refresh: kept, but no longer searched.`)) return;
-    try { await api(`/sitemaps/${b.dataset.rm}`, { method: "DELETE" }); suite.toast("Removed. Its pages are quarantined at the next refresh."); loadSources(); }
+      `${c.kind === "sitemapindex" ? "Sitemap index" : "Sitemap"} · <strong>${c.url_count.toLocaleString()}</strong> pages listed · <strong>${c.pages_indexed.toLocaleString()}</strong> indexed${c.listed_elsewhere ? ` · ${c.listed_elsewhere} also in another sitemap` : ""}`
+      + (c.last_error ? ` · <span style="color:var(--warn)">${esc(c.last_error)}</span>` : ""),
+      `<span><button class="btn ghost small" data-crawl="${c.id}">Crawl now</button><button class="btn ghost small" data-rm="${c.id}" data-url="${esc(c.url)}">Remove</button></span>`,
+      `<div class="src-sched">Re-check ${schedSelect(`data-sched="${c.id}"`, c.recheck_days)} · next check ${day(c.next_check_at)}</div>${nested(c.summary)}`)).join("");
+  $("#sources").querySelectorAll("[data-sched]").forEach((sel) => sel.onchange = async () => {
+    const id = sel.dataset.sched;
+    try {
+      await api(id === "help-center" ? "/sources/help-center/schedule" : `/sitemaps/${id}/schedule`, { method: "PUT", body: JSON.stringify({ recheck_days: Number(sel.value) }) });
+      suite.toast(`Re-checked ${recheckChoices[sel.value].toLowerCase()} from now on`); loadSources();
+    } catch (err) { showBanner(err.message); loadSources(); }
+  });
+  $("#sources").querySelectorAll("[data-crawl]").forEach((btn) => btn.onclick = async () => {
+    try { const r = await api(`/sitemaps/${btn.dataset.crawl}/ingest`, { method: "POST" }); suite.toast(r.status === "queued" ? "Queued: crawled right after the running refresh" : "Crawling now"); loadStatus(); }
     catch (err) { showBanner(err.message); }
   });
+  $("#sources").querySelectorAll("[data-rm]").forEach((b) => b.onclick = async () => {
+    if (!confirm(`Stop using ${b.dataset.url}? Its pages move to the Archived KB at the next refresh: kept, but out of answers.`)) return;
+    try { await api(`/sitemaps/${b.dataset.rm}`, { method: "DELETE" }); suite.toast("Removed. Its pages move to the Archived KB at the next refresh."); loadSources(); }
+    catch (err) { showBanner(err.message); }
+  });
+}
+
+function childTable(children) {
+  return `<div class="pv-scroll"><table class="pv-table"><thead><tr><th>Nested sitemap</th><th class="n">Pages</th><th>First URL</th><th>Last URL</th></tr></thead><tbody>${children.map((c) =>
+    `<tr><td class="m">${"&nbsp;&nbsp;".repeat(Math.max(0, (c.depth || 1) - 1))}${esc(c.url)}</td><td class="n">${c.error ? `<span style="color:var(--err)">failed</span>` : c.count ? c.count.toLocaleString() : "index"}</td><td class="m">${c.error ? esc(c.error) : esc(c.first || "")}</td><td class="m">${c.error ? "" : esc(c.last || "")}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function renderPreview(previews) {
+  const ok = previews.filter((p) => p.ok);
+  if (!ok.length) { $("#src-preview").innerHTML = ""; return; }
+  const totals = ok.reduce((a, p) => ({ total: a.total + p.total, fresh: a.fresh + p.new, secs: a.secs + p.estimate_s }), { total: 0, fresh: 0, secs: 0 });
+  const dur = (sec) => sec < 90 ? `about ${Math.max(1, Math.round(sec))} s` : sec < 5400 ? `about ${Math.round(sec / 60)} min` : `about ${(sec / 3600).toFixed(1)} h`;
+  $("#src-preview").innerHTML = ok.map((p) => `<div class="pv">
+      <div class="pv-head"><b>${esc(new URL(p.url).hostname)}</b><span class="u">${esc(p.url)}</span></div>
+      <div class="pv-stats">
+        <div><b>${p.total.toLocaleString()}</b><span>pages in total</span></div>
+        <div><b>${p.new.toLocaleString()}</b><span>new to the Brain</span></div>
+        <div><b>${p.already_stored.toLocaleString()}</b><span>already stored</span></div>
+        <div><b>${p.listed_twice.toLocaleString()}</b><span>listed twice (counted once)</span></div>
+        <div><b>${p.children.length}</b><span>nested sitemaps${p.failed_children ? `, ${p.failed_children} failed` : ""}</span></div>
+        <div><b>${esc(p.estimate.replace("about ", "~"))}</b><span>to fetch and embed</span></div>
+      </div>
+      <div class="pv-range"><span>First URL</span><span>${esc(p.first || "")}</span><span>Last URL</span><span>${esc(p.last || "")}</span></div>
+      ${p.truncated ? `<div class="banner warn" style="margin:6px 0">Not every page will be included: ${esc(p.truncated)}.</div>` : ""}
+      ${p.children.length ? `<details ${p.children.length <= 8 ? "open" : ""}><summary>Pages per nested sitemap</summary>${childTable(p.children)}</details>` : ""}
+    </div>`).join("") + `<div class="pv-confirm">
+      <span><b>${totals.fresh.toLocaleString()}</b> new pages of ${totals.total.toLocaleString()} · ${dur(totals.secs)}</span><span class="spacer"></span>
+      <label class="meta" style="display:flex;gap:6px;align-items:center">Re-check ${schedSelect('id="pv-sched"', 1)}</label>
+      <button class="btn" id="pv-go">Confirm & ingest now</button><button class="btn secondary" id="pv-later">Add, crawl at next check</button><button class="btn ghost" id="pv-cancel">Cancel</button></div>`;
+  $("#pv-cancel").onclick = () => { $("#src-preview").innerHTML = ""; $("#src-activity").innerHTML = ""; };
+  const confirmAdd = async (ingest) => {
+    const urls = ok.map((p) => p.input);
+    $("#src-preview").innerHTML = "";
+    sourceBusy = true; liveCheck();
+    const act = activity($("#src-activity"));
+    try {
+      const r = await apiStream("/sitemaps/stream", { urls, recheck_days: Number($("#pv-sched")?.value || 1), ingest }, act.step);
+      act.finish();
+      const added = new Set(r.results.filter((x) => x.ok).map((x) => x.input));
+      $("#src-urls").value = srcLines().filter((l) => !added.has(l)).join("\n");
+      if (added.size) suite.toast(ingest ? "Added. Crawling now: progress shows under Knowledge status." : "Added. Crawled at its next check.", 4500);
+      loadSources(); loadStatus();
+    } catch (err) {
+      act.step({ icon: "error", text: "Stopped", detail: err.message }); act.finish();
+      if (err.status === 401) $("#src-meta").innerHTML = `${esc(err.message)} Use <b>Guest · Sign in</b> at the top right.`;
+    } finally { sourceBusy = false; liveCheck(); }
+  };
+  $("#pv-go").onclick = () => confirmAdd(true);
+  $("#pv-later").onclick = () => confirmAdd(false);
 }
 
 $("#src-form").addEventListener("submit", async (e) => {
@@ -1257,23 +1390,52 @@ $("#src-form").addEventListener("submit", async (e) => {
   const urls = srcLines().filter((l) => !sitemapSyntax(l));
   if (!urls.length || sourceBusy || srcLines().length > 10) return;
   sourceBusy = true; liveCheck();
-  $("#src-meta").textContent = "";
+  $("#src-meta").textContent = ""; $("#src-preview").innerHTML = "";
   const act = activity($("#src-activity"));
   try {
-    const { results } = await apiStream("/sitemaps/stream", { urls }, act.step);
-    act.finish(results.every((r) => r.ok));
-    const added = new Set(results.filter((r) => r.ok).map((r) => r.input));
-    $("#src-urls").value = srcLines().filter((l) => !added.has(l)).join("\n");
-    liveCheck(); loadSources();
-    if (added.size) suite.toast(`${added.size} sitemap${added.size > 1 ? "s" : ""} added. Use "Run refresh now" to crawl them.`, 4000);
+    const { previews } = await apiStream("/sitemaps/preview/stream", { urls }, act.step);
+    act.finish();
+    renderPreview(previews);
   } catch (err) {
     act.step({ icon: "error", text: "Stopped", detail: err.message });
-    act.finish(false);
+    act.finish();
     if (err.status === 401) $("#src-meta").innerHTML = `${esc(err.message)} Use <b>Guest · Sign in</b> at the top right.`;
     else if (err.message !== "offline") showBanner(suite.friendlyError(err.message), "err");
   }
   finally { sourceBusy = false; liveCheck(); }
 });
+
+// Archived KB: browse, search on its own, restore.
+async function loadArchive(q = "") {
+  let a;
+  try { a = await api(`/archive${q ? `?q=${encodeURIComponent(q)}` : ""}`); } catch { return; }
+  $("#archive-count").textContent = `${a.total.toLocaleString()} archived page${a.total === 1 ? "" : "s"}`;
+  $("#archive-clear").hidden = !q;
+  $("#archive-list").innerHTML = a.items.length ? `<div class="hlist">${a.items.map((p) => `<div class="hrow"><span></span>
+      <div><a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title || p.url)}</a>${p.title ? `<div class="meta" style="overflow-wrap:anywhere">${esc(p.url)}</div>` : ""}
+      <div class="why">${esc(p.reason || "archived")}${p.archived_at ? ` · since ${when(p.archived_at, { dateStyle: "medium" })}` : ""} · ${p.passages} passage${p.passages === 1 ? "" : "s"} kept</div>
+      ${p.snippet ? `<div class="meta" style="margin-top:4px">“${esc(p.snippet)}…”</div>` : ""}</div>
+      <div class="hcount"><button class="btn secondary small" data-restore="${esc(p.article_id)}">Restore</button></div></div>`).join("")}</div>`
+    : `<div class="empty">${q ? "Nothing in the archive matches." : "The archive is empty: no page has been taken out of answers."}</div>`;
+  $("#archive-list").querySelectorAll("[data-restore]").forEach((b) => b.onclick = () => healthAct("restore", [b.dataset.restore]));
+}
+$("#archive-form").addEventListener("submit", (e) => { e.preventDefault(); loadArchive($("#archive-q").value.trim()); });
+$("#archive-clear").onclick = () => { $("#archive-q").value = ""; loadArchive(); };
+
+// Duplicates and change history.
+const EVENT = { added: "Added", changed: "Changed", moved: "Moved (301)", archived: "Archived", restored: "Restored", duplicate: "Duplicate", broken: "Broken (404)" };
+async function loadChanges() {
+  let d, h;
+  try { [d, h] = await Promise.all([api("/duplicates"), api("/history?limit=150")]); } catch { return; }
+  const dupRows = [
+    ...d.same_content.map((x) => `<div class="hrow"><span></span><div><b>${esc(x.title || x.url)}</b><div class="meta" style="overflow-wrap:anywhere">${esc(x.url)}</div><div class="why">same text as ${esc(x.original_url || x.duplicate_of)}: searched once</div></div><span></span></div>`),
+    ...d.listed_twice.map((x) => `<div class="hrow"><span></span><div><b>${esc(x.title || x.url)}</b><div class="meta" style="overflow-wrap:anywhere">${esc(x.url)}</div><div class="why">listed by ${x.sources.length} sitemaps: ${x.sources.map((u) => esc(u === "help-center" ? "help center" : new URL(u).hostname)).join(", ")}</div></div><span></span></div>`),
+  ];
+  $("#dup-list").innerHTML = dupRows.length ? `<h3 class="label">Duplicates (${dupRows.length})</h3><div class="hlist">${dupRows.join("")}</div>` : `<p class="meta">No duplicates found.</p>`;
+  $("#history").innerHTML = h.items.length ? h.items.map((e) => `<li><span class="meta">${when(e.at, { dateStyle: "short", timeStyle: "short" })}</span><span class="ev ${esc(e.event)}">${esc(EVENT[e.event] || e.event)}</span>
+      <span><b>${esc(e.title || e.url || e.article_id)}</b>${e.detail ? `<span class="meta"> · ${esc(e.detail)}</span>` : ""}</span></li>`).join("")
+    : `<li><span class="meta">No changes recorded yet. They appear as refreshes find new, changed, moved or archived pages.</span></li>`;
+}
 
 $("#refresh-btn").addEventListener("click", async () => {
   try { await api("/ingestion/run", { method: "POST" }); } catch (err) { $("#refresh-meta").textContent = err.message; return; }

@@ -123,7 +123,9 @@ class Searcher:
         k: int = 8,
         mode: Mode = "hybrid",
         progress: Progress | None = None,
+        archived: bool = False,
     ) -> list[SearchHit]:
+        """`archived=True` searches only the Archived KB (pages taken out of normal answers)."""
         queries = [question]
         if self.rewriter is not None and mode == "hybrid":
             await report(progress, "think", "Rephrasing the question in help-center terms")
@@ -157,7 +159,7 @@ class Searcher:
                 total[cid] = total.get(cid, 0.0) + s
         # Best query decides; agreement across queries only breaks near-ties.
         fused = {cid: best[cid] + 0.1 * total[cid] for cid in best}
-        hits_by_id = await self._load(db, list(fused))
+        hits_by_id = await self._load(db, list(fused), archived)
         for cid, loaded in hits_by_id.items():
             if loaded.source == "article" and is_changelog(loaded.title):
                 fused[cid] *= self.changelog_weight
@@ -203,7 +205,9 @@ class Searcher:
         )
         return [r["rowid"] for r in rows]
 
-    async def _load(self, db: aiosqlite.Connection, ids: list[int]) -> dict[int, SearchHit]:
+    async def _load(
+        self, db: aiosqlite.Connection, ids: list[int], archived: bool = False
+    ) -> dict[int, SearchHit]:
         if not ids:
             return {}
         marks = ",".join("?" * len(ids))
@@ -213,8 +217,13 @@ class Searcher:
                 FROM chunks c LEFT JOIN articles a ON a.article_id = c.article_id
                 LEFT JOIN pages p ON p.article_id = c.article_id
                 WHERE c.chunk_id IN ({marks})
-                  -- Quarantined URLs keep their passages but are never cited.
-                  AND (p.status IS NULL OR p.status != 'quarantined')""",
+                  -- Archived pages (status 'quarantined') keep their passages for the
+                  -- Archived KB but are never cited; a duplicate is searched as its original.
+                  AND {
+                "p.status = 'quarantined'"
+                if archived
+                else "(p.status IS NULL OR p.status NOT IN ('quarantined', 'duplicate'))"
+            }""",
             ids,
         )
         return {

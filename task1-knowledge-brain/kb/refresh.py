@@ -27,6 +27,7 @@ class RefreshResult:
     finished_at: str | None = None
     status: str = "running"  # running | finished | failed
     trigger: str = "manual"
+    sources: list[str] | None = None  # None = every source (or every due one, on schedule)
     ingestion: dict[str, int] = field(default_factory=dict)
     vision: dict[str, object] | None = None
     index: dict[str, int] = field(default_factory=dict)
@@ -47,19 +48,35 @@ class Refresher:
         self.transport = transport
         self._lock = asyncio.Lock()
         self.last: RefreshResult | None = None
+        # Sources confirmed while a refresh was running: crawled right after it.
+        self.queued: set[str] = set()
 
     @property
     def running(self) -> bool:
         return self._lock.locked()
 
-    async def run(self, trigger: str = "manual") -> RefreshResult:
+    async def ingest_sources(self, sources: set[str]) -> RefreshResult | None:
+        """Crawl just these sources now (a sitemap someone confirmed). If a refresh is
+        already running, they're queued and crawled straight after it."""
+        if self.running:
+            self.queued |= sources
+            return None
+        return await self.run(trigger="confirmed", sources=sources)
+
+    async def run(
+        self, trigger: str = "manual", sources: set[str] | None = None, scheduled: bool = False
+    ) -> RefreshResult:
         if self._lock.locked():
             raise RuntimeError("a refresh is already running")
         async with self._lock:
-            result = RefreshResult(started_at=_now(), trigger=trigger)
+            result = RefreshResult(
+                started_at=_now(), trigger=trigger, sources=sorted(sources) if sources else None
+            )
             self.last = result
             try:
-                ingest = await run_ingestion(self.settings, transport=self.transport)
+                ingest = await run_ingestion(
+                    self.settings, transport=self.transport, sources=sources, scheduled=scheduled
+                )
                 result.ingestion = ingest.as_dict()
                 async with connect(self.settings.db_path) as db:
                     if self.describer is not None:
@@ -72,7 +89,10 @@ class Refresher:
                 log.exception("refresh failed")
                 result.status, result.error = "failed", repr(exc)
             result.finished_at = _now()
-            return result
+        if self.queued:
+            queued, self.queued = self.queued, set()
+            await self.run(trigger="confirmed", sources=queued)
+        return result
 
 
 def _now() -> str:
@@ -93,5 +113,6 @@ async def daily_loop(refresher: Refresher, hour_utc: int) -> None:
         await asyncio.sleep(seconds_until(hour_utc))
         if refresher.running:
             continue
-        result = await refresher.run(trigger="schedule")
+        # Only the sources that are due (each has its own interval: kb/ingestion/catalog.py).
+        result = await refresher.run(trigger="schedule", scheduled=True)
         log.info("scheduled refresh %s: %s", result.status, result.ingestion)

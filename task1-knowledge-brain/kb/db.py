@@ -170,6 +170,32 @@ CREATE TABLE IF NOT EXISTS custom_sitemaps (
     last_error      TEXT
 );
 
+-- Every change to a page, newest last: added, content changed, moved (301), archived,
+-- restored, marked duplicate. The page's change history in the Status tab.
+CREATE TABLE IF NOT EXISTS page_history (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    article_id TEXT NOT NULL,
+    event      TEXT NOT NULL,   -- added | changed | moved | archived | restored | duplicate | broken
+    detail     TEXT,
+    url        TEXT,
+    at         TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+);
+CREATE INDEX IF NOT EXISTS idx_page_history_article ON page_history(article_id, id);
+
+-- Earlier URLs of a page that moved (301/308): a sitemap still listing the old URL maps
+-- to the same page instead of creating a second copy.
+CREATE TABLE IF NOT EXISTS url_aliases (
+    url        TEXT PRIMARY KEY,   -- normalised (kb/ingestion/sources.py normalize_url)
+    article_id TEXT NOT NULL
+);
+
+-- Which sitemaps list each page (a page listed by two sitemaps is stored once).
+CREATE TABLE IF NOT EXISTS page_listings (
+    article_id TEXT NOT NULL,
+    source     TEXT NOT NULL,
+    PRIMARY KEY (article_id, source)
+);
+
 -- Screenshots, kept with the text around them so they make sense on their own.
 CREATE TABLE IF NOT EXISTS images (
     image_id       TEXT NOT NULL,
@@ -195,6 +221,18 @@ MIGRATIONS = {
         "kind": "TEXT NOT NULL DEFAULT 'helpcenter'",
         # When and why a URL was quarantined (kept, but not searched).
         "quarantined_at": "TEXT",
+        # Same content as another page (status 'duplicate'): kept, searched once.
+        "duplicate_of": "TEXT",
+    },
+    "custom_sitemaps": {
+        # How often the sitemap is re-checked: 1 (daily), 7, 15 or 30 days.
+        "recheck_days": "INTEGER NOT NULL DEFAULT 1",
+        # Pages in its last preview (totals, first/last URL per nested sitemap), as JSON.
+        "summary": "TEXT",
+    },
+    "ingestion_runs": {
+        "sources": "TEXT",  # which sitemaps this run checked (JSON list)
+        "planned": "INTEGER NOT NULL DEFAULT 0",  # pages queued for fetching
     },
 }
 

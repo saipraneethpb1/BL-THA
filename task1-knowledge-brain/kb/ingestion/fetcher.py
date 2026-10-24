@@ -76,7 +76,9 @@ class PoliteFetcher:
                         moved = first is not None and first.status_code in (301, 308)
                         return Fetched(resp.text, str(resp.url) if moved else None)
                     if resp.status_code in (404, 410):
-                        raise FetchError(f"HTTP {resp.status_code}", permanent=True, status_code=resp.status_code)
+                        raise FetchError(
+                            f"HTTP {resp.status_code}", permanent=True, status_code=resp.status_code
+                        )
                     if resp.status_code not in RETRYABLE:
                         raise FetchError(f"HTTP {resp.status_code}", permanent=False)
                     last_error = f"HTTP {resp.status_code}"

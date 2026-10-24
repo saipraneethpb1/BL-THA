@@ -1,24 +1,32 @@
-"""URL health: HTTP 404 automatically quarantines; other problems wait for review.
+"""URL health: which pages have stopped working, and what happens to them.
 
-Two problems are tracked, each with its own rule (quarantine, or only flag):
-- "gone": the URL answers 404, or answers 410 and is no longer listed in its sitemap;
-- "moved": the URL answers a permanent redirect (301/308).
+Problems tracked:
+- "gone": the URL answers 404/410 AND is no longer listed in its sitemap. Both signals
+  agree the page was taken down, so it moves to the Archived KB at once;
+- "broken": the URL answers 404/410 but its sitemap still lists it. That can be a passing
+  fault, so it's counted, like the next one;
+- "moved": a permanent redirect (301/308) whose new address isn't given. (When it is, the
+  page is simply re-pointed to the new URL and re-indexed there: kb/ingestion/pipeline.py.)
 
-Each refresh that sees the same problem adds one to the URL's count; a refresh that sees it
-working again resets it. When the count reaches the threshold, the URL becomes "pending"
-(rule: quarantine) or "flagged" (rule: flag). Nothing is quarantined until a person confirms
-it, except HTTP 404, which bypasses the count and preferences. Nothing is ever deleted:
-quarantine keeps the page but takes it out of search.
+Each check that sees the same problem adds one to the URL's count; a check that sees it
+working again resets it. At the threshold (presets: 2, 15 or 30 checks in a row) the URL
+becomes "pending" (rule: archive after confirming) or "flagged" (rule: flag only). Nothing
+is ever deleted: the Archived KB keeps the page and its passages, searchable on their own,
+but out of normal answers. ("quarantined" is the archived state's name in the database.)
 """
 
 from dataclasses import dataclass
 
 import aiosqlite
 
+from kb.ingestion import catalog
+
 ISSUES = {
-    "gone": "Page not found (404/410)",
-    "moved": "301 permanent redirect",
+    "gone": "Not found (404) and missing from its sitemap",
+    "broken": "Not found (404) but still listed in its sitemap",
+    "moved": "301 permanent redirect, no new address given",
 }
+THRESHOLD_PRESETS = (2, 15, 30)
 ACTIONS = ("quarantine", "flag")
 OPEN_STATES = ("counting", "pending", "flagged")
 
@@ -30,7 +38,7 @@ class HealthSettings:
     action_moved: str = "quarantine"
 
     def action_for(self, issue: str) -> str:
-        return self.action_gone if issue == "gone" else self.action_moved
+        return self.action_moved if issue == "moved" else self.action_gone
 
 
 async def get_settings(db: aiosqlite.Connection) -> HealthSettings:
@@ -103,7 +111,7 @@ async def observe(
         )
         return "quarantined"
     count = row["count"] + 1 if row is not None and row["issue"] == issue else 1
-    auto_quarantine = issue == "gone" and status == 404
+    auto_quarantine = issue == "gone"  # 404/410 and missing from its sitemap
     state = "quarantined" if auto_quarantine else _state(count, issue, s)
     await db.execute(
         """INSERT INTO url_health(article_id, url, issue, count, state, last_status, redirect_to,
@@ -118,7 +126,7 @@ async def observe(
     )
     if auto_quarantine:
         await db.execute(
-            """UPDATE pages SET status='quarantined', last_error='HTTP 404 (automatically quarantined)',
+            """UPDATE pages SET status='quarantined', last_error='HTTP 404 and missing from its sitemap (archived automatically)',
                quarantined_at=coalesce(quarantined_at, datetime('now')), updated_at=datetime('now')
                WHERE article_id=?""",
             (article_id,),
@@ -126,6 +134,13 @@ async def observe(
         await db.execute(
             "UPDATE url_health SET decided_at=datetime('now') WHERE article_id=?",
             (article_id,),
+        )
+        await catalog.record(
+            db, article_id, "archived", f"HTTP {status} and missing from its sitemap", url
+        )
+    elif issue == "broken" and count == 1:
+        await catalog.record(
+            db, article_id, "broken", f"HTTP {status} while still listed in its sitemap", url
         )
     return state
 
@@ -160,6 +175,7 @@ async def quarantine(db: aiosqlite.Connection, article_ids: list[str]) -> int:
             "UPDATE url_health SET state='quarantined', decided_at=datetime('now') WHERE article_id=?",
             (aid,),
         )
+        await catalog.record(db, aid, "archived", reason)
         done += 1
     return done
 
@@ -183,4 +199,8 @@ async def restore(db: aiosqlite.Connection, article_ids: list[str]) -> int:
         article_ids,
     )
     await db.execute(f"DELETE FROM url_health WHERE article_id IN ({marks})", article_ids)
+    for aid in article_ids:
+        await catalog.record(
+            db, aid, "restored", "back from the Archived KB: fetched again at the next check"
+        )
     return cur.rowcount
