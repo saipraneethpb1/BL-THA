@@ -109,19 +109,25 @@ def failures_text(groups: list[robustness.GroupResult], limit: int = 12) -> str:
 def better(before: dict[str, Any], after: dict[str, Any]) -> tuple[bool, str]:
     """At least as good on held-out and train groups, and better on one held-out measure."""
     hb, ha, tb, ta = before["holdout"], after["holdout"], before["train"], after["train"]
-    if ha["consistency"] < hb["consistency"] or ha["hit_rate"] < hb["hit_rate"]:
-        return False, (
-            f"worse on held-out questions (groups behaving the same {hb['passed']}→{ha['passed']}, "
-            f"wordings finding the article {hb['hit_rate']:.0%}→{ha['hit_rate']:.0%}): kept the current prompt"
+    same = f"held-out questions where every wording behaves the same: {hb['passed']}→{ha['passed']} of {ha['groups']}"
+    found = (
+        f"held-out wordings that find the right article: {hb['hit_rate']:.0%}→{ha['hit_rate']:.0%}"
+    )
+    if ha["hit_rate"] < hb["hit_rate"]:
+        return (
+            False,
+            f"fewer {found.split(':')[0]} ({hb['hit_rate']:.0%}→{ha['hit_rate']:.0%}), even though {same}: kept the current prompt",
+        )
+    if ha["consistency"] < hb["consistency"]:
+        return (
+            False,
+            f"fewer {same.split(':')[0]} ({hb['passed']}→{ha['passed']}): kept the current prompt",
         )
     if ta["consistency"] < tb["consistency"] - 0.05 or ta["hit_rate"] < tb["hit_rate"] - 0.02:
         return False, "worse on the questions it learned from: kept the current prompt"
     if ha["consistency"] == hb["consistency"] and ha["hit_rate"] == hb["hit_rate"]:
         return False, "no gain on held-out questions: kept the current prompt"
-    return True, (
-        f"better on held-out questions it never saw: {hb['passed']}→{ha['passed']} of {ha['groups']} groups "
-        f"behave the same, {hb['hit_rate']:.0%}→{ha['hit_rate']:.0%} of wordings find the article"
-    )
+    return True, f"better on held-out questions it never saw ({same}; {found})"
 
 
 @dataclass
