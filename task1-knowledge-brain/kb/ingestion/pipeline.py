@@ -25,6 +25,7 @@ from kb.ingestion.sources import (
     HostGuard,
     Resolver,
     SitemapError,
+    SitemapTree,
     guarded_client,
     normalize_url,
     system_resolver,
@@ -59,6 +60,19 @@ async def _known_urls(db: aiosqlite.Connection) -> dict[str, str]:
     for r in await db.execute_fetchall("SELECT url, article_id FROM url_aliases"):
         known.setdefault(r["url"], r["article_id"])
     return known
+
+
+def _summary(tree: SitemapTree) -> dict[str, object]:
+    """What the Sources list shows for a sitemap: totals, and each nested sitemap with its
+    page count and first and last URL. Refreshed at every check."""
+    return {
+        "total": len(tree.locs),
+        "first": tree.locs[0][0] if tree.locs else None,
+        "last": tree.locs[-1][0] if tree.locs else None,
+        "listed_twice": tree.listed_twice,
+        "truncated": tree.truncated,
+        "children": [vars(c) for c in tree.children],
+    }
 
 
 async def _custom_entries(
@@ -122,8 +136,8 @@ async def _custom_entries(
             entries.append(SitemapEntry(article_id, loc, lastmod, source=row["url"], kind="web"))
         await db.execute(
             """UPDATE custom_sitemaps SET url_count=?, last_checked_at=datetime('now'),
-               last_error=? WHERE id=?""",
-            (len(tree.locs), tree.truncated, row["id"]),
+               last_error=?, summary=? WHERE id=?""",
+            (len(tree.locs), tree.truncated, json.dumps(_summary(tree)), row["id"]),
         )
     return entries, frozenset(keep)
 

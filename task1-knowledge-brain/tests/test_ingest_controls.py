@@ -341,3 +341,19 @@ def test_archive_history_duplicates_and_dashboard_counts(client: TestClient) -> 
         "archived": 1,
         "failed": 0,
     }
+
+
+async def test_each_check_refreshes_the_per_sitemap_summary(tmp_path: Path) -> None:
+    settings = settings_for(tmp_path)
+    await init_db(settings.db_path)
+    with sqlite3.connect(settings.db_path) as db:
+        db.execute(
+            "INSERT INTO custom_sitemaps(url, kind) VALUES ('https://shop.test/sitemap_index.xml', 'sitemapindex')"
+        )
+    await run_ingestion(
+        settings, transport=httpx.MockTransport(Shop().handler), resolver=fake_resolver
+    )
+    with sqlite3.connect(settings.db_path) as db:
+        summary = json.loads(db.execute("SELECT summary FROM custom_sitemaps").fetchone()[0])
+    assert summary["total"] == 4 and summary["first"] == "https://shop.test/a"
+    assert {c["url"]: c["count"] for c in summary["children"]}["https://shop.test/posts.xml"] == 3
