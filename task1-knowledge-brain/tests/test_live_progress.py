@@ -106,3 +106,19 @@ def test_adding_sitemaps_streams_each_check_per_url(client: TestClient) -> None:
     assert second[-1] == "Not added" and ev[-2]["detail"].startswith("The server answered HTTP 404")
     assert {e.get("group_label") for e in ev if "group" in e} == set(urls)
     assert [r["ok"] for r in ev[-1]["done"]["results"]] == [True, False]
+
+
+def test_chat_history_is_kept_per_person_and_only_for_the_chat(client: TestClient) -> None:  # noqa: F811
+    api.app.state.answerer = FakeAnswerer()
+    me, other = {**H, "X-Chat-Id": "a" * 32}, {**H, "X-Chat-Id": "b" * 32}
+    ask = {"question": "refund a member", "caller": "chat-ui"}
+    done = events(client.post("/query/stream", json=ask, headers=me))[-1]["done"]
+    assert done["history_id"]
+    client.post("/query/stream", json={**ask, "caller": "inbox-agent"}, headers=me)  # not the chat
+    client.post("/query/stream", json=ask, headers={**H, "X-Chat-Id": "not-hex"})  # no valid id
+    mine = client.get("/chat/history", headers=me).json()["items"]
+    assert [h["question"] for h in mine] == ["refund a member"]
+    assert mine[0]["response"]["status"] == done["status"]
+    assert client.get("/chat/history", headers=other).json()["items"] == []
+    assert client.delete("/chat/history", headers=other).json() == {"cleared": 0}
+    assert client.delete("/chat/history", headers=me).json() == {"cleared": 1}

@@ -62,8 +62,9 @@ describe("HTTP API", () => {
     const { app: a } = app();
     expect((await a.inject({ url: "/" })).body).toContain("<title>Inbox Agent</title>");
     const auto = (await a.inject({ url: "/api/autonomy" })).json();
-    expect(auto.categories).toHaveLength(11);
-    expect(auto.categories.filter((c: { eligible: boolean }) => !c.eligible)).toHaveLength(6);
+    expect(auto.categories).toHaveLength(24); // the default email categories
+    expect(auto.categories.find((c: { kind: string }) => c.kind === "header")).toMatchObject({ label: "Header", parent: "Design Settings", eligible: true });
+    expect(auto.request_types.filter((c: { auto_send: boolean }) => !c.auto_send)).toHaveLength(6);
     expect(auto.threshold).toBe(2);
   });
 });

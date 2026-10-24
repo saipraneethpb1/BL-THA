@@ -170,6 +170,18 @@ CREATE TABLE IF NOT EXISTS custom_sitemaps (
     last_error      TEXT
 );
 
+-- The chat's history, per person: a signed-in account ("acct:demo1"), or a guest's
+-- browser ("anon:<random id>"). Only questions asked in the chat are kept, with the
+-- full answer, so a past answer opens exactly as it was given.
+CREATE TABLE IF NOT EXISTS chat_history (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner      TEXT NOT NULL,
+    question   TEXT NOT NULL,
+    response   TEXT NOT NULL,   -- JSON: the answer as returned (status, answer, sources...)
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+);
+CREATE INDEX IF NOT EXISTS idx_chat_history_owner ON chat_history(owner, id);
+
 -- Every change to a page, newest last: added, content changed, moved (301), archived,
 -- restored, marked duplicate. The page's change history in the Status tab.
 CREATE TABLE IF NOT EXISTS page_history (

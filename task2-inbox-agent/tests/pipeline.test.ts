@@ -72,7 +72,7 @@ describe("processing an email", () => {
 describe("earning and losing autonomy", () => {
   it("auto-sends after the threshold of unedited approvals, then spot checks can revoke it", async () => {
     for (let i = 0; i < 3; i++) await approveOne();
-    expect(store.autonomy("how_to").status).toBe("autonomous");
+    expect(store.autonomy("header").status).toBe("autonomous");
 
     agent = makeAgent(() => 0.0); // force a spot check
     const id = addEmail(store);
@@ -82,7 +82,7 @@ describe("earning and losing autonomy", () => {
     expect(store.pendingSpotChecks().map((x) => x.email_id)).toContain(id);
 
     agent.review(id, { action: "spot_check", ok: false, reviewer: "sai", reason: "wrong menu path" });
-    expect(store.autonomy("how_to")).toMatchObject({ status: "supervised", streak: 0 });
+    expect(store.autonomy("header")).toMatchObject({ status: "supervised", streak: 0 });
   });
 
   it("an edit resets the streak", async () => {
@@ -91,7 +91,7 @@ describe("earning and losing autonomy", () => {
     const id = addEmail(store);
     await agent.process(id);
     agent.review(id, { action: "send", reviewer: "sai", body: "Hi Megan, different words.\n\nThe Lakeview team" });
-    expect(store.autonomy("how_to").streak).toBe(0);
+    expect(store.autonomy("header").streak).toBe(0);
   });
 
   it("whitespace-only changes still count as unchanged", async () => {
@@ -99,14 +99,15 @@ describe("earning and losing autonomy", () => {
     await agent.process(id);
     const draft = store.latestDraft(id)!;
     agent.review(id, { action: "send", reviewer: "sai", body: `  ${draft.body.replace(/\n/g, "\n\n")}  ` });
-    expect(store.autonomy("how_to").streak).toBe(1);
+    expect(store.autonomy("header").streak).toBe(1);
   });
 
   it("never counts approvals for categories that can never auto-send", async () => {
     classifier.result = classification({ category: "refund_cancellation" });
     drafter.result = { ...drafter.result, body: "Hi, we've passed your request to the account owner.", used_evidence: [] };
     for (let i = 0; i < 5; i++) await approveOne();
-    expect(store.autonomy("refund_cancellation").status).toBe("supervised");
+    // Counted per category (the fakes' "header"), but a refund request never counts.
+    expect(store.autonomy("header")).toMatchObject({ status: "supervised", streak: 0 });
     expect(store.autonomyEvents().some((e) => e.event === "not_eligible")).toBe(true);
   });
 
@@ -131,7 +132,7 @@ describe("earning and losing autonomy", () => {
 
   it("manual revoke drops a category back to supervised", async () => {
     for (let i = 0; i < 3; i++) await approveOne();
-    agent.revokeAutonomy("how_to", "new product release");
-    expect(store.autonomy("how_to")).toMatchObject({ status: "supervised", streak: 0 });
+    agent.revokeAutonomy("header", "new product release");
+    expect(store.autonomy("header")).toMatchObject({ status: "supervised", streak: 0 });
   });
 });

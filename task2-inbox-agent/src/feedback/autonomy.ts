@@ -3,7 +3,7 @@
  * rule is unit-tested and easy to explain.
  *
  * Definitions (our answers to the brief's open questions):
- * - "Same kind" = same label (e.g. how_to). One counter per label.
+ * - "Same kind" = same email category (topics.ts: Header, Filters...). One counter each.
  * - "Without changing" = the sent text equals the draft after trimming and collapsing
  *   whitespace. Any word change counts as an edit. Strict on purpose: easy to audit.
  * - Earning freedom: `threshold` (X, set per inbox in settings; 20 by default) unedited
@@ -25,13 +25,14 @@ export type AutonomyStatus = "supervised" | "autonomous";
 export type ReviewOutcome = "sent_unchanged" | "edited" | "rejected" | "escalated";
 
 export interface AutonomyState {
-  kind: CategoryId;
+  /** The email category (topic id) this counter belongs to. */
+  kind: string;
   streak: number;
   status: AutonomyStatus;
 }
 
 export interface AutonomyEvent {
-  kind: CategoryId;
+  kind: string;
   event: "streak_up" | "streak_reset" | "granted" | "revoked" | "not_eligible";
   detail: string;
 }

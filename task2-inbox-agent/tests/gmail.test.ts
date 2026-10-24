@@ -56,8 +56,9 @@ describe("reading and writing Gmail messages", () => {
     expect(() => decrypt("other", blob)).toThrow();
   });
 
-  it("nests Gmail labels under the parent type", () => {
-    expect(gmailLabelName("refund_cancellation")).toBe("Inbox Agent/Account & billing/Refund or cancellation");
+  it("nests Gmail labels under the category's parent setting type", () => {
+    expect(gmailLabelName({ label: "Header", parent: "Design Settings" })).toBe("Inbox Agent/Design Settings/Header");
+    expect(gmailLabelName({ label: "A/B tests", parent: "Toolbox" })).toBe("Inbox Agent/Toolbox/A-B tests");
   });
 });
 
@@ -141,7 +142,7 @@ describe("Connect Gmail", () => {
     expect(list.map((e) => e.id).sort()).toEqual(["Gm1", "Gold"]); // own mail skipped, no sample emails
     expect(list.find((e) => e.id === "Gm1")?.status).toBe("drafted"); // new mail is drafted
     expect(list.find((e) => e.id === "Gold")?.status).toBe("new"); // mail from before connecting is not
-    expect(google.labels.map((l) => l.name)).toEqual(["Inbox Agent", "Inbox Agent/Product support", "Inbox Agent/Product support/How-to question"]);
+    expect(google.labels.map((l) => l.name)).toEqual(["Inbox Agent", "Inbox Agent/Design Settings", "Inbox Agent/Design Settings/Header"]);
     expect(google.calls.some((c) => c.url.includes("/messages/m1/modify") && c.body.includes("L3"))).toBe(true);
 
     // Nobody else can see it: not the guest inbox, not a demo account.

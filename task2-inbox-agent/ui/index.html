@@ -240,7 +240,9 @@ body.has-usage-bar { padding-bottom: 46px; }
 <!-- /suite:css -->
 <style>
   /* Gmail-like layout: folders and labels on the left, the mail list or a thread on the right. */
-  :root { --p-support: #1a73e8; --p-account: #a15c00; --p-sales: #188038; --p-care: #c5221f; --p-other: #5f6368; }
+  :root { --p-support: #1a73e8; --p-account: #a15c00; --p-sales: #188038; --p-care: #c5221f; --p-other: #5f6368; --lbl-l: 36%; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --lbl-l: 74%; } }
+  :root[data-theme="dark"] { --lbl-l: 74%; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --p-support: #8ab4f8; --p-account: #fdd663; --p-sales: #81c995; --p-care: #f28b82; --p-other: #9aa0a6; } }
   :root[data-theme="dark"] { --p-support: #8ab4f8; --p-account: #fdd663; --p-sales: #81c995; --p-care: #f28b82; --p-other: #9aa0a6; }
 
@@ -368,6 +370,13 @@ body.has-usage-bar { padding-bottom: 46px; }
   .switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
   .save-bar { position: sticky; bottom: 0; background: var(--panel); padding: 12px 0; display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--line); margin-top: 16px; }
 
+  /* Settings: the category editor */
+  .cat-row { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr) minmax(0, 2fr) 130px 44px 32px; gap: 8px; align-items: center; padding: 8px 12px; border-top: 1px solid var(--line); }
+  .cat-row input { padding: 6px 9px; font-size: 13.5px; }
+  .cat-row .prog .meta { font-size: 12px; }
+  .cat-head { font-size: 12px; color: var(--muted); font-weight: 650; text-transform: uppercase; letter-spacing: .04em; border-top: 0; padding-bottom: 2px; }
+  @media (max-width: 900px) { .cat-row { grid-template-columns: 1fr 1fr; } .cat-row .d, .cat-row .prog { grid-column: 1 / -1; } .cat-head { display: none; } }
+  .thread-acts { display: inline-flex; gap: 2px; }
   .gbox { margin: 0 10px 12px 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font-size: 13px; }
   .gbox .who { font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; gap: 6px; align-items: center; }
   .gbox .who::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); flex: none; }
@@ -751,12 +760,16 @@ const ICON = {
   learning: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
   settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
   back: '<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  spam: '<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',
+  trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
+  restore: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
   spark: '<path d="M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2z"/>',
   caret: '<path d="m6 9 6 6 6-6"/>',
 };
 const svg = (name, attrs = "") => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${attrs}>${ICON[name]}</svg>`;
 
-const isDone = (e) => ["sent", "archived", "escalated"].includes(e.status);
+const isDone = (e) => ["sent", "archived", "escalated", "spam", "trash"].includes(e.status);
+const binned = (e) => e.status === "spam" || e.status === "trash";
 const FOLDERS = [
   ["inbox", "Inbox", (e) => !isDone(e)],
   ["review", "Needs review", (e) => e.status === "drafted"],
@@ -765,16 +778,28 @@ const FOLDERS = [
   ["auto", "Auto-sent", (e) => e.sent_mode === "auto"],
   ["escalated", "Escalated", (e) => e.status === "escalated"],
   ["archived", "Archived", (e) => e.status === "archived"],
-  ["all", "All mail", () => true],
+  ["all", "All mail", (e) => !binned(e)],
+  ["spam", "Spam", (e) => e.status === "spam"],
+  ["trash", "Trash", (e) => e.status === "trash"],
 ];
 const TOOLS = [["autonomy", "Autonomy"], ["learning", "Learning"], ["settings", "Settings"]];
 
 let emails = [], draftingOn = false, account = null, lastList = "#/folder/inbox", gmail = { configured: false, connected: false };
-let META = { labels: [], parents: [], autonomy_threshold: 20 };
-const labelOf = (id) => META.labels.find((l) => l.id === id);
-const colorOf = (cat) => `var(--p-${labelOf(cat)?.parent || "other"})`;
-const chip = (cat, link = true) => cat ? `<${link ? `a href="#/label/${esc(cat)}"` : "span"} data-cat="${esc(cat)}" class="lbl" style="--c:${colorOf(cat)}" title="${esc(parentName(cat))} › ${esc(labelOf(cat)?.label || cat)}">${esc(CAT[cat] || cat)}</${link ? "a" : "span"}>` : "";
-const parentName = (cat) => META.parents.find((p) => p.id === labelOf(cat)?.parent)?.label || "";
+// Email categories (Header, Filters...) under their parent setting type, from Settings.
+let META = { topics: [], parents: [], request_types: [], autonomy_threshold: 20 };
+const topicOf = (id) => META.topics.find((t) => t.id === id) || META.topics.find((t) => t.id === "other");
+const hue = (text) => { let h = 7; for (const ch of String(text)) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; };
+const parentColor = (parent) => `hsl(${hue(parent)} 62% var(--lbl-l))`;
+const colorOf = (id) => parentColor(topicOf(id)?.parent || "General");
+const parentName = (id) => topicOf(id)?.parent || "";
+const chip = (id, link = true) => {
+  if (!id) return "";
+  const t = topicOf(id);
+  const tag = link ? `a href="#/label/${esc(id)}"` : "span";
+  return `<${tag} data-cat="${esc(id)}" class="lbl" style="--c:${colorOf(id)}" title="${esc(t?.parent || "")} › ${esc(t?.label || id)}">${esc(t?.label || id)}</${link ? "a" : "span"}>`;
+};
+/** The request type (how-to, refund...): the safety layer, shown next to the category. */
+const typeChip = (cat) => cat ? `<span class="badge" title="Request type">${esc(CAT[cat] || cat)}</span>` : "";
 let collapsed = new Set(); try { collapsed = new Set(JSON.parse(localStorage.getItem("inbox-collapsed") || "[]")); } catch {}
 
 function reviewer() { try { return localStorage.getItem("reviewer") || account || "Reviewer"; } catch { return account || "Reviewer"; } }
@@ -828,21 +853,21 @@ function renderSide(r) {
   const cur = (k, a) => r.kind === k && r.arg === a ? ' aria-current="page"' : "";
   $("#folders").innerHTML = FOLDERS.map(([id, name, f]) => {
     const n = emails.filter(f).length;
-    const showN = ["inbox", "review", "urgent"].includes(id) && n;
+    const showN = ["inbox", "review", "urgent", "spam"].includes(id) && n;
     return `<a href="#/folder/${id}"${cur("folder", id)}>${svg(id === "review" ? "review" : id)}${name}${showN ? `<span class="n">${n}</span>` : ""}</a>`;
   }).join("");
   $("#labels").innerHTML = META.parents.map((p) => {
-    const kids = META.labels.filter((l) => l.parent === p.id);
-    const open = !collapsed.has(p.id);
-    const n = emails.filter((e) => !isDone(e) && labelOf(e.category)?.parent === p.id).length;
-    return `<button class="gm-parent" type="button" aria-expanded="${open}" data-parent="${p.id}"${r.kind === "parent" && r.arg === p.id ? ' aria-current="page"' : ""} title="${esc(p.description)}" aria-label="${esc(p.label)}${n ? `, ${n} open` : ""}">${svg("caret", 'class="caret"')}<span class="ldot parent" style="--c:var(--p-${p.id})"></span>${esc(p.label)}${n ? `<span class="n">${n}</span>` : ""}</button>
-      ${open ? kids.map((l) => { const k = emails.filter((e) => !isDone(e) && e.category === l.id).length;
-        return `<a class="child" href="#/label/${l.id}"${cur("label", l.id)} title="${esc(l.definition)}" aria-label="${esc(l.label)}${k ? `, ${k} open` : ""}"><span class="ldot" style="--c:var(--p-${p.id})"></span>${esc(CAT[l.id] || l.label)}${k ? `<span class="n">${k}</span>` : ""}</a>`; }).join("") : ""}`;
+    const kids = META.topics.filter((t) => t.parent === p);
+    const open = !collapsed.has(p);
+    const n = emails.filter((e) => !isDone(e) && e.topic && topicOf(e.topic)?.parent === p).length;
+    return `<button class="gm-parent" type="button" aria-expanded="${open}" data-parent="${esc(p)}"${r.kind === "parent" && r.arg === p ? ' aria-current="page"' : ""} title="Parent setting type: ${esc(p)}" aria-label="${esc(p)}${n ? `, ${n} open` : ""}">${svg("caret", 'class="caret"')}<span class="ldot parent" style="--c:${parentColor(p)}"></span>${esc(p)}${n ? `<span class="n">${n}</span>` : ""}</button>
+      ${open ? kids.map((t) => { const k = emails.filter((e) => !isDone(e) && e.topic === t.id).length;
+        return `<a class="child" href="#/label/${esc(t.id)}"${cur("label", t.id)} title="${esc(t.description)}" aria-label="${esc(t.label)}${k ? `, ${k} open` : ""}"><span class="ldot" style="--c:${parentColor(p)}"></span>${esc(t.label)}${k ? `<span class="n">${k}</span>` : ""}</a>`; }).join("") : ""}`;
   }).join("");
   // The caret folds a parent type; the rest of the row opens all of its mail.
   $("#labels").querySelectorAll("[data-parent]").forEach((b) => b.onclick = (ev) => {
     const id = b.dataset.parent;
-    if (!ev.target.closest(".caret")) { location.hash = `#/parent/${id}`; return; }
+    if (!ev.target.closest(".caret")) { location.hash = `#/parent/${encodeURIComponent(id)}`; return; }
     collapsed.has(id) ? collapsed.delete(id) : collapsed.add(id);
     try { localStorage.setItem("inbox-collapsed", JSON.stringify([...collapsed])); } catch {}
     renderSide(route());
@@ -888,10 +913,10 @@ async function gmailDisconnect() {
 function renderList(r) {
   const q = $("#q").value.trim().toLowerCase();
   let title, items;
-  if (r.kind === "label") { title = chip(r.arg, false) + esc(labelOf(r.arg)?.label || r.arg); items = emails.filter((e) => e.category === r.arg); }
-  else if (r.kind === "parent") { title = esc(META.parents.find((p) => p.id === r.arg)?.label || r.arg); items = emails.filter((e) => labelOf(e.category)?.parent === r.arg); }
+  if (r.kind === "label") { const t = topicOf(r.arg); title = `<span class="meta" style="font-weight:500">${esc(t?.parent || "")} ›</span> ${esc(t?.label || r.arg)}`; items = emails.filter((e) => e.topic === r.arg && !binned(e)); }
+  else if (r.kind === "parent") { title = `${esc(r.arg)} <span class="meta" style="font-weight:500">· every category under it</span>`; items = emails.filter((e) => e.topic && topicOf(e.topic)?.parent === r.arg && !binned(e)); }
   else { const f = FOLDERS.find(([id]) => id === r.arg) || FOLDERS[0]; title = esc(f[1]); items = emails.filter(f[2]); }
-  if (q) items = items.filter((e) => [e.from_name, e.from_email, e.subject, e.body, e.id, CAT[e.category]].some((x) => String(x ?? "").toLowerCase().includes(q)));
+  if (q) items = items.filter((e) => [e.from_name, e.from_email, e.subject, e.body, e.id, CAT[e.category], e.topic && topicOf(e.topic)?.label].some((x) => String(x ?? "").toLowerCase().includes(q)));
   items = [...items].sort((a, b) => String(b.received_at).localeCompare(String(a.received_at)));
   const v = $("#view");
   if (!emails.length) {
@@ -910,7 +935,7 @@ function renderList(r) {
       return `<a class="gm-row ${e.status === "new" ? "unread" : ""}" href="#/mail/${encodeURIComponent(e.id)}">
         <svg class="imp ${esc(e.urgency || "")}" viewBox="0 0 12 12" aria-label="${e.urgency === "critical" || e.urgency === "high" ? esc(e.urgency) + " urgency" : ""}">${e.urgency === "critical" || e.urgency === "high" ? '<path d="M1 1h7l3 5-3 5H1l3-5z" fill="currentColor"/>' : ""}</svg>
         <span class="from">${esc(e.from_name)}</span>
-        <span class="mid">${chip(e.category, false)}<span class="subj">${esc(e.subject || "(no subject)")}</span><span class="snip"> – ${esc(snip)}</span></span>
+        <span class="mid">${chip(e.topic, false)}<span class="subj">${esc(e.subject || "(no subject)")}</span><span class="snip"> – ${esc(snip)}</span></span>
         ${st || "<span></span>"}
         <span class="date" title="${esc(when(e.received_at, true))}">${when(e.received_at)}</span></a>`;
     }).join("") : `<div class="empty">${q ? "No mail matches your search." : "Nothing here."}</div>`);
@@ -936,8 +961,13 @@ async function openEmail(id) {
   if (route().kind !== "mail" || route().arg !== id) return; // the visitor moved on meanwhile
   const { email, draft, reviews } = data;
   const c = draft?.classification;
-  const head = `<div class="gm-top" style="border:0;padding:8px 16px 0"><a class="gm-tool" href="${esc(lastList)}" title="Back" aria-label="Back to the list">${svg("back")}</a><span class="meta">${esc(email.id)}</span><span class="spacer"></span><span class="st ${esc(email.status)}">${esc(STATUS[email.status] || email.status)}</span></div>`;
-  let html = `<div class="gm-subject">${esc(email.subject || "(no subject)")} ${c ? chip(c.category) + c.secondary.map((s) => chip(s)).join("") : ""}${c && URG[c.urgency] ? `<span class="badge ${URG[c.urgency]}">${esc(c.urgency)}</span>` : ""}</div>`;
+  const acts = email.status === "spam"
+    ? `<button class="btn secondary small" data-move="back">Not spam</button>`
+    : email.status === "trash"
+      ? `<button class="btn secondary small" data-move="back">${svg("restore", 'style="width:15px;height:15px"')}Restore</button>`
+      : `<span class="thread-acts"><button class="gm-tool" data-move="spam" title="Report spam" aria-label="Report spam">${svg("spam")}</button><button class="gm-tool" data-move="trash" title="Delete (moves to Trash)" aria-label="Delete">${svg("trash")}</button></span>`;
+  const head = `<div class="gm-top" style="border:0;padding:8px 16px 0"><a class="gm-tool" href="${esc(lastList)}" title="Back" aria-label="Back to the list">${svg("back")}</a>${acts}<span class="meta">${esc(email.id)}</span><span class="spacer"></span><span class="st ${esc(email.status)}">${esc(STATUS[email.status] || email.status)}</span></div>`;
+  let html = `<div class="gm-subject">${esc(email.subject || "(no subject)")} ${c ? chip(c.topic) + typeChip(c.category) : ""}${c && URG[c.urgency] ? `<span class="badge ${URG[c.urgency]}">${esc(c.urgency)}</span>` : ""}</div>`;
   html += email.thread.map((t) => `<div class="msg earlier">${avatar(t.from)}<div><div class="msg-head"><b>${esc(t.from)}</b><span class="meta when">${esc(t.date)}</span></div><div class="msg-body">${esc(t.body)}</div></div></div>`).join("");
   html += `<div class="msg">${avatar(email.from_name)}<div><div class="msg-head"><b>${esc(email.from_name)}</b><span class="meta">&lt;${esc(email.from_email)}&gt;</span><span class="meta when">${esc(when(email.received_at, true))}</span></div><div class="meta">to support</div><div class="msg-body">${esc(email.body)}</div></div></div>`;
   if (email.status === "failed" && email.error) html += `<div class="banner warn" style="margin:12px 0 0 52px">The last attempt failed: ${esc(suite.friendlyError(email.error))}</div>`;
@@ -946,13 +976,14 @@ async function openEmail(id) {
     html += `<div class="assist"><h3>${svg("spark")}Inbox Agent</h3><p class="meta" style="margin:0 0 10px">Labels this email, asks the Knowledge Brain, and drafts a reply for you to review.</p>
       <div class="row" style="margin:0"><button class="btn pill" id="process" ${draftingOn ? "" : "disabled"}>Draft a reply</button><span class="meta" id="pmeta">${draftingOn ? "Usually 10–15 seconds." : "Drafting is off until the Claude API key is set."}</span></div></div>`;
     v.innerHTML = head + `<div class="gm-thread">${html}</div>`;
+    wireMoves(v, id);
     if (draftingOn) $("#process").onclick = () => runProcess(id);
     return;
   }
 
-  const label = labelOf(c.category);
+  const topic = c.topic ? topicOf(c.topic) : null;
   html += `<div class="assist"><h3>${svg("spark")}Inbox Agent</h3>
-    <div class="row" style="margin:0">${chip(c.category)}<span class="meta">${esc(parentName(c.category))} › ${esc(label?.label || c.category)}</span><span class="badge">${esc(c.sentiment)}</span><span class="badge">${esc(c.language)}</span></div>
+    <div class="row" style="margin:0">${topic ? `${chip(c.topic)}<span class="meta">${esc(topic.parent)} › ${esc(topic.label)}</span>` : `<span class="meta">Drafted before categories existed: draft it again to sort it.</span>`}${typeChip(c.category)}${c.spam ? `<span class="badge err">spam</span>` : ""}<span class="badge">${esc(c.sentiment)}</span><span class="badge">${esc(c.language)}</span></div>
     <p class="meta" style="margin:8px 0 0">${esc(c.summary)}</p>`;
   if (draft.evidence.length) html += `<details style="margin-top:8px"${draft.evidence.length === 1 ? " open" : ""}><summary>What the Knowledge Brain said (${draft.evidence.length})</summary>` + draft.evidence.map((e) => `<div class="ev"><b>[${e.number}] ${esc(e.question)}</b> <span class="badge ${e.status === "answered" ? "ok" : "warn"}">${esc(e.status === "insufficient_evidence" ? "not covered" : e.status)}</span>${suite.md(e.answer)}<div class="meta">${e.sources.map((s) => s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>` : esc(s.title)).join(" · ")}</div></div>`).join("") + `</details>`;
   html += [
@@ -983,6 +1014,7 @@ async function openEmail(id) {
   }
   if (reviews.length) html += `<details class="gm-history"><summary>History (${reviews.length})</summary>` + reviews.map((r) => `<div class="meta">${esc(r.created_at)} · ${esc(r.outcome.replace("_", " "))} by ${esc(r.reviewer || "agent")}${r.reason ? ` · ${esc(r.reason)}` : ""}${r.spot_check ? " · picked for spot check" : ""}</div>`).join("") + `</details>`;
   v.innerHTML = head + `<div class="gm-thread">${html}</div>`;
+  wireMoves(v, id);
   v.querySelectorAll("[data-redeliver]").forEach((b) => b.onclick = async () => {
     b.disabled = true;
     try { await api(`/api/gmail/deliver/${encodeURIComponent(b.dataset.redeliver)}`, { method: "POST" }); suite.toast("Sent from Gmail"); }
@@ -992,12 +1024,15 @@ async function openEmail(id) {
   if (done) return;
 
   const body = $("#body"), original = draft.body;
-  const streak = await api("/api/autonomy").then((a) => a.categories.find((x) => x.kind === c.category)).catch(() => null);
+  const streak = await api("/api/autonomy").then((a) => a.categories.find((x) => x.kind === (c.topic || "other"))).catch(() => null);
   const hint = () => {
     const edited = body.value.trim() !== original.trim();
     $("#send").textContent = edited ? "Send edited" : "Send";
-    $("#note").textContent = !streak || !streak.eligible ? `${CAT[c.category]}: auto-send is off for this label (Settings).` :
-      edited ? `Sending an edit resets ${CAT[c.category]} to 0 of ${META.autonomy_threshold} unedited approvals.` : `Sending unchanged makes it ${streak.streak + 1} of ${META.autonomy_threshold} unedited approvals for ${CAT[c.category]}.`;
+    const name = topic?.label || "Other";
+    const typeOk = META.request_types.find((t) => t.id === c.category)?.auto_send !== false;
+    $("#note").textContent = !streak || !streak.eligible ? `${name}: auto-send is switched off for this category (Settings).` :
+      !typeOk ? `${CAT[c.category]} requests always need a person, so this one doesn't count towards ${name}.` :
+      edited ? `Sending an edit resets ${name} to 0 of ${META.autonomy_threshold} unedited approvals.` : `Sending unchanged makes it ${streak.streak + 1} of ${META.autonomy_threshold} unedited approvals for ${name}.`;
   };
   body.oninput = hint; hint();
   const act = async (payload, msg) => {
@@ -1006,7 +1041,7 @@ async function openEmail(id) {
     saveReviewer(who);
     try {
       const r = await api(`/api/emails/${encodeURIComponent(id)}/review`, { method: "POST", body: JSON.stringify({ reviewer: who, ...payload }) });
-      suite.toast(r.autonomy?.status === "autonomous" && streak?.status !== "autonomous" ? `${CAT[c.category]} reached ${META.autonomy_threshold}: its replies now send automatically` : msg, 4000);
+      suite.toast(r.autonomy?.status === "autonomous" && streak?.status !== "autonomous" ? `${topic?.label || "Other"} reached ${META.autonomy_threshold}: its replies now send automatically` : msg, 4000);
       if (r.delivery_error) banner(`Saved, but Gmail didn't send it: ${r.delivery_error}`, "warn");
       await loadEmails(false); openEmail(id);
     } catch (e) { $("#note").textContent = e.message; }
@@ -1017,6 +1052,18 @@ async function openEmail(id) {
   $("#reject").onclick = () => why() ? act({ action: "reject", subject: $("#subj").value, body: body.value, reason: why() }, "Sent your reply; the draft is marked wrong") : need("Say why the draft was wrong.");
   $("#escalate").onclick = () => why() ? act({ action: "escalate", reason: why() }, "Escalated") : need("Say why it needs escalating.");
   $("#archive").onclick = () => act({ action: "archive", ...(why() ? { reason: why() } : {}) }, "Archived");
+}
+
+function wireMoves(v, id) {
+  v.querySelectorAll("[data-move]").forEach((b) => b.onclick = async () => {
+    const to = b.dataset.move;
+    try {
+      const r = await api(`/api/emails/${encodeURIComponent(id)}/move`, { method: "POST", body: JSON.stringify({ to }) });
+      suite.toast({ spam: "Moved to Spam", trash: "Moved to Trash: restore it from the Trash folder", back: "Moved back to the inbox" }[to] + (r.gmail_error ? ` (Gmail: ${r.gmail_error})` : ""), 3500);
+      await loadEmails(false);
+      if (to === "back") openEmail(id); else location.hash = lastList;
+    } catch (e) { banner(e.message); }
+  });
 }
 
 async function runProcess(id) {
@@ -1068,21 +1115,50 @@ async function renderSettings() {
   META = s;
   const st = new Map(a.categories.map((c) => [c.kind, c]));
   const [lo, hi] = s.threshold_range;
+  let rows = s.topics.map((t) => ({ ...t }));
+  const rowHtml = (t, i) => { const x = st.get(t.id) || { streak: 0, status: "supervised" };
+    return `<div class="cat-row" data-i="${i}">
+      <input data-f="label" value="${esc(t.label)}" maxlength="40" aria-label="Category name" placeholder="e.g. Header">
+      <input data-f="parent" value="${esc(t.parent)}" maxlength="40" list="parent-list" aria-label="Parent setting type" placeholder="e.g. Design Settings">
+      <input class="d" data-f="description" value="${esc(t.description)}" maxlength="300" aria-label="What belongs here (the classifier reads this)" placeholder="What belongs here: the classifier reads this">
+      <div class="prog">${t.id ? `<span class="meta">${x.status === "autonomous" ? "<b style='color:var(--ok)'>Auto-sending</b>" : `${x.streak} of <span data-x>${s.autonomy_threshold}</span> unedited`}</span><div class="meter"><div style="width:${Math.min(100, (x.streak / s.autonomy_threshold) * 100)}%"></div></div>` : `<span class="meta">new</span>`}</div>
+      <label class="switch" title="May this category auto-send?"><input type="checkbox" data-f="auto_send" ${t.auto_send !== false ? "checked" : ""} aria-label="Auto-send ${esc(t.label)}"><span></span></label>
+      ${t.id === "other" ? "<span></span>" : `<button class="gm-tool" type="button" data-rm="${i}" title="Remove this category" aria-label="Remove ${esc(t.label)}" style="width:30px;height:30px">✕</button>`}</div>`; };
+  const editor = () => {
+    const parents = [...new Set(rows.map((t) => t.parent || "New"))];
+    $("#cats").innerHTML = `<datalist id="parent-list">${[...new Set(rows.map((t) => t.parent))].map((p) => `<option value="${esc(p)}">`).join("")}</datalist>` +
+      parents.map((p) => `<div class="set-group"><header><span class="ldot parent" style="--c:${parentColor(p)};border-radius:50%"></span><b>${esc(p)}</b><span class="meta">parent setting type</span></header>
+        <div class="cat-row cat-head"><span>Category</span><span>Parent setting type</span><span class="d">What belongs here</span><span class="prog">Unedited in a row</span><span>Auto</span><span></span></div>
+        ${rows.map((t, i) => (t.parent || "New") === p ? rowHtml(t, i) : "").join("")}</div>`).join("");
+    $("#cats").querySelectorAll(".cat-row[data-i] input").forEach((inp) => inp.oninput = inp.onchange = () => {
+      const t = rows[Number(inp.closest(".cat-row").dataset.i)];
+      t[inp.dataset.f] = inp.type === "checkbox" ? inp.checked : inp.value;
+    });
+    $("#cats").querySelectorAll(".cat-row[data-i] input[data-f=parent]").forEach((inp) => inp.onchange = () => { rows[Number(inp.closest(".cat-row").dataset.i)].parent = inp.value; editor(); });
+    $("#cats").querySelectorAll("[data-rm]").forEach((b) => b.onclick = () => {
+      const t = rows[Number(b.dataset.rm)];
+      if (t.id && !confirm(`Remove "${t.label}"? Its emails show as Other until they're drafted again; its streak is dropped.`)) return;
+      rows.splice(Number(b.dataset.rm), 1); editor();
+    });
+  };
   v.innerHTML = `<div class="gm-page"><h2>Settings</h2>
     <p class="sub">${account ? `For <b>${esc(account)}</b>'s inbox. Other accounts keep their own settings.` : "For the shared guest inbox. Sign in with a demo account (top right) to change settings for your own inbox."}</p>
     <h3 class="label">Auto-send threshold</h3>
     <div class="set-x"><input type="number" id="x" min="${lo}" max="${hi}" value="${s.autonomy_threshold}" aria-label="Threshold X">
       <input type="range" id="xr" min="${lo}" max="${Math.min(hi, 50)}" value="${Math.min(s.autonomy_threshold, 50)}" aria-label="Threshold X slider">
-      <div class="meta" style="flex-basis:100%">A label's replies send automatically once <b id="xv">${s.autonomy_threshold}</b> drafts in a row were sent without any change. Any edit, rejection, escalation or failed spot check resets that label to 0. Default ${s.default_threshold}. Critical, angry or suspicious emails always go to a person.</div></div>
-    <h3 class="label">Labels and their parent types</h3>
-    <p class="meta" style="margin:0">Every email gets one label; each label belongs to a parent type. Switch auto-send off for a label to keep a person on every reply. High-risk labels start switched off.</p>
-    ${s.parents.map((p) => `<div class="set-group"><header><span class="ldot parent" style="--c:var(--p-${p.id});border-radius:50%"></span><b>${esc(p.label)}</b><span class="meta">${esc(p.description)}</span></header>
-      ${s.labels.filter((l) => l.parent === p.id).map((l) => { const x = st.get(l.id) || { streak: 0, status: "supervised" };
-        return `<div class="set-row"><div><span class="lbl" style="--c:var(--p-${p.id})">${esc(CAT[l.id] || l.label)}</span><b>${esc(l.label)}</b><div class="def">${esc(l.definition)}</div></div>
-          <span class="risk"><span class="badge ${l.risk === "high" ? "err" : l.risk === "medium" ? "warn" : ""}">${esc(l.risk)} risk</span></span>
-          <div class="prog" data-prog="${l.id}"><span class="meta">${x.status === "autonomous" ? "<b style='color:var(--ok)'>Auto-sending</b>" : `${x.streak} of <span data-x>${s.autonomy_threshold}</span> unedited`}</span><div class="meter"><div style="width:${Math.min(100, (x.streak / s.autonomy_threshold) * 100)}%"></div></div></div>
-          <label class="switch" title="May this label auto-send?"><input type="checkbox" data-label="${l.id}" ${l.auto_send ? "checked" : ""} aria-label="Auto-send ${esc(l.label)}"><span></span></label></div>`; }).join("")}</div>`).join("")}
+      <div class="meta" style="flex-basis:100%">A category's replies send automatically once <b id="xv">${s.autonomy_threshold}</b> drafts in a row were sent without any change. Any edit, rejection, escalation or failed spot check resets that category to 0. Default ${s.default_threshold}. Critical, angry or suspicious emails always go to a person.</div></div>
+    <h3 class="label">Email categories</h3>
+    <p class="meta" style="margin:0">Which part of the site an email is about, under the parent setting type where it's managed. Rename, re-describe, move or remove them, or add your own: the agent sorts new emails into this list (it reads the descriptions). Each category earns auto-send on its own.</p>
+    <div id="cats"></div>
+    <div class="row"><button class="btn secondary small" id="add-cat" type="button">+ Add a category</button></div>
+    <h3 class="label">Request types that need a person</h3>
+    <p class="meta" style="margin:0 0 8px">Whatever the category, these kinds of request never send on their own while switched off (refunds, complaints, quotes...). They also decide what a reply must never say.</p>
+    <div class="set-group">${s.request_types.map((l) => `<div class="cat-row" style="grid-template-columns:minmax(0,1fr) 90px 44px"><div><b>${esc(l.label)}</b><div class="meta" style="font-size:12px">${esc(l.definition)}</div></div>
+      <span><span class="badge ${l.risk === "high" ? "err" : l.risk === "medium" ? "warn" : ""}">${esc(l.risk)} risk</span></span>
+      <label class="switch" title="May this request type auto-send?"><input type="checkbox" data-type="${l.id}" ${l.auto_send ? "checked" : ""} aria-label="Auto-send ${esc(l.label)} requests"><span></span></label></div>`).join("")}</div>
     <div class="save-bar"><button class="btn" id="save">Save settings</button><span class="meta" id="smsg"></span></div></div>`;
+  editor();
+  $("#add-cat").onclick = () => { rows.push({ label: "", parent: rows.at(-2)?.parent || "Design Settings", description: "", auto_send: true }); editor(); $("#cats").querySelector(`.cat-row[data-i="${rows.length - 1}"] input`)?.focus(); };
   const x = $("#x"), xr = $("#xr");
   const sync = (val) => { $("#xv").textContent = val; v.querySelectorAll("[data-x]").forEach((el) => el.textContent = val); };
   x.oninput = () => { xr.value = Math.min(Number(x.value) || lo, 50); sync(x.value); };
@@ -1090,14 +1166,16 @@ async function renderSettings() {
   $("#save").onclick = async () => {
     const n = Number(x.value);
     if (!Number.isInteger(n) || n < lo || n > hi) { $("#smsg").textContent = `X must be a whole number from ${lo} to ${hi}.`; return; }
-    const auto_send = Object.fromEntries([...v.querySelectorAll("[data-label]")].map((c) => [c.dataset.label, c.checked]));
-    const risky = s.labels.filter((l) => auto_send[l.id] && !l.auto_send && l.risk === "high");
-    if (risky.length && !confirm(`Allow auto-send for ${risky.map((l) => l.label).join(", ")}? These are high-risk: replies will go out without a person once ${n} in a row are approved unchanged.`)) return;
+    const blank = rows.find((t) => !t.label.trim() || !t.parent.trim());
+    if (blank) { $("#smsg").textContent = "Every category needs a name and a parent setting type."; return; }
+    const auto_send = Object.fromEntries([...v.querySelectorAll("[data-type]")].map((c) => [c.dataset.type, c.checked]));
+    const risky = s.request_types.filter((l) => auto_send[l.id] && !l.auto_send && l.risk === "high");
+    if (risky.length && !confirm(`Allow auto-send for ${risky.map((l) => l.label).join(", ")} requests? These are high-risk: replies will go out without a person once a category reaches ${n} in a row.`)) return;
     try {
-      const r = await api("/api/settings", { method: "PUT", body: JSON.stringify({ autonomy_threshold: n, auto_send, actor: reviewer() }) });
+      const r = await api("/api/settings", { method: "PUT", body: JSON.stringify({ autonomy_threshold: n, auto_send, topics: rows, actor: reviewer() }) });
       const g = r.events.filter((e) => e.event === "granted").length, k = r.events.filter((e) => e.event === "revoked").length;
-      suite.toast(`Saved.${g ? ` ${g} label(s) now auto-send.` : ""}${k ? ` ${k} label(s) back under review.` : ""}`, 4000);
-      renderSettings();
+      suite.toast(`Saved.${g ? ` ${g} categor${g === 1 ? "y" : "ies"} now auto-send.` : ""}${k ? ` ${k} back under review.` : ""}`, 4000);
+      await loadEmails(false); renderSettings();
     } catch (e) { $("#smsg").textContent = e.message; }
   };
 }
@@ -1107,11 +1185,11 @@ async function renderAutonomy() {
   const v = $("#view");
   const a = await api("/api/autonomy").catch(() => null);
   if (!a) { v.innerHTML = `<div class="empty">Couldn't load autonomy.</div>`; return; }
-  v.innerHTML = `<div class="gm-page"><h2>Which labels send on their own</h2>
-    <p class="sub">A label earns auto-send after <b>${a.threshold}</b> drafts in a row are sent unchanged (<a href="#/settings">change X in Settings</a>). One edit, rejection or failed spot check resets it to zero.</p>
-    <div class="table-wrap"><table><thead><tr><th>Label</th><th>Parent type</th><th>Status</th><th>Unedited in a row</th><th></th></tr></thead><tbody>${a.categories.map((c) => {
+  v.innerHTML = `<div class="gm-page"><h2>Which categories send on their own</h2>
+    <p class="sub">A category earns auto-send after <b>${a.threshold}</b> drafts in a row are sent unchanged (<a href="#/settings">change X in Settings</a>). One edit, rejection or failed spot check resets it to zero.</p>
+    <div class="table-wrap"><table><thead><tr><th>Category</th><th>Parent setting type</th><th>Status</th><th>Unedited in a row</th><th></th></tr></thead><tbody>${a.categories.map((c) => {
       const never = !c.eligible, pct = Math.min(100, (c.streak / a.threshold) * 100);
-      return `<tr><td>${chip(c.kind)}</td><td class="meta">${esc(META.parents.find((p) => p.id === c.parent)?.label || "")}</td><td><span class="badge ${never ? "" : c.status === "autonomous" ? "ok" : "info"}">${never ? "auto-send off" : c.status === "autonomous" ? "auto-sending" : "supervised"}</span></td>
+      return `<tr><td>${chip(c.kind)}</td><td class="meta">${esc(c.parent || "")}</td><td><span class="badge ${never ? "" : c.status === "autonomous" ? "ok" : "info"}">${never ? "auto-send off" : c.status === "autonomous" ? "auto-sending" : "supervised"}</span></td>
         <td>${never ? `<span class="meta">n/a</span>` : `<div class="meter" style="max-width:160px"><div style="width:${pct}%"></div></div><span class="meta">${c.streak} / ${a.threshold}</span>`}</td>
         <td>${c.status === "autonomous" ? `<button class="btn secondary small" data-revoke="${esc(c.kind)}">Revoke</button>` : ""}</td></tr>`; }).join("")}</tbody></table></div>
     <h3 class="label">Spot checks waiting</h3><div id="spots"></div>
@@ -1120,13 +1198,13 @@ async function renderAutonomy() {
     const reason = prompt("Why revoke auto-send for this label?");
     if (reason) { await api(`/api/autonomy/${b.dataset.revoke}/revoke`, { method: "POST", body: JSON.stringify({ reason }) }); renderAutonomy(); }
   });
-  $("#spots").innerHTML = a.pending_spot_checks.length ? a.pending_spot_checks.map((s) => `<div class="row"><span>${esc(s.email_id)} ${chip(s.category)} auto-sent ${esc(s.created_at)}</span><a class="btn secondary small" href="#/mail/${esc(s.email_id)}">Read</a><button class="btn secondary small" data-spot="${esc(s.email_id)}" data-ok="1">Looks right</button><button class="btn secondary small" data-spot="${esc(s.email_id)}" data-ok="0">Wrong: revoke</button></div>`).join("") : `<div class="meta">None.</div>`;
+  $("#spots").innerHTML = a.pending_spot_checks.length ? a.pending_spot_checks.map((s) => `<div class="row"><span>${esc(s.email_id)} ${typeChip(s.category)} auto-sent ${esc(s.created_at)}</span><a class="btn secondary small" href="#/mail/${esc(s.email_id)}">Read</a><button class="btn secondary small" data-spot="${esc(s.email_id)}" data-ok="1">Looks right</button><button class="btn secondary small" data-spot="${esc(s.email_id)}" data-ok="0">Wrong: revoke</button></div>`).join("") : `<div class="meta">None.</div>`;
   v.querySelectorAll("[data-spot]").forEach((b) => b.onclick = async () => {
     const ok = b.dataset.ok === "1"; const reason = ok ? "" : prompt("What was wrong?") || "";
     await api(`/api/emails/${encodeURIComponent(b.dataset.spot)}/review`, { method: "POST", body: JSON.stringify({ action: "spot_check", ok, reviewer: reviewer(), ...(reason ? { reason } : {}) }) });
     renderAutonomy();
   });
-  $("#events").innerHTML = a.events.length ? a.events.map((e) => `<div class="meta">${esc(e.created_at)} · ${e.kind === "settings" ? "Settings" : esc(CAT[e.kind] || e.kind)} · ${esc(e.event.replace("_", " "))} · ${esc(e.detail)}${e.email_id ? ` (${esc(e.email_id)})` : ""}</div>`).join("") : `<div class="meta">Nothing yet.</div>`;
+  $("#events").innerHTML = a.events.length ? a.events.map((e) => `<div class="meta">${esc(e.created_at)} · ${e.kind === "settings" ? "Settings" : esc(topicOf(e.kind)?.id === e.kind ? topicOf(e.kind).label : CAT[e.kind] || e.kind)} · ${esc(e.event.replace("_", " "))} · ${esc(e.detail)}${e.email_id ? ` (${esc(e.email_id)})` : ""}</div>`).join("") : `<div class="meta">Nothing yet.</div>`;
 }
 
 const pct = (x) => `${Math.round(x * 100)}%`;
@@ -1141,7 +1219,7 @@ async function renderLearning() {
       const candidate = c.versions.find((x) => x.status === "candidate");
       const ev = candidate?.evaluation;
       return `<div class="ev" data-cat="${esc(c.category)}" style="padding:14px 16px">
-        <div class="row" style="margin:0;justify-content:space-between">${chip(c.category)}<span class="meta">lessons v${c.active.version} live · ${c.corrections_since_active} correction(s) since</span></div>
+        <div class="row" style="margin:0;justify-content:space-between">${typeChip(c.category)}<span class="meta">lessons v${c.active.version} live · ${c.corrections_since_active} correction(s) since</span></div>
         ${c.active.lessons.length ? `<ul>${c.active.lessons.map((l) => `<li>${esc(l.text)}</li>`).join("")}</ul>` : `<div class="meta">No lessons yet: drafts follow the base prompt.</div>`}
         ${c.metrics.length ? `<div class="table-wrap"><table style="margin-top:8px"><thead><tr><th>Lessons</th><th>Drafts reviewed</th><th>Sent without changes</th><th>Closeness to what was sent</th></tr></thead><tbody>${c.metrics.map((m) => `<tr><td>v${m.version}</td><td>${m.reviewed}</td><td>${pct(m.unchanged_rate)}</td><td>${pct(m.mean_similarity)}</td></tr>`).join("")}</tbody></table></div>` : ""}
         ${candidate ? `<h3 class="label">Proposed lessons v${candidate.version}</h3><ul>${candidate.lessons.map((l) => `<li>${esc(l.text)} <span class="meta">(from ${l.review_ids.length} correction(s))</span></li>`).join("")}</ul>

@@ -282,8 +282,36 @@ export class LearningService {
   }
 
   private resetAutonomy(category: CategoryId, reason: string): void {
-    // New instructions mean new behaviour: trust is earned again from zero.
-    const r = revoke(this.store.autonomy(category), reason);
-    this.store.saveAutonomy(r.state, r.events, null);
+    // New instructions mean new behaviour: trust is earned again from zero, in every email
+    // category (topic) that this request type's emails belong to.
+    const topics = new Set(
+      this.store.reviewedCases(category).map((c) => (c.classification as { topic?: string }).topic ?? "other"),
+    );
+    for (const topic of topics) {
+      const r = revoke(this.store.autonomy(topic), reason);
+      this.store.saveAutonomy(r.state, r.events, null);
+    }
+  }
+
+  /**
+   * The learning loop, run by itself after a correction (no button needed): once a request
+   * type has `minCorrections` corrections since its current lessons, lessons are proposed,
+   * checked on past emails, and made live only if the check recommends them. Anything else
+   * stays a candidate for a person to decide. Returns what happened, or null if not due.
+   * `beforeSpend` throws when the budget or the daily limit says stop.
+   */
+  async autoLearn(category: CategoryId, beforeSpend: () => void = () => undefined): Promise<string | null> {
+    if (!this.miner || !this.drafter) return null;
+    if (this.store.lessonVersions(category).some((v) => v.status === "candidate")) return null;
+    if (this.corrections(category).length < this.opts.minCorrections) return null;
+    beforeSpend();
+    const version = await this.propose(category, "learning loop");
+    beforeSpend();
+    const evaluation = await this.evaluate(category, version, "learning loop");
+    if (evaluation.recommended) {
+      this.promote(category, version, "learning loop", "made live automatically: the check recommended it");
+      return `lessons v${version} live: ${evaluation.verdict}`;
+    }
+    return `lessons v${version} proposed and checked, waiting for a person: ${evaluation.verdict}`;
   }
 }

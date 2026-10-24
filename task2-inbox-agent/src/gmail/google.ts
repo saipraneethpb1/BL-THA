@@ -131,6 +131,10 @@ export class Gmail {
     return this.call(`/messages/${encodeURIComponent(id)}/modify`, { method: "POST", body: JSON.stringify({ addLabelIds: add, removeLabelIds: remove }) }, "Labelling a Gmail message");
   }
 
+  trash(id: string, undo = false): Promise<unknown> {
+    return this.call(`/messages/${encodeURIComponent(id)}/${undo ? "untrash" : "trash"}`, { method: "POST" }, "Moving a Gmail message");
+  }
+
   send(raw: string, threadId: string): Promise<{ id: string; threadId: string }> {
     return this.call("/messages/send", { method: "POST", body: JSON.stringify({ raw, threadId }) }, "Sending through Gmail");
   }

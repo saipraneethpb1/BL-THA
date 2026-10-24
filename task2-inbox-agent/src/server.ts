@@ -6,13 +6,15 @@ import Anthropic from "@anthropic-ai/sdk";
 import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
 import { z } from "zod";
 import { loadConfig, type Config } from "./config.js";
-import { CATEGORIES, CATEGORY_IDS, eligibleByDefault, PARENT_IDS, PARENTS } from "./email/taxonomy.js";
+import { CATEGORIES, CATEGORY_IDS, eligibleByDefault, PARENTS } from "./email/taxonomy.js";
 import { HttpKnowledgeClient } from "./knowledge-client/client.js";
 import { ClaudeClassifier, ClaudeDrafter } from "./llm/models.js";
 import { ClaudeLessonMiner, LearningError, LearningService, LearningUnavailableError } from "./feedback/learning.js";
 import { InboxAgent, ReviewError, type ReviewAction } from "./pipeline.js";
 import { checkBudget, GuardError, RateLimiter, visitor } from "./guard.js";
 import { readSettings, THRESHOLD_MAX, THRESHOLD_MIN, updateSettings } from "./settings.js";
+import { parentsOf, TopicError, type TopicIn } from "./email/topics.js";
+import type { CategoryId } from "./email/taxonomy.js";
 import { InboxStore } from "./store/db.js";
 import { accountFromToken, COOKIE, cookieDomain, cookieValue, GUEST, makeToken, sessionSecret } from "./session.js";
 import { authUrl, exchangeCode, identity, type Fetch } from "./gmail/google.js";
@@ -56,7 +58,8 @@ export function defaultDeps(config = loadConfig()): AppDeps {
       ? new InboxAgent(store, new ClaudeClassifier(config.classifyModel), drafter, kb, config)
       : null;
     const miner = config.llmEnabled ? new ClaudeLessonMiner(config.lessonModel) : null;
-    return { store, agent, learning: new LearningService(store, miner, drafter) };
+    // The loop runs by itself now, so each check re-drafts at most 6 past emails (cost).
+    return { store, agent, learning: new LearningService(store, miner, drafter, { evalLimit: 6 }) };
   };
   const workspaces = new Workspaces(config.dbPath, make, ROOT);
   return { config, ...workspaces.get(GUEST), workspaces, sessionSecret: sessionSecret() };
@@ -117,7 +120,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       if (err.retryAfterS) void reply.header("Retry-After", String(err.retryAfterS));
       return reply.status(429).send({ error: err.message });
     }
-    if (err instanceof RangeError) return reply.status(422).send({ error: err.message });
+    if (err instanceof RangeError || err instanceof TopicError) return reply.status(422).send({ error: err.message });
     if (err instanceof z.ZodError) return reply.status(422).send({ error: "invalid input", issues: err.issues });
     if (err instanceof ReviewError) return reply.status(409).send({ error: err.message });
     if (err instanceof LearningUnavailableError) return reply.status(503).send({ error: err.message });
@@ -176,6 +179,19 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     if (!agent) return reply.status(503).send({ error: "drafting is disabled: ANTHROPIC_API_KEY is not configured" });
     const action = compact(Review.parse(req.body)) as ReviewAction;
     const r = agent.review(req.params.id, action);
+    if (r.outcome === "edited" || r.outcome === "rejected") {
+      // The learning loop runs by itself: enough corrections of one request type propose,
+      // check and (if the check recommends it) make lessons live. Within budget and limits.
+      const draft = ws(req).store.latestDraft(req.params.id);
+      const type = (draft?.classification as { category?: CategoryId } | undefined)?.category;
+      const learning = ws(req).learning;
+      if (type) {
+        void learning
+          .autoLearn(type, () => { guardSpend(); siteLessonChecks.checkKey("site"); })
+          .then((what) => { if (what) req.log.info({ type, what }, "learning loop"); })
+          .catch((e: Error) => req.log.warn({ type, error: e.message }, "learning loop stopped"));
+      }
+    }
     // A Gmail email that was just sent: send it from the connected Gmail account.
     const delivery_error = await gmailOf(ws(req))?.deliver(req.params.id).then(() => null, (e: Error) => e.message);
     return { ...r, ...(delivery_error ? { delivery_error } : {}) };
@@ -183,23 +199,38 @@ export function buildApp(deps: AppDeps): FastifyInstance {
 
   const settingsOf = (req: FastifyRequest) => readSettings(ws(req).store, deps.config.autonomyThreshold);
 
+  /** Spam, Trash, or back where it was. Nothing is deleted. Mirrored in Gmail for Gmail mail. */
+  app.post<{ Params: { id: string } }>("/api/emails/:id/move", async (req, reply) => {
+    const { to } = z.object({ to: z.enum(["spam", "trash", "back"]) }).parse(req.body);
+    const store = ws(req).store;
+    const email = store.getEmail(req.params.id);
+    if (!email) return reply.status(404).send({ error: "not found" });
+    const status = store.moveEmail(email.id, to);
+    const gmail_error = await gmailOf(ws(req))?.mirrorMove(email.id, to, email.status).then(() => null, (e: Error) => e.message);
+    return { id: email.id, status, ...(gmail_error ? { gmail_error } : {}) };
+  });
+
   app.get("/api/autonomy", async (req) => {
     const states = new Map(ws(req).store.allAutonomy().map((s) => [s.kind, s]));
     const settings = settingsOf(req);
     return {
       threshold: settings.autonomyThreshold,
-      categories: CATEGORY_IDS.map((k) => ({
-        ...(states.get(k) ?? { kind: k, streak: 0, status: "supervised" }),
-        parent: CATEGORIES[k].parent,
-        eligible: settings.autoSend[k],
+      // One counter per email category (Header, Filters...), grouped by parent setting type.
+      categories: settings.topics.map((t) => ({
+        ...(states.get(t.id) ?? { kind: t.id, streak: 0, status: "supervised" }),
+        label: t.label,
+        parent: t.parent,
+        eligible: t.auto_send,
       })),
+      request_types: CATEGORY_IDS.map((k) => ({ id: k, label: CATEGORIES[k].label, auto_send: settings.autoSend[k] })),
       events: ws(req).store.autonomyEvents(30),
       pending_spot_checks: ws(req).store.pendingSpotChecks(),
     };
   });
 
   app.post<{ Params: { kind: string } }>("/api/autonomy/:kind/revoke", async (req, reply) => {
-    const kind = z.enum(CATEGORY_IDS).parse(req.params.kind);
+    const kind = req.params.kind;
+    if (!settingsOf(req).topics.some((t) => t.id === kind)) return reply.status(404).send({ error: "no such category" });
     const { reason } = z.object({ reason: z.string().min(1) }).parse(req.body);
     const agent = ws(req).agent;
     if (!agent) return reply.status(503).send({ error: "drafting is disabled" });
@@ -214,9 +245,12 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       autonomy_threshold: settings.autonomyThreshold,
       default_threshold: deps.config.autonomyThreshold,
       threshold_range: [THRESHOLD_MIN, THRESHOLD_MAX],
-      parents: PARENT_IDS.map((id) => ({ id, ...PARENTS[id] })),
-      labels: CATEGORY_IDS.map((id) => ({
-        id, label: CATEGORIES[id].label, parent: CATEGORIES[id].parent, risk: CATEGORIES[id].risk,
+      // Email categories (editable) and their parent setting types.
+      topics: settings.topics,
+      parents: parentsOf(settings.topics),
+      // Request types: the safety layer. Some never auto-send unless switched on here.
+      request_types: CATEGORY_IDS.map((id) => ({
+        id, label: CATEGORIES[id].label, group: PARENTS[CATEGORIES[id].parent].label, risk: CATEGORIES[id].risk,
         definition: CATEGORIES[id].definition, auto_send: settings.autoSend[id], default_auto_send: eligibleByDefault(id),
       })),
     };
@@ -225,6 +259,13 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   const SettingsIn = z.object({
     autonomy_threshold: z.number().int().optional(),
     auto_send: z.partialRecord(z.enum(CATEGORY_IDS), z.boolean()).optional(),
+    topics: z.array(z.object({
+      id: z.string().max(60).optional(),
+      label: z.string().max(80),
+      parent: z.string().max(80),
+      description: z.string().max(600).default(""),
+      auto_send: z.boolean().optional(),
+    })).max(60).optional(),
     actor: z.string().min(1).max(80).optional(),
   });
 
@@ -236,8 +277,8 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       return reply.status(401).send({ error: "Sign in with a demo account to change settings: the guest inbox is shared." });
     }
     const r = updateSettings(ws(req).store, deps.config.autonomyThreshold,
-      { autonomyThreshold: body.autonomy_threshold, autoSend: body.auto_send }, body.actor ?? account);
-    return { autonomy_threshold: r.settings.autonomyThreshold, auto_send: r.settings.autoSend, events: r.events };
+      { autonomyThreshold: body.autonomy_threshold, autoSend: body.auto_send, topics: body.topics as TopicIn[] | undefined }, body.actor ?? account);
+    return { autonomy_threshold: r.settings.autonomyThreshold, auto_send: r.settings.autoSend, topics: r.settings.topics, events: r.events };
   });
 
   // ----- Gmail (docs/GMAIL_SETUP.md). Connecting signs in with Google and opens a private

@@ -19,7 +19,7 @@ export function classification(over: Partial<Classification> = {}): Classificati
   return {
     category: "how_to", secondary: [], urgency: "normal", language: "en",
     summary: "Asks how to do something", questions: ["How do I change the logo?"],
-    sentiment: "neutral", suspected_injection: false, ...over,
+    sentiment: "neutral", suspected_injection: false, topic: "header", spam: false, ...over,
   };
 }
 

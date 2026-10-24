@@ -288,6 +288,18 @@ def signed_in(request: Request) -> str | None:
     return session.account_from_token(request.cookies.get(session.COOKIE))
 
 
+def chat_owner(request: Request) -> str | None:
+    """Whose chat history this is: the signed-in account, else the guest's browser (a
+    random id it keeps and sends as X-Chat-Id). None: nothing is kept."""
+    account = signed_in(request)
+    if account:
+        return f"acct:{account}"
+    anon = request.headers.get("x-chat-id", "")
+    return (
+        f"anon:{anon}" if len(anon) == 32 and all(c in "0123456789abcdef" for c in anon) else None
+    )
+
+
 def require_signed_in(request: Request) -> None:
     """Changing shared Knowledge Brain settings needs a demo account when it comes through the
     public site. Internal calls (the other services, tests, local use) have no visitor address."""
@@ -1127,10 +1139,57 @@ async def query_stream(req: QueryRequest, request: Request) -> StreamingResponse
     query_limiter.check(request)
     over_budget(await spent_usd(), settings.budget_usd)
 
+    owner = chat_owner(request) if req.caller == "chat-ui" else None
+
     async def work(progress: Progress) -> dict[str, Any]:
-        return (await _answer(req, request, answerer, progress)).model_dump()
+        result = (await _answer(req, request, answerer, progress)).model_dump()
+        if owner:
+            async with connect(settings.db_path) as db:
+                cur = await db.execute(
+                    "INSERT INTO chat_history(owner, question, response) VALUES (?, ?, ?)",
+                    (owner, req.question, json.dumps(result)),
+                )
+                await db.commit()
+            result["history_id"] = cur.lastrowid
+        return result
 
     return _event_stream(work)
+
+
+@app.get("/chat/history", dependencies=[Protected])
+async def chat_history(request: Request, limit: int = 50) -> dict[str, Any]:
+    """This person's past questions, newest first (each opens its full answer)."""
+    owner = chat_owner(request)
+    if not owner:
+        return {"items": []}
+    async with connect(settings.db_path) as db:
+        rows = await db.execute_fetchall(
+            "SELECT id, question, response, created_at FROM chat_history WHERE owner=? ORDER BY id DESC LIMIT ?",
+            (owner, max(1, min(limit, 200))),
+        )
+    return {
+        "items": [
+            {
+                "id": r["id"],
+                "question": r["question"],
+                "created_at": r["created_at"],
+                "response": json.loads(r["response"]),
+            }
+            for r in rows
+        ]
+    }
+
+
+@app.delete("/chat/history", dependencies=[Protected])
+async def clear_chat_history(request: Request) -> dict[str, Any]:
+    """Clears this person's own chat history (nobody else's)."""
+    owner = chat_owner(request)
+    if not owner:
+        return {"cleared": 0}
+    async with connect(settings.db_path) as db:
+        cur = await db.execute("DELETE FROM chat_history WHERE owner=?", (owner,))
+        await db.commit()
+    return {"cleared": cur.rowcount}
 
 
 # ---------- Human experts ----------

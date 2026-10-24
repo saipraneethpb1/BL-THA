@@ -10,6 +10,7 @@ import { checkDraft, type Violation } from "./drafting/policy.js";
 import { findSecrets, redact } from "./email/pii.js";
 import { CATEGORIES, canEverAutoSend, type CategoryId } from "./email/taxonomy.js";
 import { readSettings, type InboxSettings } from "./settings.js";
+import { OTHER, readTopics, topicOf } from "./email/topics.js";
 import {
   applyReview,
   autoSendBlocker,
@@ -68,7 +69,7 @@ export class InboxAgent {
     let cost = 0;
     const models: Record<string, string> = {};
     try {
-      const c = await this.classifier.classify(forModel);
+      const c = await this.classifier.classify(forModel, readTopics(this.store));
       classification = c.result;
       cost += c.usage.costUsd;
       models.classify = `${c.usage.model}@${c.usage.promptVersion}`;
@@ -78,6 +79,18 @@ export class InboxAgent {
     }
 
     const category = classification.category;
+    const topic = classification.topic;
+    if (classification.spam) {
+      // Spam: no knowledge lookups, no reply. It goes to the Spam folder ("Not spam" undoes it).
+      const draftId = this.store.saveDraft({
+        email_id: emailId, classification, evidence: [], subject: `Re: ${email.subject}`, body: "",
+        note_for_reviewer: "Moved to Spam: unsolicited or suspicious, so no reply was drafted.",
+        follow_up_in_days: null, violations: [], secrets_found: secrets.length > 0,
+        auto_send_blocker: "spam", models, cost_usd: cost, latency_ms: performance.now() - started,
+      });
+      this.store.moveEmail(emailId, "spam");
+      return { draftId, category, autoSent: false, blocker: "spam", violations: [] };
+    }
     const cats = [category, ...classification.secondary];
     const needsKnowledge = cats.some((c) => CATEGORIES[c].needsKnowledge);
 
@@ -140,10 +153,12 @@ export class InboxAgent {
             usedEvidence,
             knowledgeUnavailable,
           });
-    const state = this.store.autonomy(category);
+    // Trust is earned per email category (topic); the request type can still hold it back.
+    const settings = this.settings();
+    const state = this.store.autonomy(topic);
     const blocker = autoSendBlocker(state, {
       category,
-      eligible: this.settings().autoSend[category],
+      eligible: topicOf(settings.topics, topic).auto_send && settings.autoSend[category],
       urgency: classification.urgency,
       sentiment: classification.sentiment,
       hasBlockingViolation: violations.some((v) => v.severity === "block"),
@@ -193,10 +208,13 @@ export class InboxAgent {
     if (!email || !draft) throw new ReviewError(`no draft to review for ${emailId}`);
     const c = draft.classification as Classification;
     const category = c.category;
+    const topic = c.topic ?? OTHER; // drafts from before categories count under "Other"
     const hadBlock = draft.violations.some((v) => v.severity === "block");
     const settings = this.settings();
-    const eligible = canEverAutoSend(category, c.urgency, settings.autoSend[category]);
-    let state = this.store.autonomy(category);
+    // An email whose request type can never auto-send doesn't count towards its category.
+    const eligible =
+      topicOf(settings.topics, topic).auto_send && canEverAutoSend(category, c.urgency, settings.autoSend[category]);
+    let state = this.store.autonomy(topic);
 
     if (a.action === "spot_check") {
       const pending = this.store.pendingSpotChecks().some((r) => r.email_id === emailId);
@@ -258,7 +276,7 @@ export class InboxAgent {
     return readSettings(this.store, this.config.autonomyThreshold);
   }
 
-  revokeAutonomy(kind: CategoryId, reason: string): void {
+  revokeAutonomy(kind: string, reason: string): void {
     const r = revoke(this.store.autonomy(kind), `manual: ${reason}`);
     this.store.saveAutonomy(r.state, r.events, null);
   }

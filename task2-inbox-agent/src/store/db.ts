@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS emails (
   body TEXT NOT NULL,
   thread TEXT NOT NULL DEFAULT '[]',
   received_at TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'new', -- new | drafted | sent | archived | escalated | failed
+  status TEXT NOT NULL DEFAULT 'new', -- new | drafted | sent | archived | escalated | failed | spam | trash
   error TEXT
 );
 CREATE TABLE IF NOT EXISTS drafts (
@@ -193,6 +193,9 @@ export class InboxStore {
     // "error: ..." if delivery failed; NULL for the simulated outbox.
     const cols = (this.db.prepare("PRAGMA table_info(outbox)").all() as Row[]).map((c) => c.name);
     if (!cols.includes("delivery")) this.db.exec("ALTER TABLE outbox ADD COLUMN delivery TEXT");
+    // Spam and Trash remember where an email was, so "Not spam" or "Restore" puts it back.
+    const ecols = (this.db.prepare("PRAGMA table_info(emails)").all() as Row[]).map((c) => c.name);
+    if (!ecols.includes("prev_status")) this.db.exec("ALTER TABLE emails ADD COLUMN prev_status TEXT");
   }
 
   /** The latest reply recorded for an email (what was sent, by whom, and where it went). */
@@ -239,11 +242,12 @@ export class InboxStore {
     return r ? toEmail(r) : undefined;
   }
 
-  listEmails(): (EmailRow & { category: string | null; urgency: string | null; blocker: string | null; sent_mode: string | null; delivery: string | null; from_gmail: boolean })[] {
+  listEmails(): (EmailRow & { category: string | null; urgency: string | null; blocker: string | null; sent_mode: string | null; topic: string | null; delivery: string | null; from_gmail: boolean })[] {
     const rows = this.db
       .prepare(
         `SELECT e.*, json_extract(d.classification, '$.category') AS category,
                 json_extract(d.classification, '$.urgency') AS urgency, d.auto_send_blocker AS blocker,
+                json_extract(d.classification, '$.topic') AS topic,
                 (SELECT mode FROM outbox o WHERE o.email_id = e.id ORDER BY o.id DESC LIMIT 1) AS sent_mode,
                 (SELECT delivery FROM outbox o WHERE o.email_id = e.id ORDER BY o.id DESC LIMIT 1) AS delivery,
                 EXISTS (SELECT 1 FROM gmail_messages g WHERE g.email_id = e.id) AS from_gmail
@@ -259,6 +263,7 @@ export class InboxStore {
       urgency: (r.urgency as string | null) ?? null,
       blocker: (r.blocker as string | null) ?? null,
       sent_mode: (r.sent_mode as string | null) ?? null,
+      topic: (r.topic as string | null) ?? null,
       delivery: (r.delivery as string | null) ?? null,
       from_gmail: Boolean(r.from_gmail),
     }));
@@ -276,6 +281,21 @@ export class InboxStore {
       total_usd: Number(r.usd), today_usd: Number(r.today), calls: Number(r.calls),
       last_success_at: r.last_ok ? `${r.last_ok.replace(" ", "T")}+00:00` : null,
     };
+  }
+
+  /** Into Spam or Trash, remembering the status to go back to; back out restores it. */
+  moveEmail(id: string, to: "spam" | "trash" | "back"): string {
+    const e = this.db.prepare("SELECT status, prev_status FROM emails WHERE id = ?").get(id) as Row | undefined;
+    if (!e) throw new Error(`email ${id} not found`);
+    const current = String(e.status);
+    if (to === "back") {
+      const back = current === "spam" || current === "trash" ? String(e.prev_status ?? "new") : current;
+      this.db.prepare("UPDATE emails SET status = ?, prev_status = NULL WHERE id = ?").run(back, id);
+      return back;
+    }
+    const prev = current === "spam" || current === "trash" ? (e.prev_status as string | null) ?? "new" : current;
+    this.db.prepare("UPDATE emails SET status = ?, prev_status = ? WHERE id = ?").run(to, prev, id);
+    return to;
   }
 
   setEmailStatus(id: string, status: string, error: string | null = null): void {
@@ -340,7 +360,7 @@ export class InboxStore {
       .all() as Row[];
   }
 
-  autonomy(kind: CategoryId): AutonomyState {
+  autonomy(kind: string): AutonomyState {
     const r = this.db.prepare("SELECT * FROM autonomy WHERE kind = ?").get(kind) as Row | undefined;
     return r
       ? { kind, streak: Number(r.streak), status: r.status as AutonomyState["status"] }
@@ -349,7 +369,7 @@ export class InboxStore {
 
   allAutonomy(): AutonomyState[] {
     return (this.db.prepare("SELECT * FROM autonomy ORDER BY kind").all() as Row[]).map((r) => ({
-      kind: r.kind as CategoryId,
+      kind: String(r.kind),
       streak: Number(r.streak),
       status: r.status as AutonomyState["status"],
     }));

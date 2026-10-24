@@ -9,7 +9,7 @@
  * The refresh token is stored encrypted (AES-256-GCM, key derived from SESSION_SECRET).
  */
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
-import { CATEGORIES, PARENTS, type CategoryId } from "../email/taxonomy.js";
+import { readTopics, topicOf, type Topic } from "../email/topics.js";
 import type { InboxAgent } from "../pipeline.js";
 import type { InboxStore } from "../store/db.js";
 import { buildReply, Gmail, GoogleError, parseMessage, refreshAccess, revoke, type Fetch, type GoogleConfig, type Tokens } from "./google.js";
@@ -43,10 +43,10 @@ export function decrypt(secret: string, blob: string): string {
   return Buffer.concat([d.update(ct!), d.final()]).toString("utf8");
 }
 
-/** The Gmail label for an inbox label, nested under its parent type. */
-export function gmailLabelName(category: CategoryId): string {
-  const c = CATEGORIES[category];
-  return `Inbox Agent/${PARENTS[c.parent].label}/${c.label}`;
+/** The Gmail label for an email category, nested under its parent setting type. */
+export function gmailLabelName(topic: Pick<Topic, "label" | "parent">): string {
+  const clean = (x: string) => x.replace(/\//g, "-");
+  return `Inbox Agent/${clean(topic.parent)}/${clean(topic.label)}`;
 }
 
 export interface SyncResult {
@@ -144,6 +144,7 @@ export class GmailService {
           const r = await this.agent.process(id);
           result.drafted++;
           if (r.autoSent) result.auto_sent++;
+          if (r.blocker === "spam") await this.mirrorMove(id, "spam", "new").catch(() => undefined);
           await this.afterProcess(id, r.autoSent);
         }
       }
@@ -164,10 +165,10 @@ export class GmailService {
 
   async label(emailId: string): Promise<void> {
     const link = this.store.gmailLink(emailId);
-    const category = (this.store.latestDraft(emailId)?.classification as { category?: CategoryId } | undefined)?.category;
-    if (!link || link.labelled || !category) return;
+    const c = this.store.latestDraft(emailId)?.classification as { topic?: string; spam?: boolean } | undefined;
+    if (!link || link.labelled || !c || c.spam) return;
     const g = await this.client();
-    const labelId = await this.ensureLabel(g, gmailLabelName(category));
+    const labelId = await this.ensureLabel(g, gmailLabelName(topicOf(readTopics(this.store), c.topic)));
     await g.modify(link.gmail_id, [labelId]);
     this.store.markGmailLabelled(emailId);
   }
@@ -187,6 +188,17 @@ export class GmailService {
     }
     this.save({ ...this.connection()!, labels: { ...c.labels, [path]: id } });
     return id;
+  }
+
+  /** Mirrors Spam / Trash / back in the Gmail mailbox, so both stay the same. */
+  async mirrorMove(emailId: string, to: "spam" | "trash" | "back", from: string): Promise<void> {
+    const link = this.store.gmailLink(emailId);
+    if (!link) return;
+    const g = await this.client();
+    if (to === "spam") await g.modify(link.gmail_id, ["SPAM"], ["INBOX"]);
+    else if (to === "trash") await g.trash(link.gmail_id);
+    else if (from === "spam") await g.modify(link.gmail_id, ["INBOX"], ["SPAM"]);
+    else if (from === "trash") await g.trash(link.gmail_id, true);
   }
 
   /** Sends the recorded reply for a Gmail email through Gmail, once, in the same thread. */

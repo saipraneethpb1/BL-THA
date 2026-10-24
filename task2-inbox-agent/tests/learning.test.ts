@@ -97,10 +97,11 @@ describe("learning from edits", () => {
     expect(ev.unseen_before).toBeLessThan(0.7);
     expect(ev.recommended).toBe(true);
 
-    store.saveAutonomy({ kind: "how_to", streak: 7, status: "supervised" }, [], null);
+    store.saveAutonomy({ kind: "header", streak: 7, status: "supervised" }, [], null);
     learning.promote("how_to", v, "sai", null);
     expect(store.activeLessons("how_to").version).toBe(v);
-    expect(store.autonomy("how_to").streak).toBe(0); // trust is re-earned after a change
+    // Trust is re-earned in the categories these how-to emails belong to ("header").
+    expect(store.autonomy("header").streak).toBe(0);
 
     const id = addEmail(store);
     await agent.process(id);

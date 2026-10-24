@@ -60,7 +60,7 @@ describe("changing X or a label's switch applies at once", () => {
       await agent.process(id);
       agent.review(id, { action: "send", reviewer: "sai" });
     }
-    expect(store.autonomy("refund_cancellation").status).toBe("autonomous");
+    expect(store.autonomy("header").status).toBe("autonomous");
     store.addEmail({ id: "C", from_name: "M", from_email: "m@example.com", subject: "Idea", body: "Dark mode?", thread: [], received_at: "2026-01-01T00:00:00Z" });
     expect((await agent.process("C")).autoSent).toBe(true);
 
@@ -88,8 +88,9 @@ describe("settings API", () => {
     const a = app();
     const s = (await a.inject({ url: "/api/settings", headers: demo1 })).json();
     expect(s.autonomy_threshold).toBe(20);
-    expect(s.parents.map((p: { id: string }) => p.id)).toContain("account");
-    expect(s.labels.find((l: { id: string }) => l.id === "refund_cancellation")).toMatchObject({ parent: "account", auto_send: false });
+    expect(s.parents).toEqual(expect.arrayContaining(["Design Settings", "Members", "Finance"]));
+    expect(s.topics.find((t: { id: string }) => t.id === "search_filters")).toMatchObject({ label: "Search & Filters", parent: "Members" });
+    expect(s.request_types.find((l: { id: string }) => l.id === "refund_cancellation")).toMatchObject({ auto_send: false });
 
     const put = await a.inject({ method: "PUT", url: "/api/settings", headers: { ...demo1, ...proxied }, payload: { autonomy_threshold: 5, auto_send: { complaint: true } } });
     expect(put.statusCode).toBe(200);

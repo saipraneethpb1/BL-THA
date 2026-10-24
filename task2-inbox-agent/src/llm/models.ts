@@ -10,6 +10,7 @@ import { z } from "zod";
 import { COMPANY } from "../company.js";
 import { costUsd } from "../config.js";
 import { CATEGORIES, CATEGORY_IDS, URGENCY_LEVELS, type CategoryId } from "../email/taxonomy.js";
+import { DEFAULT_TOPICS, OTHER, topicsForPrompt, type Topic } from "../email/topics.js";
 
 const PROMPTS = join(import.meta.dirname, "../../prompts");
 
@@ -27,6 +28,10 @@ export const Classification = z.object({
   questions: z.array(z.string()).max(3),
   sentiment: z.enum(["positive", "neutral", "frustrated", "angry"]),
   suspected_injection: z.boolean(),
+  /** Which part of the site it's about: an id from the inbox's own category list (topics.ts). */
+  topic: z.string().default(OTHER),
+  /** Unsolicited sales, phishing, scams: goes to the Spam folder, no reply drafted. */
+  spam: z.boolean().default(false),
 });
 export type Classification = z.infer<typeof Classification>;
 
@@ -38,14 +43,21 @@ export type Classification = z.infer<typeof Classification>;
 const RawClassification = Classification.extend({
   secondary: z.array(z.string()),
   questions: z.array(z.string()),
+  topic: z.string(),
+  spam: z.boolean(),
 });
 
-export function normalizeClassification(raw: z.infer<typeof RawClassification>): Classification {
+export function normalizeClassification(
+  raw: z.infer<typeof RawClassification>,
+  topics: readonly Topic[] = DEFAULT_TOPICS,
+): Classification {
   const valid = new Set<string>(CATEGORY_IDS);
   const secondary = [...new Set(raw.secondary)].filter(
     (c): c is Classification["category"] => valid.has(c) && c !== raw.category,
   );
-  return { ...raw, secondary, questions: raw.questions.filter((q) => q.trim()).slice(0, 3) };
+  // A topic the list doesn't have (renamed meanwhile, or made up) becomes "other".
+  const topic = topics.some((x) => x.id === raw.topic) ? raw.topic : OTHER;
+  return { ...raw, secondary, topic, questions: raw.questions.filter((q) => q.trim()).slice(0, 3) };
 }
 
 export const DraftOutput = z.object({
@@ -89,7 +101,8 @@ export interface DraftRequest {
 }
 
 export interface Classifier {
-  classify(email: EmailForModel): Promise<{ result: Classification; usage: Usage }>;
+  /** `topics`: the inbox's current category list (Settings); defaults when omitted. */
+  classify(email: EmailForModel, topics?: readonly Topic[]): Promise<{ result: Classification; usage: Usage }>;
 }
 
 export interface Drafter {
@@ -135,17 +148,21 @@ export class ClaudeClassifier implements Classifier {
 
   constructor(
     private readonly model: string,
-    private readonly version = "classify_v1",
+    private readonly version = "classify_v2",
   ) {
     const categories = CATEGORY_IDS.map((id) => `- \`${id}\`: ${CATEGORIES[id].definition}`).join("\n");
     this.system = loadPrompt(version, { company_what: COMPANY.what, categories });
   }
 
-  async classify(email: EmailForModel) {
+  async classify(email: EmailForModel, topics: readonly Topic[] = DEFAULT_TOPICS) {
     const response = await this.client.messages.parse({
       model: this.model,
       max_tokens: 2000,
-      system: [{ type: "text", text: this.system, cache_control: { type: "ephemeral" } }],
+      system: [
+        { type: "text", text: this.system, cache_control: { type: "ephemeral" } },
+        // The team's own topic list changes rarely, so it caches well as its own block.
+        { type: "text", text: `Topics (id, parent setting type › name: what belongs there):\n${topicsForPrompt(topics)}`, cache_control: { type: "ephemeral" } },
+      ],
       messages: [{ role: "user", content: renderEmail(email) }],
       output_config: { effort: "low", format: zodOutputFormat(RawClassification) },
     });
@@ -153,7 +170,7 @@ export class ClaudeClassifier implements Classifier {
       throw new Error(`classifier returned no result (stop_reason=${response.stop_reason})`);
     }
     return {
-      result: normalizeClassification(response.parsed_output),
+      result: normalizeClassification(response.parsed_output, topics),
       usage: usageOf(this.model, this.version, response.usage),
     };
   }
