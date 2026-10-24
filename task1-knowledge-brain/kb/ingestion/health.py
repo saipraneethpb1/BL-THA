@@ -100,6 +100,15 @@ async def observe(
         )
     )
     row = rows[0] if rows else None
+    if row is not None and row["state"] == "quarantined":
+        # A record says "archived" but the page is back (re-listed and fetched again, or
+        # restored): the record is stale. Start over, so the page is counted like any other.
+        page = list(
+            await db.execute_fetchall("SELECT status FROM pages WHERE article_id=?", (article_id,))
+        )
+        if page and page[0]["status"] != "quarantined":
+            await db.execute("DELETE FROM url_health WHERE article_id=?", (article_id,))
+            row = None
     if issue is None:
         if row is not None and row["state"] in OPEN_STATES:
             await db.execute("DELETE FROM url_health WHERE article_id=?", (article_id,))

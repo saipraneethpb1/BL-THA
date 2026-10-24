@@ -1161,7 +1161,7 @@ async function loadStatus() {
   const last = s.last_refresh;
   $("#refresh-btn").disabled = s.refresh_running;
   $("#refresh-meta").textContent = s.refresh_running ? "Refresh running…"
-    : last ? `Last refresh ${last.status} at ${(last.finished_at || last.started_at).replace("T", " ").replace("+00:00", "")} UTC: ${last.ingestion.new ?? 0} new, ${last.ingestion.changed ?? 0} changed, ${last.ingestion.removed ?? 0} quarantined.`
+    : last ? `Last refresh ${last.status} at ${(last.finished_at || last.started_at).replace("T", " ").replace("+00:00", "")} UTC: ${last.ingestion.new ?? 0} new, ${last.ingestion.changed ?? 0} changed, ${last.ingestion.removed ?? 0} missing from their sitemap (checked, not archived on sight).`
     : s.last_run ? `Last crawl finished ${s.last_run.finished_at} UTC.` : "";
   if (s.next_scheduled_refresh) $("#refresh-meta").textContent += ` Next automatic refresh ${s.next_scheduled_refresh.replace("T", " ").replace("+00:00", "")} UTC.`;
   if (s.refresh_running) setTimeout(() => { loadStatus(); }, 3000);
@@ -1173,7 +1173,7 @@ const OUTCOME = { updated: ["Updated", "ok"], unchanged: ["Unchanged", ""], fail
   checked: ["Re-checked: fine", "ok"], missing: ["404 + not in sitemap: archived", "err"], broken: ["404, still listed: counted", "warn"], moved: ["Moved (301): re-pointed", "warn"],
   duplicate: ["Duplicate: stored once", ""], unreachable: ["Re-check inconclusive", ""] };
 
-// URL health: settings, URLs waiting for a decision, and quarantined URLs.
+// URL health: settings and URLs waiting for a decision (archived pages: the Archived KB panel).
 let healthData = null;
 async function loadHealth() {
   try { healthData = await api("/url-health"); } catch { return; }
@@ -1188,7 +1188,7 @@ async function loadHealth() {
   renderHealth();
 }
 function renderHealth() {
-  const { items, quarantined, issues, settings: s } = healthData;
+  const { items, issues, settings: s } = healthData;
   const group = (st) => items.filter((i) => i.state === st);
   const pending = group("pending"), flagged = group("flagged"), counting = group("counting");
   $("#health-summary").textContent = pending.length ? `${pending.length} waiting for your decision` : counting.length + flagged.length ? `${counting.length + flagged.length} being watched` : "all healthy";
@@ -1206,12 +1206,8 @@ function renderHealth() {
   const acts = `<button class="btn small" data-act="quarantine" disabled>Archive selected</button><button class="btn secondary small" data-act="keep" disabled>Keep (reset count)</button>`;
   $("#health-lists").innerHTML =
     section("Pending your decision", pending, "These reached the threshold. They stay searchable until you choose.", acts)
-    + section("Flagged", flagged, "These reached the threshold under a \"Flag only\" rule: shown for information, never quarantined automatically.", acts)
+    + section("Flagged", flagged, "These reached the threshold under a \"Flag only\" rule: shown for information, never archived automatically.", acts)
     + section("Counting", counting, "Problems seen in recent checks, not yet at the threshold. The count resets if the URL recovers.", "")
-    + (false && quarantined.length ? `<div class="hgroup"><div class="hgroup-head"><h3 class="label" style="margin:0">Quarantined (${quarantined.length})</h3></div>
-        <p class="meta" style="margin:0 0 8px">Kept, but left out of search. Restore brings a URL back: it's fetched again at the next refresh.</p>
-        <div class="hlist">${quarantined.map((q) => `<div class="hrow"><span></span><div><a href="${esc(q.url)}" target="_blank" rel="noopener">${esc(q.title || q.url)}</a>${q.title ? `<div class="meta" style="overflow-wrap:anywhere">${esc(q.url)}</div>` : ""}<div class="why">${esc(q.reason || "")}${q.quarantined_at ? ` · since ${when(q.quarantined_at, { dateStyle: "medium" })}` : ""}</div></div>
-          <div class="hcount"><button class="btn secondary small" data-restore="${esc(q.article_id)}">Restore</button></div></div>`).join("")}</div></div>` : "")
     || `<div class="empty">No URL needs attention. Problems appear here after a refresh notices them.</div>`;
 
   $("#health-lists").querySelectorAll("[data-group]").forEach((g) => {
@@ -1274,7 +1270,7 @@ function renderRun() {
     </div>
     ${r.error ? `<div class="banner err" style="margin-top:12px">This run crashed: ${esc(r.error)}</div>` : ""}
     ${outcomes ? `<div class="row">${outcomes}</div>` : ""}
-    <div class="run-total"><span class="meta">${r.new} new, ${r.changed} changed and ${r.quarantined} quarantined in the sitemaps this run.</span><span>Total fetched URLs: <b>${r.fetched_urls.toLocaleString()}</b></span></div>
+    <div class="run-total"><span class="meta">${r.new} new, ${r.changed} changed and ${r.quarantined} missing from their sitemaps this run.</span><span>Total fetched URLs: <b>${r.fetched_urls.toLocaleString()}</b></span></div>
     ${r.fetched_urls ? `<details class="urls" id="run-urls"><summary>Show all ${r.fetched_urls.toLocaleString()} fetched URLs</summary><div id="url-box"><div class="empty"><span class="spinner" style="display:inline-block"></span></div></div></details>`
       : `<p class="meta" style="margin:10px 0 0">${r.first_fetch_at === null && r.status !== "running" ? "No URLs were fetched in this run (nothing had changed), or it ran before URL lists were recorded." : ""}</p>`}`;
   const det = $("#run-urls");

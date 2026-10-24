@@ -163,3 +163,21 @@ def history(settings: Settings, aid: str) -> list[str]:
                 "SELECT event FROM page_history WHERE article_id=? ORDER BY id", (aid,)
             )
         ]
+
+
+async def test_a_page_back_from_the_archive_is_counted_again(settings: Settings) -> None:
+    """An old 'archived' health record must not hide a page that's back and failing."""
+    await set_rules(settings, threshold=2)
+    site = Site()
+    t = httpx.MockTransport(site.handler)
+    site.sitemap = sitemap(("1", "d1"), ("2", "d1"))
+    await run_ingestion(settings, transport=t)
+    site.sitemap, site.gone = sitemap(("1", "d1")), {"2"}
+    await run_ingestion(settings, transport=t)  # 404 + missing: archived
+    assert status(settings, "2") == "quarantined"
+    site.sitemap = sitemap(("1", "d1"), ("2", "d2"))  # listed again, still 404
+    await run_ingestion(settings, transport=t)
+    assert status(settings, "2") == "failed"
+    assert tracked(settings) == {"2": ("broken", 1, "counting")}
+    await run_ingestion(settings, transport=t)
+    assert tracked(settings) == {"2": ("broken", 2, "pending")}
