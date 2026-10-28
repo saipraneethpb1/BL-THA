@@ -24,7 +24,7 @@ Without a key, all three services still start. Search, the inboxes and review sc
 **First start of the Knowledge Brain.** It needs the help center in its database. It tries, in order:
 1. A snapshot at `task1-knowledge-brain/data/snapshot/knowledge.db`. Make one from a crawled install with `uv run python -m kb.snapshot`; it's about 50 MB.
 2. `KB_SEED_URL`, which defaults to the snapshot published in this repo's [releases](https://github.com/saipraneethpb1/BL-THA/releases). So a fresh clone is ready in about 1.5 minutes.
-3. A full polite crawl: about 25 minutes plus about 15 minutes of indexing. Progress shows on its Status tab.
+3. A full polite crawl: about 25 minutes plus about 15 minutes of indexing. Progress shows in its Knowledge panel, beside Ask.
 
 After that, a daily refresh at 02:00 UTC fetches only pages that changed.
 

@@ -627,6 +627,103 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
     .composer-dock { padding: 0 12px 10px; }
     .composer-foot > .meta:first-child { display: none; }
   }
+  /* ---- Ask = conversation + Knowledge panel ---- */
+  .ask { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+  .kb.kp-open .ask { grid-template-columns: minmax(0, 1fr) 340px; }
+  .ask > .chat { min-height: 0; }
+  .kb-top .kp-toggle { display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--line); background: none;
+                       color: var(--muted); font: inherit; font-size: 12.5px; font-weight: 550; cursor: pointer; }
+  .kb-top .kp-toggle svg { width: 15px; height: 15px; }
+  .kb-top .kp-toggle:hover { color: var(--text); background: var(--panel-2); }
+  .kb-top .kp-toggle[aria-expanded="true"] { color: var(--text); background: var(--panel-2); border-color: var(--line-strong); }
+  .kb-top .kp-toggle[aria-expanded="true"] svg { color: var(--kb); }
+  .kp { display: none; min-height: 0; flex-direction: column; border-left: 1px solid var(--line); background: var(--sunken); }
+  .kb.kp-open .kp { display: flex; }
+  .kp-head { display: flex; align-items: center; gap: 2px; height: 44px; padding: 0 8px 0 16px; border-bottom: 1px solid var(--line); flex: none; }
+  .kp-head b { font-size: 13px; font-weight: 650; }
+  .kp-ic { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; border: 0; background: none; color: var(--muted); cursor: pointer; flex: none; }
+  .kp-ic:hover { color: var(--text); background: var(--panel-2); }
+  .kp-ic:disabled { opacity: .4; cursor: default; }
+  .kp-ic svg { width: 15px; height: 15px; }
+  .kp-close { display: none; }
+  .kp-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 14px 18px; display: grid; gap: 18px; align-content: start; grid-auto-rows: max-content; }
+  .kp-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 10px; background: var(--panel); overflow: hidden; }
+  .kp-stats div { padding: 10px 10px 9px; border-left: 1px solid var(--line); min-width: 0; }
+  .kp-stats div:first-child { border-left: 0; }
+  .kp-stats b { display: block; font-size: 16px; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .kp-stats span { display: block; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kp-crawl { margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); font-size: 13px; }
+  .kp-crawl .run-row { gap: 8px; }
+  .kp-sec-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 11px; font-weight: 650; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); }
+  .kp-sec-head .meta { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 11.5px; color: var(--faint); }
+  .kp-sec-head .btn { text-transform: none; letter-spacing: 0; gap: 5px; padding: 3px 9px; font-size: 12px; }
+  .kp-sec-head .btn svg { width: 13px; height: 13px; }
+  /* A source, compact */
+  #sources { display: grid; gap: 8px; }
+  .ksrc { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); padding: 10px 11px; min-width: 0; }
+  .ksrc-head { display: flex; align-items: flex-start; gap: 9px; }
+  .ksrc-ic { width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; flex: none; color: var(--kb); background: color-mix(in srgb, var(--kb) 11%, transparent); }
+  .ksrc-ic svg { width: 14px; height: 14px; }
+  .ksrc-t { flex: 1; min-width: 0; }
+  .ksrc-t b { display: block; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ksrc-t .u { display: block; font: 11px var(--mono); color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ksrc-head .badge { font-size: 10.5px; padding: 0 7px; }
+  .ksrc-act { display: flex; gap: 0; margin: -3px -4px 0 0; }
+  .ksrc-m { margin: 8px 0 0; font-size: 12px; color: var(--muted); }
+  .ksrc-m strong { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ksrc .src-sched { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px; color: var(--muted); }
+  .ksrc .src-sched select { width: auto; padding: 2px 6px; font-size: 12px; background: var(--panel); }
+  .ksrc .src-sched span { margin-left: auto; color: var(--faint); font-size: 11.5px; }
+  .ksrc details { margin-top: 8px; font-size: 12px; } .ksrc summary { cursor: pointer; color: var(--muted); overflow-wrap: anywhere; }
+  /* Health: three counts that open the right tab */
+  .kp-health { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .kp-health button { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 1px 7px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px;
+                      background: var(--panel); color: var(--text); font: inherit; cursor: pointer; text-align: left; }
+  .kp-health button:hover { border-color: var(--line-strong); background: var(--panel-2); }
+  .kp-health i { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); grid-row: 1; }
+  .kp-health i.info { background: var(--info); } .kp-health i.warn { background: var(--warn); }
+  .kp-health b { font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .kp-health span { grid-column: 1 / -1; font-size: 11px; color: var(--muted); }
+  .kp-links { display: grid; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); overflow: hidden; }
+  .kp-links button { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 11px; border: 0; border-top: 1px solid var(--line); background: none;
+                     color: var(--text); font: inherit; font-size: 13px; cursor: pointer; text-align: left; }
+  .kp-links button:first-child { border-top: 0; }
+  .kp-links button:hover { background: var(--panel-2); }
+  .kp-links svg { width: 14px; height: 14px; color: var(--faint); }
+  .kp-foot { margin: 0; font-size: 11.5px; color: var(--faint); }
+
+  /* ---- Manage knowledge: a sheet over the right side ---- */
+  .sheet-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, .4); backdrop-filter: blur(1px); }
+  .sheet { position: fixed; z-index: 61; top: 0; right: 0; bottom: 0; width: min(940px, calc(100vw - var(--rail-w))); display: flex; flex-direction: column;
+           background: var(--bg); border-left: 1px solid var(--line-strong); box-shadow: var(--shadow-lg); animation: slidein .18s ease-out; }
+  @keyframes slidein { from { transform: translateX(24px); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
+  .sheet-head { display: flex; align-items: flex-start; gap: 12px; padding: 18px 20px 10px 24px; flex: none; }
+  .sheet-head h2 { font-size: 18px; margin: 0 0 2px; }
+  .sheet-head .s-icon { margin-left: auto; }
+  .sheet-tabs { display: flex; gap: 2px; padding: 0 20px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; flex: none; }
+  .sheet-tabs button { position: relative; padding: 9px 11px 10px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 13px; font-weight: 550; cursor: pointer; white-space: nowrap; }
+  .sheet-tabs button:hover { color: var(--text); }
+  .sheet-tabs button:focus-visible { outline-offset: -4px; }
+  .sheet-tabs button[aria-selected="true"] { color: var(--text); }
+  .sheet-tabs button[aria-selected="true"]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--kb); }
+  .sheet-body { flex: 1; min-height: 0; overflow-y: auto; padding: 20px 24px 40px; }
+  .sheet .panel { border: 0; background: none; box-shadow: none; padding: 0; }
+  .sheet .panel + .panel { margin-top: 0; }
+  .sheet-pane > .panel > h2:first-child, .sheet-pane > .panel > .row:first-child h2 { font-size: 15px; }
+  .sheet .connect { max-width: 640px; }
+  .sheet .connect h3 { margin: 0 0 4px; font-size: 15px; }
+  .sheet .source-pipeline { padding: 14px 0 0; border-top: 0; }
+  .sheet .src-preview-wide:not(:empty) { padding: 4px 0 18px; border-top: 0; }
+  #connect-crawl:not([hidden]) { margin-top: 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+
+  /* Narrower screens: the Knowledge panel slides over the conversation */
+  @media (max-width: 1179px) {
+    .kb.kp-open .ask { grid-template-columns: minmax(0, 1fr); }
+    .kb.kp-open .kp { position: fixed; z-index: 36; top: var(--top-h); bottom: var(--bottom-h); right: 0; width: min(360px, 92vw); box-shadow: var(--shadow-lg); }
+    .kp-close { display: grid; }
+  }
+  @media (max-width: 760px) { .kb-top .kp-toggle span { display: none; } .sheet-head { padding: 14px 14px 8px 16px; } .sheet-tabs { padding: 0 10px; } .sheet-body { padding: 16px; } }
 </style>
 </head>
 <body data-app="kb">
@@ -661,7 +758,6 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
     <nav class="kb-views" role="tablist" aria-label="Views">
       <button role="tab" data-tab="ask" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Ask</button>
       <button role="tab" data-tab="queue" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Expert queue <span class="count" id="queue-count" hidden>0</span></button>
-      <button role="tab" data-tab="status" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Sources &amp; status</button>
     </nav>
     <div class="kb-hist">
       <div class="kb-hist-head"><span>Your questions</span><button class="btn ghost small" id="history-clear" type="button" hidden>Clear</button></div>
@@ -678,6 +774,7 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
       <div class="kb-crumb"><span>Knowledge Brain</span><span class="sl">/</span><b id="kb-crumb">Ask</b></div>
       <span class="spacer"></span>
       <span data-suite-status></span>
+      <button class="kp-toggle" type="button" id="kp-toggle" aria-controls="kp" aria-expanded="true" title="Show or hide the Knowledge panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span>Knowledge</span></button>
     </header>
     <div class="kb-alerts">
       <div id="banner" class="banner err" hidden></div>
@@ -688,7 +785,8 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
       </div>
     </div>
 
-  <section id="tab-ask" class="chat">
+  <section id="tab-ask" class="ask">
+   <div class="chat">
     <div class="chat-scroll" id="chat-scroll">
       <div class="chat-col">
         <div class="chat-empty" id="chat-empty">
@@ -718,6 +816,41 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
       </form>
       <p class="composer-note">Answers come only from the help center and expert replies, with sources. Check anything important.</p>
     </div>
+   </div>
+    <aside class="kp" id="kp" aria-label="Knowledge">
+      <header class="kp-head">
+        <b>Knowledge</b>
+        <span class="spacer"></span>
+        <button class="kp-ic" type="button" id="kp-refresh" title="Check every source for changes now" aria-label="Refresh all sources now"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+        <button class="kp-ic" type="button" id="kp-manage" title="Manage knowledge: status, prompts, runs, URL health, archive" aria-label="Manage knowledge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></button>
+        <button class="kp-ic kp-close" type="button" id="kp-close" aria-label="Close the knowledge panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </header>
+      <div class="kp-body">
+        <div class="kp-stats" id="kp-stats"></div>
+        <div id="src-crawl" class="runbar kp-crawl" hidden></div>
+        <section class="kp-sec">
+          <div class="kp-sec-head"><span>Sources</span><span class="meta" id="src-count"></span><span class="spacer"></span>
+            <button class="btn small secondary" type="button" id="kp-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add website</button></div>
+          <div id="sources"></div>
+        </section>
+        <section class="kp-sec">
+          <div class="kp-sec-head"><span>Health</span></div>
+          <div class="kp-health" id="kp-health"></div>
+        </section>
+        <section class="kp-sec">
+          <div class="kp-sec-head"><span>Manage</span></div>
+          <nav class="kp-links">
+            <button type="button" data-open="status"><span>Status &amp; refresh</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+            <button type="button" data-open="prompts"><span>Self-maintained prompts</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+            <button type="button" data-open="runs"><span>Refresh runs</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+            <button type="button" data-open="health"><span>URL health</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+            <button type="button" data-open="archive"><span>Archived KB</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+            <button type="button" data-open="changes"><span>Duplicates &amp; history</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+          </nav>
+        </section>
+        <p class="kp-foot meta" id="kp-last"></p>
+      </div>
+    </aside>
   </section>
 
   <section id="tab-queue" class="kb-page" hidden>
@@ -726,19 +859,21 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
       <div id="queue"></div>
     </div>
   </section>
-
-  <section id="tab-status" class="kb-page" hidden>
-    <div class="page-col wide">
-      <div class="page-head"><h1>Sources &amp; status</h1><p class="sub">What the Brain knows, where it comes from, and how it keeps itself current.</p></div>
-      <nav class="toc" id="toc" aria-label="Sections">
-        <a href="#sources-panel">Sources</a><a href="#status-panel">Status</a><a href="#prompts-panel">Prompts</a><a href="#runs-panel">Refresh runs</a><a href="#health-panel">URL health</a><a href="#archive-panel">Archive</a><a href="#changes-panel">Duplicates &amp; history</a>
-      </nav>
-    <div class="panel knowledge-inputs" id="sources-panel">
-      <header class="source-heading"><div><div class="source-eyebrow">Knowledge inputs</div><h2>Sources</h2><p class="sub">Give the Brain a place to look. Connect website sitemaps to expand the evidence it can search and cite.</p></div><span class="source-capacity" id="src-count">Loading sources…</span></header>
-      <div class="source-workspace">
-        <div class="source-library"><div class="source-section-title">Source library <span>Connected websites</span></div><div id="sources"></div><p class="source-library-note">The help center includes articles and screenshot descriptions. Custom websites contribute page text.</p></div>
-        <div class="source-composer">
-          <h3>Connect a website</h3><p>Add a sitemap URL, or import a text file containing one URL per line.</p>
+  </div>
+  <div class="sheet-scrim" id="sheet-scrim" hidden></div>
+  <aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+    <header class="sheet-head">
+      <div><h2 id="sheet-title">Manage knowledge</h2><p class="meta">Where the Brain's answers come from, and how it keeps them current.</p></div>
+      <button class="s-icon" type="button" id="sheet-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </header>
+    <nav class="sheet-tabs" role="tablist" aria-label="Manage knowledge">
+      <button role="tab" data-pane="connect">Add website</button><button role="tab" data-pane="status">Status</button><button role="tab" data-pane="prompts">Prompts</button><button role="tab" data-pane="runs">Refresh runs</button><button role="tab" data-pane="health">URL health</button><button role="tab" data-pane="archive">Archive</button><button role="tab" data-pane="changes">History</button>
+    </nav>
+    <div class="sheet-body" id="sheet-body">
+      <section class="sheet-pane" data-pane="connect">
+        <div class="connect">
+          <h3>Connect a website</h3>
+          <p class="sub">Add a sitemap URL, or import a text file with one URL per line. You'll see every page it lists before anything is crawled, and you can stop the crawl at any time.</p>
           <form id="src-form">
             <div class="source-input-shell">
               <label class="source-input-caption" for="src-urls">Sitemap URLs · one per line</label>
@@ -753,21 +888,21 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
             <div class="source-submit-row"><button class="btn source-action" id="src-add" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7l8-4Z"/><path d="m8 12 3 3 5-6"/></svg><span id="src-add-label">Check & preview</span></button><span class="meta" id="src-meta" role="status"></span></div>
           </form>
           <div id="src-activity"></div>
-          <div id="src-crawl" class="runbar" hidden></div>
+          <div id="connect-crawl" class="runbar" hidden></div>
         </div>
-      </div>
-      <div id="src-preview" class="src-preview-wide"></div>
-      <div class="source-pipeline"><span><b>01</b>Preview every nested sitemap</span><span class="arrow" aria-hidden="true">→</span><span><b>02</b>Confirm</span><span class="arrow" aria-hidden="true">→</span><span><b>03</b>Crawl & embed</span><span class="arrow" aria-hidden="true">→</span><span><b>04</b>Re-check on its schedule</span></div>
-    </div>
-
+        <div id="src-preview" class="src-preview-wide"></div>
+        <div class="source-pipeline"><span><b>01</b>Preview every nested sitemap</span><span class="arrow" aria-hidden="true">→</span><span><b>02</b>Confirm</span><span class="arrow" aria-hidden="true">→</span><span><b>03</b>Crawl & embed</span><span class="arrow" aria-hidden="true">→</span><span><b>04</b>Re-check on its schedule</span></div>
+      </section>
+      <section class="sheet-pane" data-pane="status">
     <div class="panel" id="status-panel">
       <h2>Knowledge status</h2>
-      <p class="sub">Each source is re-checked on its own schedule (set in Sources); only changed pages are fetched again. "Run refresh now" checks every source.</p>
+      <p class="sub">Each source is re-checked on its own schedule (set on the source, in the Knowledge panel); only changed pages are fetched again. "Run refresh now" checks every source.</p>
       <div class="stats" id="stats"></div>
       <div class="runbar" id="runbar" hidden></div>
       <div class="row"><button class="btn secondary" id="refresh-btn">Run refresh now</button><span class="meta" id="refresh-meta"></span></div>
     </div>
-
+      </section>
+      <section class="sheet-pane" data-pane="prompts">
     <div class="panel" id="prompts-panel">
       <div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">Self-maintained prompts</h2><span class="meta" id="prompts-meta"></span></div>
       <p class="sub">The agent writes and maintains its own query-rewrite prompt (the step that turns customer wording into help-center terms). Every version is tested on <b id="pt-wordings">168</b> wordings of <b id="pt-groups">42</b> questions: as asked, with synonyms ("custom", "customize", "customise"), misspelled, and with other names for the same feature. A question passes when every wording finds the same right article. A new version goes live only if it does better on questions it never saw.</p>
@@ -777,7 +912,8 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
       <h3 class="label">Versions</h3>
       <div id="prompt-versions"></div>
     </div>
-
+      </section>
+      <section class="sheet-pane" data-pane="runs">
     <div class="panel" id="runs-panel">
       <div class="row" style="margin-top:0;justify-content:space-between">
         <h2 style="margin:0">Refresh runs</h2>
@@ -786,7 +922,8 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
       <p class="sub">What each refresh fetched. Times are in your time zone; hover a time to see it in UTC.</p>
       <div id="run-body"><div class="empty"><span class="spinner" style="display:inline-block"></span></div></div>
     </div>
-
+      </section>
+      <section class="sheet-pane" data-pane="health">
     <div class="panel" id="health-panel">
       <div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">URL health</h2><span class="meta" id="health-summary"></span></div>
       <p class="sub">A page that answers 404 <b>and</b> is missing from its sitemap moves to the Archived KB at once. A 404 on a page its sitemap still lists may be a passing fault, so it's counted check by check. A 301 is followed: the page is re-pointed to its new URL and re-indexed there. Nothing is deleted.</p>
@@ -798,14 +935,16 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
       </form>
       <div id="health-lists"></div>
     </div>
-
+      </section>
+      <section class="sheet-pane" data-pane="archive">
     <div class="panel" id="archive-panel">
       <div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">Archived KB</h2><span class="meta" id="archive-count"></span></div>
       <p class="sub">Pages taken out of normal answers: gone from their site, or archived after review. They keep their text and passages and can be searched here on their own. Restore brings a page back: it's fetched again at the next check.</p>
       <form id="archive-form" class="row" style="margin-top:0"><input id="archive-q" placeholder="Search the archive, e.g. coupon codes" style="flex:1;min-width:200px"><button class="btn secondary">Search archive</button><button class="btn ghost" type="button" id="archive-clear" hidden>Show all</button></form>
       <div id="archive-list" style="margin-top:12px"></div>
     </div>
-
+      </section>
+      <section class="sheet-pane" data-pane="changes">
     <div class="panel" id="changes-panel">
       <h2>Duplicates and change history</h2>
       <p class="sub">A page found twice is stored and searched once: the same address spelled differently, the same page in two sitemaps, or the same text at two URLs. Every change to a page is recorded.</p>
@@ -813,10 +952,9 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
       <h3 class="label">Change history <span class="meta" style="text-transform:none;letter-spacing:0">newest first</span></h3>
       <ul class="hist" id="history"></ul>
     </div>
-
+      </section>
     </div>
-  </section>
-  </div>
+  </aside>
 </div>
 
 <!-- suite:js -->
@@ -1370,13 +1508,14 @@ async function apiStream(path, body, onStep) {
 }
 
 // Views (Ask / Expert queue / Sources & status) in the side panel
-const VIEW_NAMES = { ask: "Ask", queue: "Expert queue", status: "Sources & status" };
+const VIEW_NAMES = { ask: "Ask", queue: "Expert queue" };
 function showTab(tab) {
+  if (tab === "status") { tab = "ask"; setKp(true); }
   document.querySelectorAll(".kb-views button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === tab)));
-  for (const t of ["ask", "queue", "status"]) $(`#tab-${t}`).hidden = t !== tab;
+  for (const t of ["ask", "queue"]) $(`#tab-${t}`).hidden = t !== tab;
   $("#kb-crumb").textContent = VIEW_NAMES[tab];
+  $("#kp-toggle").hidden = tab !== "ask";
   if (tab === "queue") loadQueue();
-  if (tab === "status") loadStatus();
   if (tab === "ask") setTimeout(() => $("#question").focus());
   history.replaceState(null, "", tab === "ask" ? location.pathname : `#${tab}`);
   setSide(false);
@@ -1388,13 +1527,88 @@ function setSide(open) { $("#kb").classList.toggle("side-open", open); $("#kb-sc
 $("#kb-menu").onclick = () => setSide(!$("#kb").classList.contains("side-open"));
 $("#kb-scrim").onclick = () => setSide(false);
 
-// Status page: the section bar follows the scroll position.
-const tocLinks = [...document.querySelectorAll("#toc a")];
-tocLinks.forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); $(a.getAttribute("href")).scrollIntoView({ behavior: "smooth", block: "start" }); }));
-const spy = new IntersectionObserver((entries) => {
-  for (const en of entries) if (en.isIntersecting) tocLinks.forEach((a) => a.setAttribute("aria-current", String(a.getAttribute("href") === `#${en.target.id}`)));
-}, { root: $("#tab-status"), rootMargin: "-10% 0px -80% 0px" });
-tocLinks.forEach((a) => { const t = $(a.getAttribute("href")); if (t) spy.observe(t); });
+// Knowledge panel (beside the conversation): what the Brain knows, its sources, the live
+// crawl with Stop, and shortcuts into the Manage knowledge sheet.
+const REFRESH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>';
+const TRASH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
+const wideKp = matchMedia("(min-width: 1180px)");
+function setKp(open, remember = false) {
+  $("#kb").classList.toggle("kp-open", open);
+  $("#kp-toggle").setAttribute("aria-expanded", String(open));
+  if (remember && wideKp.matches) try { localStorage.setItem("kb-kp", open ? "1" : "0"); } catch {}
+}
+setKp(wideKp.matches && (() => { try { return localStorage.getItem("kb-kp") !== "0"; } catch { return true; } })());
+wideKp.addEventListener("change", (e) => setKp(e.matches && (() => { try { return localStorage.getItem("kb-kp") !== "0"; } catch { return true; } })()));
+$("#kp-toggle").onclick = () => setKp(!$("#kb").classList.contains("kp-open"), true);
+$("#kp-close").onclick = () => setKp(false, true);
+$("#kp-add").onclick = () => openSheet("connect");
+$("#kp-manage").onclick = () => openSheet("status");
+document.querySelectorAll(".kp-links [data-open]").forEach((b) => b.onclick = () => openSheet(b.dataset.open));
+$("#kp-health").addEventListener("click", (e) => { const b = e.target.closest("[data-open]"); if (b) openSheet(b.dataset.open); });
+$("#kp-refresh").onclick = async () => {
+  const btn = $("#kp-refresh"); btn.disabled = true;
+  try { await api("/ingestion/run", { method: "POST" }); suite.toast("Checking every source for changes…"); }
+  catch (err) { suite.toast(err.status === 409 ? "A refresh is already running." : err.status === 401 ? `${err.message} Sign in to refresh.` : err.message, 4000); }
+  btn.disabled = false; loadStatus();
+};
+
+function renderKp(s) {
+  const c = s.counts, n = (v) => Number(v || 0).toLocaleString();
+  $("#kp-stats").innerHTML = `
+    <div title="Pages stored and searchable"><b>${n(c.embedded)}</b><span>pages</span></div>
+    <div><b>${n(s.chunks)}</b><span>passages</span></div>
+    <div><b>${n(s.images_described)}</b><span>screenshots</span></div>`;
+  const waiting = (c.pending_fetch || 0) + (c.pending_embed || 0);
+  const item = (pane, kind, count, label, title) => `<button type="button" data-open="${pane}" title="${esc(title)}"><i class="${count ? kind : ""}"></i><b>${n(count)}</b><span>${label}</span></button>`;
+  $("#kp-health").innerHTML = [
+    item("status", "info", waiting, "waiting", "New or changed pages not yet fetched or embedded"),
+    item("health", "warn", c.failed, "failing", "Retries used up; checked again at the next change"),
+    item("archive", "", c.archived, "archived", "Kept, out of normal answers"),
+  ].join("");
+  const last = s.last_refresh, when = (iso) => iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "";
+  $("#kp-last").textContent = s.refresh_running ? "" : [
+    last ? `Last refresh ${last.status} ${when(last.finished_at || last.started_at)}.` : s.last_run?.finished_at ? `Last crawl ${when(s.last_run.finished_at.replace(" ", "T") + "Z")}.` : "",
+    s.next_scheduled_refresh ? `Next automatic check ${when(s.next_scheduled_refresh)}.` : "",
+  ].filter(Boolean).join(" ");
+  $("#kp-refresh").disabled = s.refresh_running;
+}
+
+// Manage knowledge: one sheet with a tab per job, loaded when it's opened.
+let sheetPane = null, sheetReturn = null;
+const PANE_LOAD = { status: () => loadStatus(), prompts: () => loadPrompts(), runs: () => loadRuns(), health: () => loadHealth(), archive: () => loadArchive(), changes: () => loadChanges(), connect: () => {} };
+function loadPane(pane) { (PANE_LOAD[pane] || (() => {}))(); }
+function openSheet(pane = "status") {
+  if (!PANE_LOAD[pane]) pane = "status";
+  if (!sheetPane) sheetReturn = document.activeElement;
+  sheetPane = pane;
+  $("#sheet").hidden = false; $("#sheet-scrim").hidden = false;
+  document.querySelectorAll(".sheet-tabs [data-pane]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.pane === pane)));
+  document.querySelectorAll(".sheet-pane").forEach((sec) => { sec.hidden = sec.dataset.pane !== pane; });
+  $("#sheet-body").scrollTop = 0;
+  history.replaceState(null, "", pane === "connect" ? "#add-source" : `#manage-${pane}`);
+  loadPane(pane);
+  setTimeout(() => (pane === "connect" ? $("#src-urls") : $(".sheet-tabs [aria-selected='true']")).focus());
+}
+function closeSheet() {
+  if (!sheetPane) return;
+  sheetPane = null;
+  $("#sheet").hidden = true; $("#sheet-scrim").hidden = true;
+  history.replaceState(null, "", location.pathname);
+  sheetReturn?.focus?.();
+}
+document.querySelectorAll(".sheet-tabs [data-pane]").forEach((b) => b.onclick = () => openSheet(b.dataset.pane));
+$("#sheet-close").onclick = closeSheet;
+$("#sheet-scrim").onclick = closeSheet;
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && sheetPane && !document.querySelector(".s-cmdk, .lightbox, .s-modal")) closeSheet(); });
+// Links within the page (#add-source, #manage-runs, #queue, …) open the right place too.
+window.addEventListener("hashchange", () => {
+  const h = location.hash.slice(1);
+  if (h === "add-source") openSheet("connect");
+  else if (h.startsWith("manage-")) openSheet(h.slice(7));
+  else if (h === "queue") showTab("queue");
+  else if (h === "status" || h === "knowledge") { showTab("ask"); setKp(true); }
+});
+
 
 // Ask: each question becomes a turn in the conversation
 const AGENT_AV = `<span class="av" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><path d="M12 7.5 13.6 10.4 16.5 12 13.6 13.6 12 16.5 10.4 13.6 7.5 12 10.4 10.4z"/></svg></span>`;
@@ -1514,9 +1728,14 @@ suite.ask = ask;
 suite.commands([
   { group: "Knowledge Brain", label: "New question", hint: "Alt N", icon: "plus", run: newChat },
   { group: "Knowledge Brain", label: "Expert queue", icon: "view", keywords: "escalations unanswered", run: () => showTab("queue") },
-  { group: "Knowledge Brain", label: "Sources & status", icon: "view", keywords: "sitemap crawl refresh health archive prompts", run: () => showTab("status") },
-  { group: "Knowledge Brain", label: "Connect a website", icon: "plus", keywords: "sitemap source add", run: () => { showTab("status"); setTimeout(() => $("#src-urls").focus(), 50); } },
-  { group: "Knowledge Brain", label: "Run refresh now", icon: "view", keywords: "crawl update", run: () => { showTab("status"); setTimeout(() => $("#status-panel").scrollIntoView({ block: "start" }), 50); } },
+  { group: "Knowledge Brain", label: "Knowledge panel", icon: "view", keywords: "sources status pages passages", run: () => { showTab("ask"); setKp(true); } },
+  { group: "Knowledge Brain", label: "Add a website", icon: "plus", keywords: "sitemap source connect", run: () => openSheet("connect") },
+  { group: "Knowledge Brain", label: "Status & refresh", icon: "view", keywords: "crawl update run refresh now", run: () => openSheet("status") },
+  { group: "Knowledge Brain", label: "Self-maintained prompts", icon: "view", keywords: "rewrite tune", run: () => openSheet("prompts") },
+  { group: "Knowledge Brain", label: "Refresh runs", icon: "view", keywords: "crawl log fetched", run: () => openSheet("runs") },
+  { group: "Knowledge Brain", label: "URL health", icon: "view", keywords: "404 301 broken moved", run: () => openSheet("health") },
+  { group: "Knowledge Brain", label: "Archived KB", icon: "view", keywords: "archive restore", run: () => openSheet("archive") },
+  { group: "Knowledge Brain", label: "Duplicates & history", icon: "view", keywords: "changes duplicate", run: () => openSheet("changes") },
 ]);
 
 // Expert queue
@@ -1582,10 +1801,10 @@ async function stopCrawl(btn) {
   catch (err) { suite.toast(err.status === 409 ? "Nothing is running." : err.status === 401 ? `${err.message} Sign in to stop a crawl.` : err.message, 4000); btn.disabled = false; }
   loadStatus();
 }
-for (const id of ["#runbar", "#src-crawl"]) $(id).addEventListener("click", (e) => { const b = e.target.closest("[data-stop]"); if (b) stopCrawl(b); });
+for (const id of ["#runbar", "#src-crawl", "#connect-crawl"]) $(id).addEventListener("click", (e) => { const b = e.target.closest("[data-stop]"); if (b) stopCrawl(b); });
 async function loadStatus() {
   let s;
-  if (!wasRunning) { loadSources(); loadRuns(); loadHealth(); loadArchive(); loadChanges(); loadPrompts(); }
+  if (!wasRunning) loadSources();
   try { s = await api("/ingestion/status"); } catch { return; }
   const c = s.counts;
   const stat = (v, label, title = "") => `<div class="stat" title="${esc(title)}"><b>${typeof v === "number" ? v.toLocaleString() : v}</b><span>${label}</span></div>`;
@@ -1605,7 +1824,8 @@ async function loadStatus() {
   // The running crawl, with a Stop button: shown under Knowledge status and, for a
   // sitemap just confirmed, under "Connect a website" too.
   const bar = crawlBar(s);
-  for (const id of ["#runbar", "#src-crawl"]) {
+  renderKp(s);
+  for (const id of ["#runbar", "#src-crawl", "#connect-crawl"]) {
     const el = $(id);
     el.hidden = !bar; el.classList.toggle("stopping", Boolean(s.refresh_stopping));
     if (bar) el.innerHTML = bar;
@@ -1627,7 +1847,7 @@ async function loadStatus() {
     : s.last_run ? `Last crawl finished ${s.last_run.finished_at} UTC.` : "";
   if (s.next_scheduled_refresh) $("#refresh-meta").textContent += ` Next automatic refresh ${s.next_scheduled_refresh.replace("T", " ").replace("+00:00", "")} UTC.`;
   if (s.refresh_running) setTimeout(() => { loadStatus(); }, 3000);
-  else if (wasRunning) { wasRunning = false; loadSources(); loadRuns(); loadHealth(); loadArchive(); loadChanges(); }
+  else if (wasRunning) { wasRunning = false; loadSources(); if (sheetPane) loadPane(sheetPane); }
   if (s.refresh_running) wasRunning = true;
 }
 // Refresh runs: first and last fetch, totals, and every fetched URL.
@@ -1826,17 +2046,17 @@ async function loadSources() {
   let s;
   try { s = await api("/sitemaps"); } catch { return; }
   recheckChoices = s.recheck_choices || recheckChoices;
-  const row = (url, title, meta, tail, extra = "") => `<div class="src"><span class="src-icon">${actIcon("globe")}</span><div><div class="src-title">${esc(title)}${tail}</div><div class="u">${esc(url)}</div><div class="src-metrics">${meta}</div>${extra}</div></div>`;
+  const row = (url, title, meta, tail, extra = "") => `<div class="ksrc"><div class="ksrc-head"><span class="ksrc-ic">${actIcon("globe")}</span><div class="ksrc-t"><b>${esc(title)}</b><span class="u" title="${esc(url)}">${esc(url)}</span></div>${tail}</div><div class="ksrc-m">${meta}</div>${extra}</div>`;
   const nested = (sum) => sum && sum.children && sum.children.length ? `<details style="margin-top:6px"><summary>${sum.children.length} nested sitemap${sum.children.length > 1 ? "s" : ""} · first ${esc(sum.first || "")}${sum.last && sum.last !== sum.first ? ` · last ${esc(sum.last)}` : ""}</summary>${childTable(sum.children)}</details>` : "";
   const b = s.builtin;
-  $("#src-count").textContent = `${s.custom.length} / ${s.max_custom} custom sources`;
-  $("#sources").innerHTML = row(b.url, "Brilliant Directories", `<strong>${b.pages_indexed.toLocaleString()}</strong> pages indexed · Help center`, `<span class="badge">Built in</span>`,
-      `<div class="src-sched">Re-check ${schedSelect('data-sched="help-center"', b.recheck_days)} · next check ${day(b.next_check_at)}</div>`)
+  $("#src-count").textContent = `${s.custom.length} of ${s.max_custom} websites added`;
+  $("#sources").innerHTML = row(b.url, "Brilliant Directories", `<strong>${b.pages_indexed.toLocaleString()}</strong> pages · articles and screenshots`, `<span class="badge">Built in</span>`,
+      `<div class="src-sched">Re-check ${schedSelect('data-sched="help-center"', b.recheck_days)} <span>${b.next_check_at ? `next ${day(b.next_check_at)}` : "next refresh"}</span></div>`)
     + s.custom.map((c) => row(c.url, new URL(c.url).hostname,
-      `${c.kind === "sitemapindex" ? "Sitemap index" : "Sitemap"} · <strong>${c.url_count.toLocaleString()}</strong> pages listed · <strong>${c.pages_indexed.toLocaleString()}</strong> indexed${c.listed_elsewhere ? ` · ${c.listed_elsewhere} also in another sitemap` : ""}`
+      `<strong>${c.pages_indexed.toLocaleString()}</strong> of ${c.url_count.toLocaleString()} pages · ${c.kind === "sitemapindex" ? "sitemap index" : "sitemap"}${c.listed_elsewhere ? ` · ${c.listed_elsewhere} also in another sitemap` : ""}`
       + (c.last_error ? ` · <span style="color:var(--warn)">${esc(c.last_error)}</span>` : ""),
-      `<span><button class="btn ghost small" data-crawl="${c.id}">Crawl now</button><button class="btn ghost small" data-rm="${c.id}" data-url="${esc(c.url)}">Remove</button></span>`,
-      `<div class="src-sched">Re-check ${schedSelect(`data-sched="${c.id}"`, c.recheck_days)} · next check ${day(c.next_check_at)}</div>${nested(c.summary)}`)).join("");
+      `<span class="ksrc-act"><button class="kp-ic" type="button" data-crawl="${c.id}" title="Crawl now" aria-label="Crawl ${esc(new URL(c.url).hostname)} now">${REFRESH_SVG}</button><button class="kp-ic" type="button" data-rm="${c.id}" data-url="${esc(c.url)}" title="Remove" aria-label="Remove ${esc(new URL(c.url).hostname)}">${TRASH_SVG}</button></span>`,
+      `<div class="src-sched">Re-check ${schedSelect(`data-sched="${c.id}"`, c.recheck_days)} <span>${c.next_check_at ? `next ${day(c.next_check_at)}` : "next refresh"}</span></div>${nested(c.summary)}`)).join("");
   $("#sources").querySelectorAll("[data-sched]").forEach((sel) => sel.onchange = async () => {
     const id = sel.dataset.sched;
     try {
@@ -1892,7 +2112,7 @@ function renderPreview(previews) {
       act.finish();
       const added = new Set(r.results.filter((x) => x.ok).map((x) => x.input));
       $("#src-urls").value = srcLines().filter((l) => !added.has(l)).join("\n");
-      if (added.size) suite.toast(ingest ? "Added. Crawling now: you can stop it below." : "Added. Crawled at its next check.", 4500);
+      if (added.size) suite.toast(ingest ? "Added. Crawling now: progress and Stop are in the Knowledge panel." : "Added. Crawled at its next check.", 4500);
       loadSources(); loadStatus();
     } catch (err) {
       act.step({ icon: "error", text: "Stopped", detail: err.message }); act.finish();
@@ -2036,8 +2256,11 @@ $("#refresh-btn").addEventListener("click", async () => {
   $("#s-right").innerHTML = h ? `<span class="badge ok">${h.articles.toLocaleString()} articles indexed</span>` : "";
   fitComposer(); qBox.focus();
   const start = location.hash.slice(1);
-  if (["queue", "status"].includes(start)) showTab(start);
-  loadQueueCount(); loadHistory();
+  if (start === "queue") showTab("queue");
+  else if (start === "status" || start === "knowledge") setKp(true);
+  else if (start === "add-source") openSheet("connect");
+  else if (start.startsWith("manage-")) openSheet(start.slice(7));
+  loadQueueCount(); loadHistory(); loadStatus();
   const handed = new URLSearchParams(location.search).get("q");
   if (handed) { history.replaceState(null, "", location.pathname + location.hash); ask(handed); }
 })();
