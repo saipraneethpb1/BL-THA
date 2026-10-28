@@ -8,6 +8,8 @@ stored, so a crashed run simply picks up the remaining `pending`/`failed` rows.
 import asyncio
 import json
 import logging
+from collections import deque
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from urllib.parse import urljoin
@@ -45,6 +47,9 @@ class IngestionReport:
     fetched: int = 0
     content_changed: int = 0
     failed: int = 0
+    # Pages left for the next run because someone pressed Stop (0 when the run finished).
+    skipped: int = 0
+    stopped: bool = False
 
     def as_dict(self) -> dict[str, int]:
         return asdict(self)
@@ -595,9 +600,14 @@ async def run_ingestion(
     resolver: Resolver | None = None,
     sources: set[str] | None = None,
     scheduled: bool = False,
+    should_stop: Callable[[], bool] | None = None,
 ) -> IngestionReport:
     """`sources`: check only these (a sitemap just confirmed). `scheduled`: check only the
-    sources that are due (the daily job). Neither: check everything ("Run refresh now")."""
+    sources that are due (the daily job). Neither: check everything ("Run refresh now").
+
+    `should_stop`: asked before each page is started. Once it says yes, no new page is
+    fetched, but every page already in progress is finished and stored with its passages,
+    so nothing is left half-written. The pages not reached stay pending for the next run."""
     await init_db(settings.db_path)
     headers = {"User-Agent": settings.user_agent}
     guard = HostGuard(resolver or system_resolver)
@@ -681,26 +691,37 @@ async def run_ingestion(
         await db.commit()
 
         db_lock = asyncio.Lock()
-        try:
-            await asyncio.gather(
-                *(
-                    _process_one(
-                        db,
-                        db_lock,
-                        web_fetcher if r["kind"] == "web" else fetcher,
-                        r["article_id"],
-                        r["url"],
-                        r["lastmod"],
-                        report,
-                        r["kind"],
-                        r["source"],
-                        hs,
-                        fetched_ids,
-                    )
-                    for r in todo
+        queue = deque(todo)
+        stop = should_stop or (lambda: False)
+
+        async def worker() -> None:
+            # Each page is taken only when a worker is free, so a stop takes effect at the
+            # next page boundary; the fetchers still keep each site's pace polite.
+            while queue and not stop():
+                r = queue.popleft()
+                await _process_one(
+                    db,
+                    db_lock,
+                    web_fetcher if r["kind"] == "web" else fetcher,
+                    r["article_id"],
+                    r["url"],
+                    r["lastmod"],
+                    report,
+                    r["kind"],
+                    r["source"],
+                    hs,
+                    fetched_ids,
                 )
-            )
-            if limit is None:  # partial runs skip health checks
+
+        try:
+            # Two fetchers (help center, custom sites), each with its own concurrency cap.
+            workers = min(len(todo), 2 * settings.max_concurrency)
+            await asyncio.gather(*(worker() for _ in range(workers)))
+            report.skipped = len(queue)
+            report.stopped = stop()
+            if report.stopped:
+                log.info("stopped: %d pages left pending for the next run", report.skipped)
+            if limit is None and not report.stopped:  # partial runs skip health checks
                 await _health_checks(
                     db,
                     db_lock,
@@ -710,7 +731,7 @@ async def run_ingestion(
                     absent,
                     fetched_ids,
                 )
-            status, error = "finished", None
+            status, error = ("stopped" if report.stopped else "finished"), None
         except BaseException as exc:  # record crashes (incl. Ctrl+C) before re-raising
             status, error = "crashed", repr(exc)
             raise

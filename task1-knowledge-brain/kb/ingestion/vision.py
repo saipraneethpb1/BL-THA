@@ -9,6 +9,7 @@
 
 import asyncio
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, Protocol
@@ -122,7 +123,9 @@ async def describe_pending_images(
     limit: int | None = None,
     concurrency: int = 4,
     retry_failed: bool = False,
+    should_stop: Callable[[], bool] | None = None,
 ) -> VisionReport:
+    """`should_stop`: checked before each screenshot; one already being described finishes."""
     report = VisionReport(model=describer.model)
 
     # 1. Reuse: copy descriptions to rows whose image URL was already described elsewhere.
@@ -163,6 +166,8 @@ async def describe_pending_images(
 
     async def run(job: ImageJob) -> None:
         async with sem:
+            if should_stop is not None and should_stop():
+                return  # left undescribed: picked up by the next refresh
             try:
                 result = await describer.describe(job)
             except (anthropic.APIError, ValueError) as exc:

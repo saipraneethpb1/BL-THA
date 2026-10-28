@@ -214,6 +214,9 @@ class IngestionStatus(BaseModel):
     open_escalations: int
     answering_enabled: bool
     refresh_running: bool
+    refresh_stopping: bool = Field(
+        False, description="Stop was pressed; finishing the pages in progress, then indexing"
+    )
     last_refresh: dict[str, Any] | None
     seeded_from: str
     next_scheduled_refresh: str | None
@@ -1040,6 +1043,7 @@ async def ingestion_status(request: Request) -> IngestionStatus:
         open_escalations=stats["open_esc"],
         answering_enabled=request.app.state.answerer is not None,
         refresh_running=refresher.running,
+        refresh_stopping=refresher.stopping,
         last_refresh=asdict(refresher.last) if refresher.last else None,
         next_scheduled_refresh=next_run,
         seeded_from=getattr(request.app.state, "seed", "unknown"),
@@ -1056,6 +1060,17 @@ async def run_refresh(request: Request) -> dict[str, str]:
         raise HTTPException(409, "a refresh is already running")
     request.app.state.refresh_task = asyncio.create_task(refresher.run(trigger="manual"))
     return {"status": "started"}
+
+
+@app.post("/ingestion/stop", status_code=202, dependencies=[Protected, SignedIn])
+async def stop_refresh(request: Request) -> dict[str, str]:
+    """Stop the running refresh or sitemap crawl at the next safe point: pages being fetched
+    are finished and stored with their passages, no new page starts, and the finished pages
+    are indexed. The rest stay pending for the next refresh. Sources added are kept."""
+    refresher: Refresher = request.app.state.refresher
+    if not refresher.stop():
+        raise HTTPException(409, "nothing is running")
+    return {"status": "stopping"}
 
 
 @app.get("/", include_in_schema=False)

@@ -394,7 +394,16 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
   .pv-confirm select { width: auto; }
   .src-sched { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); margin-top: 6px; flex-wrap: wrap; }
   .src-sched select { width: auto; padding: 3px 8px; font-size: 12px; }
-  .runbar { margin-top: 12px; } .runbar .track { height: 8px; border-radius: 4px; background: var(--panel-2); overflow: hidden; margin-top: 6px; }
+  .runbar { margin-top: 12px; }
+  #src-crawl { margin-top: 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--sunken); }
+  .runbar .run-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .runbar .run-row .spinner { display: inline-block; }
+  .runbar .run-row .spacer { flex: 1; }
+  .runbar .run-note { margin-top: 6px; font-size: 12px; color: var(--muted); }
+  .btn.stop { background: none; color: var(--err); border: 1px solid color-mix(in srgb, var(--err) 40%, transparent); padding: 3px 10px; font-size: 12.5px; }
+  .btn.stop:hover { background: var(--err-bg); opacity: 1; }
+  .btn.stop svg { width: 12px; height: 12px; }
+  .runbar.stopping .track span { background: var(--warn); } .runbar .track { height: 8px; border-radius: 4px; background: var(--panel-2); overflow: hidden; margin-top: 6px; }
   .runbar .track span { display: block; height: 100%; background: var(--accent); transition: width .4s; }
   .presets { display: inline-flex; gap: 4px; margin-top: 6px; } .presets button { border: 1px solid var(--line-strong); background: var(--bg); color: var(--text); border-radius: 999px; padding: 3px 12px; font: inherit; font-size: 12.5px; cursor: pointer; }
   .presets button[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--bg)); font-weight: 650; }
@@ -744,6 +753,7 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
             <div class="source-submit-row"><button class="btn source-action" id="src-add" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7l8-4Z"/><path d="m8 12 3 3 5-6"/></svg><span id="src-add-label">Check & preview</span></button><span class="meta" id="src-meta" role="status"></span></div>
           </form>
           <div id="src-activity"></div>
+          <div id="src-crawl" class="runbar" hidden></div>
         </div>
       </div>
       <div id="src-preview" class="src-preview-wide"></div>
@@ -1550,6 +1560,29 @@ async function loadQueue() {
 
 // Status
 let wasRunning = false;
+let sawRun = false, stopNote = null, stopDismissed = null;
+const STOP_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
+function crawlBar(s) {
+  if (!s.refresh_running) return "";
+  const run = s.current_run;
+  const which = run?.sources ? run.sources.map((x) => x === "help-center" ? "the help center" : new URL(x).hostname).join(", ") : "all sources";
+  const pct = run && run.planned ? Math.min(100, Math.round((run.done / run.planned) * 100)) : 0;
+  const what = s.refresh_stopping
+    ? `Stopping: finishing the pages in progress, then indexing what's done`
+    : run && run.planned ? `Crawling ${esc(which)}: <b>${run.done.toLocaleString()}</b> of ${run.planned.toLocaleString()} pages`
+    : `Reading sitemaps (${esc(which)})… then fetching and embedding.`;
+  const stop = s.refresh_stopping ? "" : `<button class="btn stop" type="button" data-stop title="Stop after the pages in progress">${STOP_ICON}Stop</button>`;
+  return `<div class="run-row"><span class="spinner"></span><span>${what}</span><span class="spacer"></span>${run && run.planned ? `<span class="meta">${pct}%</span>` : ""}${stop}</div>
+    ${run && run.planned ? `<div class="track"><span style="width:${pct}%"></span></div>` : ""}
+    <div class="run-note">${s.refresh_stopping ? "No new page is started. Pages already stored keep their passages and are searchable." : "Stopping is safe: a page is never left half-stored, and the rest are crawled at the next refresh."}</div>`;
+}
+async function stopCrawl(btn) {
+  btn.disabled = true;
+  try { await api("/ingestion/stop", { method: "POST" }); suite.toast("Stopping after the pages in progress…"); }
+  catch (err) { suite.toast(err.status === 409 ? "Nothing is running." : err.status === 401 ? `${err.message} Sign in to stop a crawl.` : err.message, 4000); btn.disabled = false; }
+  loadStatus();
+}
+for (const id of ["#runbar", "#src-crawl"]) $(id).addEventListener("click", (e) => { const b = e.target.closest("[data-stop]"); if (b) stopCrawl(b); });
 async function loadStatus() {
   let s;
   if (!wasRunning) { loadSources(); loadRuns(); loadHealth(); loadArchive(); loadChanges(); loadPrompts(); }
@@ -1569,18 +1602,27 @@ async function loadStatus() {
     stat(`${s.images_described.toLocaleString()} / ${s.images_total.toLocaleString()}`, "screenshots described"),
     stat(s.open_escalations, "open expert tasks"),
   ].join("");
-  const run = s.current_run;
-  $("#runbar").hidden = !s.refresh_running;
-  if (s.refresh_running) {
-    const pct = run && run.planned ? Math.min(100, Math.round((run.done / run.planned) * 100)) : 0;
-    const which = run?.sources ? run.sources.map((x) => x === "help-center" ? "the help center" : new URL(x).hostname).join(", ") : "all sources";
-    $("#runbar").innerHTML = run && run.planned
-      ? `<div class="row" style="margin:0;justify-content:space-between"><span><span class="spinner" style="display:inline-block;vertical-align:-3px;margin-right:8px"></span>Crawling ${esc(which)}: <b>${run.done.toLocaleString()}</b> of ${run.planned.toLocaleString()} pages</span><span class="meta">${pct}%</span></div><div class="track"><span style="width:${pct}%"></span></div>`
-      : `<span class="spinner" style="display:inline-block;vertical-align:-3px;margin-right:8px"></span>Reading sitemaps (${esc(which)})… then fetching and embedding.`;
+  // The running crawl, with a Stop button: shown under Knowledge status and, for a
+  // sitemap just confirmed, under "Connect a website" too.
+  const bar = crawlBar(s);
+  for (const id of ["#runbar", "#src-crawl"]) {
+    const el = $(id);
+    el.hidden = !bar; el.classList.toggle("stopping", Boolean(s.refresh_stopping));
+    if (bar) el.innerHTML = bar;
+  }
+  // After a stop seen on this page (not one from an earlier visit): what was kept.
+  if (s.refresh_running) sawRun = true;
+  else if (sawRun && s.last_refresh?.status === "stopped") stopNote = s.last_refresh;
+  if (!bar && stopNote && stopNote.finished_at !== stopDismissed) {
+    const ing = stopNote.ingestion || {};
+    $("#src-crawl").hidden = false;
+    $("#src-crawl").innerHTML = `<div class="run-row"><span class="badge warn">Stopped</span><span><b>${(ing.fetched ?? 0).toLocaleString()}</b> pages stored and searchable · <b>${(ing.skipped ?? 0).toLocaleString()}</b> left for the next refresh</span><span class="spacer"></span><button class="btn ghost small" type="button" data-dismiss>Dismiss</button></div>`;
+    $("#src-crawl [data-dismiss]").onclick = () => { stopDismissed = stopNote.finished_at; $("#src-crawl").hidden = true; };
   }
   const last = s.last_refresh;
   $("#refresh-btn").disabled = s.refresh_running;
-  $("#refresh-meta").textContent = s.refresh_running ? "Refresh running…"
+  $("#refresh-meta").textContent = s.refresh_running ? (s.refresh_stopping ? "Stopping…" : "Refresh running…")
+    : last?.status === "stopped" ? `Last refresh stopped at ${(last.finished_at || last.started_at).replace("T", " ").replace("+00:00", "")} UTC: ${last.ingestion.fetched ?? 0} pages stored, ${last.ingestion.skipped ?? 0} left for the next refresh.`
     : last ? `Last refresh ${last.status} at ${(last.finished_at || last.started_at).replace("T", " ").replace("+00:00", "")} UTC: ${last.ingestion.new ?? 0} new, ${last.ingestion.changed ?? 0} changed, ${last.ingestion.removed ?? 0} missing from their sitemap (checked, not archived on sight).`
     : s.last_run ? `Last crawl finished ${s.last_run.finished_at} UTC.` : "";
   if (s.next_scheduled_refresh) $("#refresh-meta").textContent += ` Next automatic refresh ${s.next_scheduled_refresh.replace("T", " ").replace("+00:00", "")} UTC.`;
@@ -1850,7 +1892,7 @@ function renderPreview(previews) {
       act.finish();
       const added = new Set(r.results.filter((x) => x.ok).map((x) => x.input));
       $("#src-urls").value = srcLines().filter((l) => !added.has(l)).join("\n");
-      if (added.size) suite.toast(ingest ? "Added. Crawling now: progress shows under Knowledge status." : "Added. Crawled at its next check.", 4500);
+      if (added.size) suite.toast(ingest ? "Added. Crawling now: you can stop it below." : "Added. Crawled at its next check.", 4500);
       loadSources(); loadStatus();
     } catch (err) {
       act.step({ icon: "error", text: "Stopped", detail: err.message }); act.finish();
