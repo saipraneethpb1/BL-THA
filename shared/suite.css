@@ -3,38 +3,36 @@
 
    Layout: a narrow agent rail on the left (a top bar on phones), the page fills the rest.
    Theme: suite-head.js always sets data-theme on <html> (saved choice, else the system). */
+/* Palette: warm neutrals (cream #F4F3EE, white, stone #B1ADA1) with one blue accent
+   (#3480eb), used by all three agents; they're told apart by their icons. */
 :root {
-  --bg: #fafaf9; --panel: #ffffff; --panel-2: #f3f3f2; --sunken: #f6f6f5; --text: #18181b; --muted: #6b6b70; --faint: #a1a1a6;
-  --line: #e9e9e7; --line-strong: #d9d9d6; --rail: #f3f3f1;
-  --shadow: 0 1px 2px rgba(16, 16, 20, .04), 0 1px 1px rgba(16, 16, 20, .02);
-  --shadow-lg: 0 24px 64px -12px rgba(16, 16, 20, .22), 0 0 0 1px rgba(16, 16, 20, .06);
-  --ok-bg: #e6f4ea; --ok: #18794e; --warn-bg: #fbf0dc; --warn: #8a5300;
-  --info-bg: #e8eefc; --info: #2d4fb3; --err-bg: #fce8e6; --err: #b42318;
-  --kb: #6a54d6; --inbox: #2f6fdf; --scope: #c26a12;
-  --primary: #18181b; --on-primary: #ffffff;
+  --bg: #f4f3ee; --panel: #ffffff; --panel-2: #eceae3; --sunken: #f9f8f5; --text: #1f1e1b; --muted: #6b675f; --faint: #b1ada1;
+  --line: #e4e2da; --line-strong: #d4d1c7; --rail: #ebe9e2;
+  --shadow: 0 1px 2px rgba(60, 50, 30, .05), 0 1px 1px rgba(60, 50, 30, .03);
+  --shadow-lg: 0 24px 64px -12px rgba(60, 50, 30, .22), 0 0 0 1px rgba(60, 50, 30, .07);
+  --ok-bg: #e5f2e7; --ok: #1f7a45; --warn-bg: #f7edd8; --warn: #8a5a0a;
+  --info-bg: #e3edfc; --info: #2a63bf; --err-bg: #f8e5e1; --err: #b23a26;
+  --brand: #3480eb; --kb: var(--brand); --inbox: var(--brand); --scope: var(--brand);
+  --primary: #3480eb; --on-primary: #ffffff;
   --radius: 12px; --radius-sm: 8px;
   --font: "Inter", "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, system-ui, -apple-system, Roboto, sans-serif;
   --mono: "JetBrains Mono", "Cascadia Code", "SF Mono", ui-monospace, Consolas, monospace;
   --rail-w: 72px; --top-h: 0px; --bottom-h: 0px;
   color-scheme: light;
 }
-/* Dark: a quiet near-black like Cursor's, with low-contrast borders and soft text. */
+/* Dark: the same warm hue taken down to charcoal, cream text, and the blue lifted a touch. */
 :root[data-theme="dark"] {
-  --bg: #0e0e0f; --panel: #151516; --panel-2: #1c1c1e; --sunken: #111112; --text: #e8e8ea; --muted: #8e8e93; --faint: #5a5a5f;
-  --line: #222224; --line-strong: #2e2e31; --rail: #0a0a0b;
-  --shadow: 0 0 0 1px rgba(255, 255, 255, .015);
-  --shadow-lg: 0 24px 80px -8px rgba(0, 0, 0, .7), 0 0 0 1px rgba(255, 255, 255, .06);
-  --ok-bg: #102419; --ok: #5fd08f; --warn-bg: #261d0e; --warn: #e6b45e;
-  --info-bg: #121b30; --info: #8eaeff; --err-bg: #2a1413; --err: #f38b80;
-  --kb: #a898ff; --inbox: #6ea8ff; --scope: #f0a45c;
-  --primary: #ececee; --on-primary: #0e0e0f;
+  --bg: #262624; --panel: #30302e; --panel-2: #3a3936; --sunken: #2b2a28; --text: #f4f3ee; --muted: #b1ada1; --faint: #7d796f;
+  --line: #3b3a37; --line-strong: #4a4945; --rail: #1f1e1d;
+  --shadow: 0 0 0 1px rgba(255, 250, 240, .02);
+  --shadow-lg: 0 24px 80px -8px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 250, 240, .07);
+  --ok-bg: #1f3326; --ok: #7fcf98; --warn-bg: #3a3020; --warn: #e5bd6e;
+  --info-bg: #22324a; --info: #9cc1f7; --err-bg: #3d2522; --err: #f0998a;
+  --brand: #4d8ff0; --kb: var(--brand); --inbox: var(--brand); --scope: var(--brand);
+  --primary: #3480eb; --on-primary: #ffffff;
   color-scheme: dark;
 }
-:root { --accent: var(--inbox); }
-body[data-app="kb"] { --accent: var(--kb); }
-body[data-app="inbox"] { --accent: var(--inbox); }
-body[data-app="scope"] { --accent: var(--scope); }
-body[data-app="hub"] { --accent: var(--kb); }
+:root { --accent: var(--brand); }
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
