@@ -40,7 +40,7 @@
   --shadow-lg: 0 24px 64px -12px rgba(16, 16, 20, .22), 0 0 0 1px rgba(16, 16, 20, .06);
   --ok-bg: #e6f4ea; --ok: #18794e; --warn-bg: #fbf0dc; --warn: #8a5300;
   --info-bg: #e8eefc; --info: #2d4fb3; --err-bg: #fce8e6; --err: #b42318;
-  --kb: #0f9d87; --inbox: #5b5fe0; --scope: #c26a12;
+  --kb: #6a54d6; --inbox: #2f6fdf; --scope: #c26a12;
   --primary: #18181b; --on-primary: #ffffff;
   --radius: 12px; --radius-sm: 8px;
   --font: "Inter", "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, system-ui, -apple-system, Roboto, sans-serif;
@@ -56,7 +56,7 @@
   --shadow-lg: 0 24px 80px -8px rgba(0, 0, 0, .7), 0 0 0 1px rgba(255, 255, 255, .06);
   --ok-bg: #102419; --ok: #5fd08f; --warn-bg: #261d0e; --warn: #e6b45e;
   --info-bg: #121b30; --info: #8eaeff; --err-bg: #2a1413; --err: #f38b80;
-  --kb: #3fd2b9; --inbox: #8f94ff; --scope: #f0a45c;
+  --kb: #a898ff; --inbox: #6ea8ff; --scope: #f0a45c;
   --primary: #ececee; --on-primary: #0e0e0f;
   color-scheme: dark;
 }
@@ -297,6 +297,21 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
   @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
   .side { position: sticky; top: calc(var(--top-h) + 16px); }
   @media (max-width: 900px) { .side { position: static; } }
+  /* Wide screens: fill the window beside the rail, like the other agents. A slim header,
+     the projects as a side panel, and the project itself scrolling on its own. */
+  @media (min-width: 901px) {
+    body[data-app="scope"] { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+    body[data-app="scope"] .app-head { max-width: none; margin: 0; padding: 0 20px; height: 52px; flex: none; flex-wrap: nowrap; align-items: center; border-bottom: 1px solid var(--line); }
+    body[data-app="scope"] .app-head > div:first-child { display: flex; align-items: baseline; gap: 14px; min-width: 0; }
+    body[data-app="scope"] .app-title { font-size: 15px; white-space: nowrap; }
+    body[data-app="scope"] .app-sub { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
+    body[data-app="scope"] main.wrap { max-width: none; margin: 0; padding: 0; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    body[data-app="scope"] #banner { margin: 12px 20px 0; }
+    body[data-app="scope"] .layout { flex: 1; min-height: 0; gap: 0; grid-template-columns: 300px minmax(0, 1fr); align-items: stretch; }
+    body[data-app="scope"] .side { position: static; overflow: auto; background: var(--sunken); border-right: 1px solid var(--line); }
+    body[data-app="scope"] .side > .panel { border: 0; border-radius: 0; background: none; box-shadow: none; padding: 16px; }
+    body[data-app="scope"] #main { overflow: auto; padding: 20px 24px 40px; }
+  }
   .proj { display: block; width: 100%; text-align: left; background: none; border: 0; border-radius: 9px; padding: 9px 10px; cursor: pointer; font: inherit; color: inherit; }
   .proj:hover { background: var(--panel-2); }
   .proj.sel { background: color-mix(in srgb, var(--accent) 12%, var(--panel)); }

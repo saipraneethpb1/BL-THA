@@ -40,7 +40,7 @@
   --shadow-lg: 0 24px 64px -12px rgba(16, 16, 20, .22), 0 0 0 1px rgba(16, 16, 20, .06);
   --ok-bg: #e6f4ea; --ok: #18794e; --warn-bg: #fbf0dc; --warn: #8a5300;
   --info-bg: #e8eefc; --info: #2d4fb3; --err-bg: #fce8e6; --err: #b42318;
-  --kb: #0f9d87; --inbox: #5b5fe0; --scope: #c26a12;
+  --kb: #6a54d6; --inbox: #2f6fdf; --scope: #c26a12;
   --primary: #18181b; --on-primary: #ffffff;
   --radius: 12px; --radius-sm: 8px;
   --font: "Inter", "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, system-ui, -apple-system, Roboto, sans-serif;
@@ -56,7 +56,7 @@
   --shadow-lg: 0 24px 80px -8px rgba(0, 0, 0, .7), 0 0 0 1px rgba(255, 255, 255, .06);
   --ok-bg: #102419; --ok: #5fd08f; --warn-bg: #261d0e; --warn: #e6b45e;
   --info-bg: #121b30; --info: #8eaeff; --err-bg: #2a1413; --err: #f38b80;
-  --kb: #3fd2b9; --inbox: #8f94ff; --scope: #f0a45c;
+  --kb: #a898ff; --inbox: #6ea8ff; --scope: #f0a45c;
   --primary: #ececee; --on-primary: #0e0e0f;
   color-scheme: dark;
 }
@@ -300,9 +300,11 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --p-support: #8ab4f8; --p-account: #fdd663; --p-sales: #81c995; --p-care: #f28b82; --p-other: #9aa0a6; } }
   :root[data-theme="dark"] { --p-support: #8ab4f8; --p-account: #fdd663; --p-sales: #81c995; --p-care: #f28b82; --p-other: #9aa0a6; }
 
-  .gm { max-width: 1480px; margin: 0 auto; padding: 10px 16px 0 8px; display: grid; grid-template-columns: 248px minmax(0, 1fr); gap: 8px;
-        height: calc(100vh - var(--top-h) - var(--bottom-h) - 12px); min-height: 520px; }
-  .gm-side { overflow: auto; padding-bottom: 16px; scrollbar-width: thin; }
+  /* Fills the window beside the rail, like the other agents: folders on the left, mail on the right. */
+  .gm { display: grid; grid-template-columns: 260px minmax(0, 1fr);
+        height: calc(100dvh - var(--top-h) - var(--bottom-h)); min-height: 480px; }
+  @media (min-width: 901px) { body[data-app="inbox"] { height: 100dvh; overflow: hidden; } }
+  .gm-side { overflow: auto; padding: 12px 8px 16px; scrollbar-width: thin; background: var(--sunken); border-right: 1px solid var(--line); }
   .gm-compose { display: inline-flex; align-items: center; gap: 12px; padding: 16px 24px 16px 18px; border-radius: 16px; border: 0; cursor: pointer;
                 background: color-mix(in srgb, var(--accent) 20%, var(--panel)); color: var(--text); font: inherit; font-weight: 600; margin: 0 0 14px 8px; box-shadow: var(--shadow); }
   .gm-compose:hover { box-shadow: 0 2px 6px rgba(0, 0, 0, .2); }
@@ -323,7 +325,7 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
   .ldot { width: 11px; height: 11px; border-radius: 3px; background: var(--c); flex: none; }
   .gm-nav .ldot.parent { border-radius: 50%; }
 
-  .gm-main { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; display: flex; flex-direction: column; min-width: 0; overflow: hidden; box-shadow: var(--shadow); }
+  .gm-main { background: var(--bg); display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
   .gm-top { display: flex; gap: 8px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--line); }
   .gm-search { flex: 1; max-width: 720px; position: relative; }
   .gm-search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); }
@@ -441,11 +443,11 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
   .gbtn:hover { background: var(--panel-2); }
   .gbtn svg { width: 16px; height: 16px; }
   @media (max-width: 900px) {
-    .gm { grid-template-columns: minmax(0, 1fr); height: auto; min-height: 0; padding: 8px 8px 0; }
+    .gm { grid-template-columns: minmax(0, 1fr); }
     .gm-side { display: none; position: fixed; inset: var(--top-h) auto var(--bottom-h) var(--rail-w); width: 270px; z-index: 40; background: var(--panel); border-right: 1px solid var(--line); box-shadow: 0 0 30px rgba(0, 0, 0, .3); padding-top: 12px; }
     .gm.side-open .gm-side { display: block; }
     .gm-menu { display: grid; }
-    .gm-main { min-height: calc(100vh - var(--top-h) - var(--bottom-h) - 16px); }
+    .gm-main { min-height: 0; }
     .gm-row { grid-template-columns: 12px minmax(0, 1fr) auto; grid-template-areas: "imp from date" ". mid mid" ". st st"; gap: 2px 10px; padding: 10px 12px; }
     .gm-row .st:empty { display: none; }
     .gm-thread, .gm-page { padding: 8px 12px 32px; }
