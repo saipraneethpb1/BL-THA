@@ -75,6 +75,7 @@ cd task1-knowledge-brain && uv run python -m kb.retrieval.cli index             
 cd task1-knowledge-brain && uv run uvicorn kb.api:app --port 8001
 cd task2-inbox-agent && npm start
 cd task3-meeting-to-scope && uv run uvicorn scope.api:app --port 8003
+python -m http.server 8000 -d deploy/site                                      # Home page (the rail's Home link)
 ```
 
 ## Layout
