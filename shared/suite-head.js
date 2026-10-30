@@ -1,8 +1,14 @@
 // Runs in <head> before the page draws, so a chosen theme never flashes the wrong colours.
+// With no saved choice the page follows the system setting, live.
 (function () {
   let t = "";
   try { t = (document.cookie.match(/(?:^|; )theme=(light|dark)/) || [])[1] || localStorage.getItem("theme") || ""; } catch {}
-  if (t) document.documentElement.dataset.theme = t;
+  const mq = matchMedia("(prefers-color-scheme: dark)");
+  document.documentElement.dataset.theme = t || (mq.matches ? "dark" : "light");
+  if (!t) mq.addEventListener?.("change", (e) => {
+    let saved = ""; try { saved = localStorage.getItem("theme") || ""; } catch {}
+    if (!saved && !/(?:^|; )theme=/.test(document.cookie)) document.documentElement.dataset.theme = e.matches ? "dark" : "light";
+  });
 })();
 // favicon: the badge (white disc) stays visible on any tab-strip colour.
 (function () {

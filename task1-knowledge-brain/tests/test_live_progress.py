@@ -122,3 +122,27 @@ def test_chat_history_is_kept_per_person_and_only_for_the_chat(client: TestClien
     assert client.get("/chat/history", headers=other).json()["items"] == []
     assert client.delete("/chat/history", headers=other).json() == {"cleared": 0}
     assert client.delete("/chat/history", headers=me).json() == {"cleared": 1}
+
+
+def test_chat_history_pages_keep_older_answers_accessible(client: TestClient) -> None:  # noqa: F811
+    api.app.state.answerer = FakeAnswerer()
+    me = {**H, "X-Chat-Id": "c" * 32}
+    ids = []
+    for question in ["first question", "second question", "third question"]:
+        result = events(client.post(
+            "/query/stream", json={"question": question, "caller": "chat-ui"}, headers=me
+        ))[-1]["done"]
+        ids.append(result["history_id"])
+    # Separate requests restore the persisted answer, including its citations.
+    first = client.get("/chat/history?limit=2", headers=me).json()
+    assert [h["id"] for h in first["items"]] == ids[:0:-1]
+    assert first["next_before"] == ids[1]
+    older = client.get(f"/chat/history?limit=2&before={first['next_before']}", headers=me).json()
+    assert [h["id"] for h in older["items"]] == ids[:1]
+    assert older["items"][0]["question"] == "first question"
+    assert "sources" in older["items"][0]["response"]
+    assert older["next_before"] is None
+    other = client.get(
+        f"/chat/history?before={ids[-1]}", headers={**H, "X-Chat-Id": "d" * 32}
+    ).json()
+    assert other["items"] == []

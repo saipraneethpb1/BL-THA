@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS ingestion_runs (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     started_at  TEXT NOT NULL DEFAULT (datetime('now')),
     finished_at TEXT,
-    status      TEXT NOT NULL DEFAULT 'running',  -- running | finished | crashed
+    status      TEXT NOT NULL DEFAULT 'running',  -- running | finished | stopped | crashed
     new         INTEGER NOT NULL DEFAULT 0,
     changed     INTEGER NOT NULL DEFAULT 0,
     removed     INTEGER NOT NULL DEFAULT 0,
