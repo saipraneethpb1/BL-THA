@@ -129,9 +129,11 @@ def test_chat_history_pages_keep_older_answers_accessible(client: TestClient) ->
     me = {**H, "X-Chat-Id": "c" * 32}
     ids = []
     for question in ["first question", "second question", "third question"]:
-        result = events(client.post(
-            "/query/stream", json={"question": question, "caller": "chat-ui"}, headers=me
-        ))[-1]["done"]
+        result = events(
+            client.post(
+                "/query/stream", json={"question": question, "caller": "chat-ui"}, headers=me
+            )
+        )[-1]["done"]
         ids.append(result["history_id"])
     # Separate requests restore the persisted answer, including its citations.
     first = client.get("/chat/history?limit=2", headers=me).json()
@@ -146,3 +148,39 @@ def test_chat_history_pages_keep_older_answers_accessible(client: TestClient) ->
         f"/chat/history?before={ids[-1]}", headers={**H, "X-Chat-Id": "d" * 32}
     ).json()
     assert other["items"] == []
+
+
+def test_followups_share_a_thread_and_receive_context(
+    client: TestClient,  # noqa: F811
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    api.app.state.answerer = FakeAnswerer()
+    me = {**H, "X-Chat-Id": "e" * 32}
+    ask = {"question": "How do member refunds work?", "caller": "chat-ui"}
+    first = events(client.post("/query/stream", json=ask, headers=me))[-1]["done"]
+    original = api.answer_question
+    questions = []
+
+    async def capture(*args: Any, **kwargs: Any) -> Any:
+        questions.append(args[3])
+        return await original(*args, **kwargs)
+
+    monkeypatch.setattr(api, "answer_question", capture)
+    reply = {
+        "question": "Can you explain that again?",
+        "caller": "chat-ui",
+        "thread_id": first["thread_id"],
+    }
+    second = events(client.post("/query/stream", json=reply, headers=me))[-1]["done"]
+    assert second["thread_id"] == first["thread_id"]
+    assert ask["question"] in questions[0] and reply["question"] in questions[0]
+    thread = client.get(f"/chat/history?thread_id={first['thread_id']}", headers=me).json()["items"]
+    assert [row["id"] for row in thread] == [second["history_id"], first["history_id"]]
+    other = {**H, "X-Chat-Id": "f" * 32}
+    assert (
+        client.get(f"/chat/history?thread_id={first['thread_id']}", headers=other).json()["items"]
+        == []
+    )
+    denied = events(client.post("/query/stream", json=reply, headers=other))[-1]
+    assert "error" in denied
+    assert len(questions) == 1

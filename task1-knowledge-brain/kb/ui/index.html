@@ -555,6 +555,13 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
   .kb-scrim { display: none; }
 
   /* ---- Ask: a threaded conversation with the composer pinned to the bottom ---- */
+  .turn.working .av { position: relative; animation: agent-breathe 1.6s ease-in-out infinite; }
+  .turn.working .av::after { content: ""; position: absolute; inset: -4px; border: 1.5px solid transparent; border-top-color: var(--kb); border-right-color: var(--kb); border-radius: 12px; animation: agent-orbit 1.8s linear infinite; }
+  .turn.working .av svg { animation: agent-spark 1.6s ease-in-out infinite; }
+  @keyframes agent-breathe { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--kb) 8%, transparent); } }
+  @keyframes agent-orbit { to { transform: rotate(360deg); } }
+  @keyframes agent-spark { 50% { opacity: .45; transform: scale(.85); } }
+  @media (prefers-reduced-motion: reduce) { .turn.working .av, .turn.working .av::after, .turn.working .av svg { animation: none; } }
   .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .chat-scroll { flex: 1; min-height: 0; overflow-y: auto; scroll-behavior: smooth; }
   .chat-col { max-width: 800px; margin: 0 auto; padding: 28px 24px 24px; }
@@ -1692,7 +1699,7 @@ function fitComposer() { qBox.style.height = "auto"; qBox.style.height = `${Math
 qBox.addEventListener("input", fitComposer);
 qBox.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("#ask-form").requestSubmit(); } });
 let busy = false;
-let visibleHistoryIds = [], threadRevision = 0;
+let visibleHistoryIds = [], threadRevision = 0, activeThreadId = null;
 function rememberThread() {
   threadRevision++;
   try { localStorage.setItem("kb-visible-history", JSON.stringify(visibleHistoryIds)); } catch {}
@@ -1708,7 +1715,7 @@ function newTurn(question) {
 }
 function newChat() {
   if (busy) return;
-  visibleHistoryIds = []; rememberThread();
+  visibleHistoryIds = []; activeThreadId = null; rememberThread();
   $("#thread").innerHTML = ""; $("#chat-empty").hidden = false;
   $("#history-list").querySelectorAll("[data-h]").forEach((x) => x.setAttribute("aria-current", "false"));
   showTab("ask"); qBox.value = ""; fitComposer(); qBox.focus();
@@ -1728,13 +1735,16 @@ $("#ask-form").addEventListener("submit", async (e) => {
   busy = true; qBox.value = ""; fitComposer();
   threadRevision++;
   const turn = newTurn(question), el = $(".body", turn);
+  turn.classList.add("working"); turn.setAttribute("aria-busy", "true");
   $(".answer-head", el).innerHTML = `<span class="badge info">Working</span>`;
   turn.scrollIntoView({ behavior: "smooth", block: "start" });
   const act = activity($(".act-wrap", el));
+  act.step({ icon: "search", text: "Searching knowledge", detail: "Finding evidence for your question" });
   try {
-    const r = await apiStream("/query/stream", { question, caller: "chat-ui" }, act.step);
+    const r = await apiStream("/query/stream", { question, caller: "chat-ui", thread_id: activeThreadId }, act.step);
     act.finish();
     renderAnswer(r, question, el);
+    activeThreadId = r.thread_id || activeThreadId || r.history_id;
     if (r.history_id) { visibleHistoryIds.push(r.history_id); rememberThread(); }
     else $("#history-note").textContent = "This answer could not be saved. Allow browser storage to keep guest history.";
     loadQueueCount(); loadHistory(r.history_id);
@@ -1744,7 +1754,7 @@ $("#ask-form").addEventListener("submit", async (e) => {
     $(".answer-head", el).innerHTML = `<span class="badge warn">Not answered</span>`;
     if (err.status === 503) showBanner("Answering is switched off: the Claude API key is not configured. The expert queue and status still work.", "info");
     else if (err.message !== "offline") showBanner(suite.friendlyError(err.message), err.status === 502 || err.status === 429 ? "warn" : "err");
-  } finally { busy = false; fitComposer(); qBox.focus(); window.dispatchEvent(new Event("suite:usage-changed")); }
+  } finally { turn.classList.remove("working"); turn.setAttribute("aria-busy", "false"); busy = false; fitComposer(); qBox.focus(); window.dispatchEvent(new Event("suite:usage-changed")); }
 });
 
 function renderAnswer(r, question, el) {
@@ -1767,6 +1777,22 @@ function renderAnswer(r, question, el) {
   el.querySelectorAll("[data-goto]").forEach((a) => a.onclick = (e) => { e.preventDefault(); showTab(a.dataset.goto); });
   $("[data-copy]", el).onclick = async () => { try { await navigator.clipboard.writeText(r.answer); suite.toast("Answer copied"); } catch { suite.toast("Couldn't copy here"); } };
   $("[data-again]", el).onclick = () => ask(question);
+}
+
+async function openConversation(h) {
+  if (busy) return;
+  const revision = ++threadRevision, id = h.thread_id || h.id;
+  let turns = [], cursor = null;
+  do {
+    const page = await api(`/chat/history?limit=200&thread_id=${id}${cursor ? `&before=${cursor}` : ""}`);
+    turns.push(...page.items); cursor = page.next_before;
+  } while (cursor);
+  if (busy || revision !== threadRevision) return;
+  activeThreadId = id;
+  visibleHistoryIds = turns.map((h) => h.id).reverse(); rememberThread();
+  showTab("ask"); $("#thread").innerHTML = "";
+  for (const h of turns.reverse()) renderAnswer(h.response, h.question, $(".body", newTurn(h.question)));
+  drawHistory(id);
 }
 
 // Chat history: this person's past questions, each reopening its full answer.
@@ -1798,7 +1824,9 @@ async function loadHistory(current, older = false, restore = false) {
       $("#chat-empty").hidden = !!turns.length;
       for (const h of turns) renderAnswer(h.response, h.question, $(".body", newTurn(h.question)));
       visibleHistoryIds = turns.map((h) => h.id);
+      activeThreadId = turns.at(-1)?.thread_id || turns.at(-1)?.id || null;
       current = visibleHistoryIds.at(-1);
+      if (turns.at(-1)?.thread_id) await openConversation(turns.at(-1));
     }
     $("#history-more").textContent = "Load older questions";
     $("#history-more").hidden = !historyCursor;
@@ -1821,22 +1849,18 @@ async function loadHistory(current, older = false, restore = false) {
 }
 function drawHistory(current) {
   const f = $("#history-filter").value.trim().toLowerCase();
-  const items = f ? historyItems.filter((h) => h.question.toLowerCase().includes(f)) : historyItems;
+  const matching = f ? historyItems.filter((h) => h.question.toLowerCase().includes(f)) : historyItems;
+  const items = [...new Map(matching.map((h) => [h.thread_id || h.id, h])).values()];
   const prev = $("#history-list [aria-current='true']")?.dataset.h;
   const cur = current ?? (prev ? Number(prev) : null);
   $("#history-list").innerHTML = items.length ? items.map((h) => {
     const [label, kind] = STATUS[h.response.status] || [h.response.status, ""];
-    return `<li><button type="button" data-h="${h.id}" aria-current="${h.id === cur}" title="${esc(h.question)}"><span class="q">${esc(h.question)}</span><span class="t"><i class="${kind}"></i>${esc(label)} · ${esc(new Date(h.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }))}</span></button></li>`;
+    return `<li><button type="button" data-h="${h.id}" aria-current="${(h.thread_id || h.id) === (activeThreadId || cur)}" title="${esc(h.question)}"><span class="q">${esc(h.question)}</span><span class="t"><i class="${kind}"></i>${esc(label)} · ${esc(new Date(h.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }))}</span></button></li>`;
   }).join("") : `<li class="hint">${f ? "No questions match." : "Questions you ask appear here."}</li>`;
-  $("#history-list").querySelectorAll("[data-h]").forEach((b) => b.onclick = () => {
+  $("#history-list").querySelectorAll("[data-h]").forEach((b) => b.onclick = async () => {
     const h = historyItems.find((x) => x.id === Number(b.dataset.h));
     if (!h || busy) return;
-    visibleHistoryIds = [h.id]; rememberThread();
-    showTab("ask");
-    $("#thread").innerHTML = "";
-    const turn = newTurn(h.question);
-    renderAnswer(h.response, h.question, $(".body", turn));
-    $("#history-list").querySelectorAll("[data-h]").forEach((x) => x.setAttribute("aria-current", String(x === b)));
+    try { await openConversation(h); } catch { showBanner("Could not open this conversation. Please try again."); }
     $("#chat-scroll").scrollTop = 0;
   });
 }
