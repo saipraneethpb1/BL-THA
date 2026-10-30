@@ -49,7 +49,7 @@ test('a follow-up keeps one sidebar entry with the original conversation title',
   const ctx = vm.createContext({
     $: (selector) => selector === '#history-filter' ? {value: ''} : selector.includes('aria-current') ? null : list,
     STATUS: {answered: ['Answered', 'ok']}, esc: (value) => value,
-    activeThreadId: 10,
+    activeThreadId: 10, editingThread: null,
     historyItems: [
       {id: 11, thread_id: 10, title: 'How to submit a ticket?', question: "So what's the first step?", response: {status: 'answered'}, created_at: '2026-10-30T11:15:00Z'},
       {id: 10, thread_id: 10, title: 'How to submit a ticket?', question: 'How to submit a ticket?', response: {status: 'answered'}, created_at: '2026-10-30T10:54:00Z'},

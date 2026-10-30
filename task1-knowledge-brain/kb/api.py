@@ -1230,7 +1230,7 @@ async def chat_history(
     page_size = max(1, min(limit, 200))
     async with connect(settings.db_path) as db:
         rows = await db.execute_fetchall(
-            "SELECT h.id, h.question, h.response, h.created_at, COALESCE(h.thread_id, h.id) AS thread_id, (SELECT question FROM chat_history root WHERE root.id=COALESCE(h.thread_id,h.id) AND root.owner=h.owner) AS title FROM chat_history h "
+            "SELECT h.id, h.question, h.response, h.created_at, COALESCE(h.thread_id, h.id) AS thread_id, (SELECT COALESCE(title, question) FROM chat_history root WHERE root.id=COALESCE(h.thread_id,h.id) AND root.owner=h.owner) AS title FROM chat_history h "
             "WHERE owner=? AND (? IS NULL OR id < ?) AND (? IS NULL OR COALESCE(thread_id,id)=?) ORDER BY id DESC LIMIT ?",
             (owner, before, before, thread_id, thread_id, page_size + 1),
         )
@@ -1249,6 +1249,39 @@ async def chat_history(
         ],
         "next_before": page_rows[page_size - 1]["id"] if len(page_rows) > page_size else None,
     }
+
+
+class ChatTitleIn(BaseModel):
+    title: str = Field(min_length=1, max_length=120)
+
+
+@app.patch("/chat/threads/{thread_id}", dependencies=[Protected])
+async def rename_chat_thread(thread_id: int, body: ChatTitleIn, request: Request) -> dict[str, Any]:
+    title = body.title.strip()
+    if not title:
+        raise HTTPException(422, "Enter a conversation title")
+    async with connect(settings.db_path) as db:
+        cur = await db.execute(
+            "UPDATE chat_history SET title=? WHERE owner=? AND id=? AND COALESCE(thread_id,id)=?",
+            (title, chat_owner(request), thread_id, thread_id),
+        )
+        if not cur.rowcount:
+            raise HTTPException(404, "Conversation not found")
+        await db.commit()
+    return {"title": title}
+
+
+@app.delete("/chat/threads/{thread_id}", dependencies=[Protected])
+async def delete_chat_thread(thread_id: int, request: Request) -> dict[str, Any]:
+    async with connect(settings.db_path) as db:
+        cur = await db.execute(
+            "DELETE FROM chat_history WHERE owner=? AND COALESCE(thread_id,id)=?",
+            (chat_owner(request), thread_id),
+        )
+        if not cur.rowcount:
+            raise HTTPException(404, "Conversation not found")
+        await db.commit()
+    return {"deleted": cur.rowcount}
 
 
 @app.delete("/chat/history", dependencies=[Protected])

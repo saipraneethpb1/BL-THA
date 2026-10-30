@@ -185,3 +185,26 @@ def test_followups_share_a_thread_and_receive_context(
     denied = events(client.post("/query/stream", json=reply, headers=other))[-1]
     assert "error" in denied
     assert len(questions) == 1
+
+
+def test_rename_and_delete_apply_to_only_the_owned_conversation(client: TestClient) -> None:  # noqa: F811
+    api.app.state.answerer = FakeAnswerer()
+    me = {**H, "X-Chat-Id": "a" * 32}
+    other = {**H, "X-Chat-Id": "b" * 32}
+    ask = {"question": "How to submit a ticket?", "caller": "chat-ui"}
+    first = events(client.post("/query/stream", json=ask, headers=me))[-1]["done"]
+    thread_id = first["thread_id"]
+    events(client.post("/query/stream", json={**ask, "thread_id": thread_id}, headers=me))
+    separate = events(client.post("/query/stream", json=ask, headers=me))[-1]["done"]
+    path = f"/chat/threads/{thread_id}"
+    assert client.patch(path, json={"title": "Tickets"}, headers=other).status_code == 404
+    assert client.delete(path, headers=other).status_code == 404
+    assert client.patch(path, json={"title": "   "}, headers=me).status_code == 422
+    assert client.patch(path, json={"title": "x" * 121}, headers=me).status_code == 422
+    assert client.patch(path, json={"title": "  My support tickets  "}, headers=me).json() == {"title": "My support tickets"}
+    rows = client.get(f"/chat/history?thread_id={thread_id}", headers=me).json()["items"]
+    assert len(rows) == 2 and all(h["title"] == "My support tickets" for h in rows)
+    assert client.delete(path, headers=me).json() == {"deleted": 2}
+    rows = client.get("/chat/history", headers=me).json()["items"]
+    assert [h["id"] for h in rows] == [separate["history_id"]]
+    assert client.delete(path, headers=me).status_code == 404

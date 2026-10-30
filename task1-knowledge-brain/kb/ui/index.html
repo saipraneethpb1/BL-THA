@@ -537,6 +537,18 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
   .hist-q li:first-child button { border-top: 0; }
   .hist-q li button:hover { background: var(--panel-2); color: var(--text); }
   .hist-q li button[aria-current="true"] { background: var(--panel-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
+  .hist-thread { position: relative; }
+  .hist-actions { position: absolute; top: 7px; right: 5px; display: flex; gap: 2px; opacity: 0; pointer-events: none; background: var(--panel-2); border-radius: 6px; }
+  .hist-thread:hover .hist-actions, .hist-thread:focus-within .hist-actions { opacity: 1; pointer-events: auto; }
+  .hist-thread:hover > button .q, .hist-thread:focus-within > button .q { padding-right: 56px; }
+  .hist-q li .hist-action { width: 26px; height: 26px; display: grid; place-items: center; padding: 4px; border-radius: 5px; }
+  .hist-action svg { width: 15px; height: 15px; }
+  .hist-q li .hist-delete:hover { color: var(--err); background: var(--err-bg); }
+  .hist-edit { padding: 10px; background: var(--panel-2); border-radius: 8px; }
+  .hist-edit input { width: 100%; margin: 6px 0 10px; font-size: 13px; }
+  .hist-edit > div { display: flex; gap: 6px; }
+  .hist-q li .hist-edit button { width: auto; padding: 5px 10px; }
+  @media (hover: none) { .hist-actions { opacity: 1; pointer-events: auto; } .hist-thread > button .q { padding-right: 56px; } }
   .hist-q .q { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .hist-q .t { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--faint); margin-top: 1px; }
   .hist-q .t i { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); flex: none; }
@@ -809,7 +821,7 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
       <button role="tab" data-tab="queue" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Expert queue <span class="count" id="queue-count" hidden>0</span></button>
     </nav>
     <div class="kb-hist">
-      <div class="kb-hist-head"><span>Chat history</span><button class="btn ghost small" id="history-clear" type="button" hidden>Clear</button></div>
+      <div class="kb-hist-head"><span>Chat history</span></div>
       <input id="history-filter" type="search" placeholder="Filter your questions" aria-label="Filter your questions" hidden>
       <ul class="hist-q" id="history-list"><li class="hint">Loading chat history…</li></ul>
       <button class="btn ghost small" id="history-more" type="button" hidden>Load older questions</button>
@@ -1797,6 +1809,7 @@ async function openConversation(h) {
 
 // Chat history: this person's past questions, each reopening its full answer.
 let historyItems = [];
+let editingThread = null;
 let historyCursor = null, historyLoading = false, pendingHistoryCurrent = null;
 async function loadHistory(current, older = false, restore = false) {
   if (historyLoading) { if (current) pendingHistoryCurrent = current; return; }
@@ -1843,7 +1856,6 @@ async function loadHistory(current, older = false, restore = false) {
       queueMicrotask(() => loadHistory(pending));
     }
   }
-  $("#history-clear").hidden = !historyItems.length;
   $("#history-filter").hidden = historyItems.length < 6;
   drawHistory(current);
 }
@@ -1856,7 +1868,9 @@ function drawHistory(current) {
   const cur = current ?? (prev ? Number(prev) : null);
   $("#history-list").innerHTML = items.length ? items.map((h) => {
     const [label, kind] = STATUS[h.response.status] || [h.response.status, ""];
-    return `<li><button type="button" data-h="${h.id}" aria-current="${(h.thread_id || h.id) === (activeThreadId || cur)}" title="${esc(h.title || h.question)}"><span class="q">${esc(h.title || h.question)}</span><span class="t"><i class="${kind}"></i>${esc(label)} · ${esc(new Date(h.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }))}</span></button></li>`;
+    const id = h.thread_id || h.id;
+    if (editingThread === id) return `<li><form class="hist-edit" data-rename="${id}"><label class="meta" for="thread-title-${id}">Conversation title</label><input id="thread-title-${id}" name="title" value="${esc(h.title || h.question)}" maxlength="120" required autocomplete="off"><div><button class="btn small" type="submit">Save</button><button class="btn ghost small" type="button" data-cancel-title>Cancel</button></div><span class="meta" role="status"></span></form></li>`;
+    return `<li class="hist-thread"><button type="button" data-h="${h.id}" aria-current="${(h.thread_id || h.id) === (activeThreadId || cur)}" title="${esc(h.title || h.question)}"><span class="q">${esc(h.title || h.question)}</span><span class="t"><i class="${kind}"></i>${esc(label)} · ${esc(new Date(h.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }))}</span></button><div class="hist-actions"><button class="hist-action" type="button" data-edit-thread="${id}" title="Rename conversation" aria-label="Rename conversation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m16 3 5 5-12 12H4v-5Z M14 5l5 5"/></svg></button><button class="hist-action hist-delete" type="button" data-delete-thread="${id}" title="Delete conversation" aria-label="Delete conversation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button></div></li>`;
   }).join("") : `<li class="hint">${f ? "No questions match." : "Questions you ask appear here."}</li>`;
   $("#history-list").querySelectorAll("[data-h]").forEach((b) => b.onclick = async () => {
     const h = historyItems.find((x) => x.id === Number(b.dataset.h));
@@ -1864,15 +1878,41 @@ function drawHistory(current) {
     try { await openConversation(h); } catch { showBanner("Could not open this conversation. Please try again."); }
     $("#chat-scroll").scrollTop = 0;
   });
+  $("#history-list").querySelectorAll("[data-edit-thread]").forEach((b) => b.onclick = () => {
+    if (busy) return;
+    editingThread = Number(b.dataset.editThread); drawHistory();
+    const input = $(".hist-edit input"); input.focus(); input.select();
+  });
+  $("#history-list").querySelectorAll("[data-cancel-title]").forEach((b) => b.onclick = () => { editingThread = null; drawHistory(); });
+  $("#history-list").querySelectorAll("[data-rename]").forEach((form) => {
+    form.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); editingThread = null; drawHistory(); } });
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const title = form.elements.title.value.trim(), id = Number(form.dataset.rename);
+      if (!title) { $("[role='status']", form).textContent = "Enter a title."; return; }
+      form.querySelectorAll("button").forEach((b) => b.disabled = true);
+      try {
+        await api(`/chat/threads/${id}`, { method: "PATCH", body: JSON.stringify({ title }) });
+        historyItems.forEach((h) => { if ((h.thread_id || h.id) === id) h.title = title; });
+        editingThread = null; drawHistory(); suite.toast("Conversation renamed");
+      } catch (err) { $("[role='status']", form).textContent = suite.friendlyError(err.message); form.querySelectorAll("button").forEach((b) => b.disabled = false); }
+    };
+  });
+  $("#history-list").querySelectorAll("[data-delete-thread]").forEach((b) => b.onclick = async () => {
+    if (busy) return;
+    const id = Number(b.dataset.deleteThread);
+    if (!confirm("Delete this conversation and all its messages? This cannot be undone.")) return;
+    b.disabled = true;
+    try {
+      await api(`/chat/threads/${id}`, { method: "DELETE" });
+      if (activeThreadId === id) newChat();
+      historyItems = historyItems.filter((h) => (h.thread_id || h.id) !== id);
+      drawHistory(); suite.toast("Conversation deleted");
+    } catch (err) { b.disabled = false; showBanner(suite.friendlyError(err.message)); }
+  });
 }
 $("#history-filter").addEventListener("input", () => drawHistory());
 $("#history-more").onclick = () => loadHistory(undefined, !!historyCursor);
-$("#history-clear").onclick = async () => {
-  if (busy || historyLoading) return;
-  if (!confirm("Clear your question history? Only your own history is removed.")) return;
-  try { await api("/chat/history", { method: "DELETE" }); newChat(); await loadHistory(); } catch (err) { showBanner(err.message); }
-};
-
 // The command palette (Ctrl K) knows this page's views, and asks questions in place.
 suite.ask = ask;
 suite.commands([
