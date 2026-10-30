@@ -1445,7 +1445,7 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
 </script>
 <!-- /suite:js -->
 <script>
-const $ = (s) => document.querySelector(s);
+const $ = (s, root = document) => root.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const STATUS = { answered: ["Answered", "ok"], partial: ["Partly answered", "warn"], insufficient_evidence: ["Sent to an expert", "info"] };
 const EXAMPLES = [

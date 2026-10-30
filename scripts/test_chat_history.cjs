@@ -62,3 +62,17 @@ test('a follow-up keeps one sidebar entry with the original conversation title',
   assert.doesNotMatch(list.innerHTML, /So what's the first step/);
   assert.match(list.innerHTML, /aria-current="true"/);
 });
+
+
+test('each answer renders inside its own message instead of overwriting the first', () => {
+  const first = {answer: {innerHTML: ''}, querySelector() { return this.answer; }};
+  const second = {answer: {innerHTML: ''}, querySelector() { return this.answer; }};
+  const context = vm.createContext({document: first, first, second});
+  const selector = html.match(/const \$ = .*?;/)[0];
+  vm.runInContext(selector + `
+    $('.ans-body', first).innerHTML = 'Open the My Account menu';
+    $('.ans-body', second).innerHTML = 'Next, choose Create New Ticket';
+  `, context);
+  assert.equal(first.answer.innerHTML, 'Open the My Account menu');
+  assert.equal(second.answer.innerHTML, 'Next, choose Create New Ticket');
+});
