@@ -1199,16 +1199,19 @@ async def query_stream(req: QueryRequest, request: Request) -> StreamingResponse
 
 
 @app.get("/chat/history", dependencies=[Protected])
-async def chat_history(request: Request, limit: int = 50) -> dict[str, Any]:
+async def chat_history(request: Request, limit: int = 50, before: int | None = None) -> dict[str, Any]:
     """This person's past questions, newest first (each opens its full answer)."""
     owner = chat_owner(request)
     if not owner:
-        return {"items": []}
+        return {"items": [], "next_before": None}
+    page_size = max(1, min(limit, 200))
     async with connect(settings.db_path) as db:
         rows = await db.execute_fetchall(
-            "SELECT id, question, response, created_at FROM chat_history WHERE owner=? ORDER BY id DESC LIMIT ?",
-            (owner, max(1, min(limit, 200))),
+            "SELECT id, question, response, created_at FROM chat_history "
+            "WHERE owner=? AND (? IS NULL OR id < ?) ORDER BY id DESC LIMIT ?",
+            (owner, before, before, page_size + 1),
         )
+    page_rows = list(rows)
     return {
         "items": [
             {
@@ -1217,8 +1220,9 @@ async def chat_history(request: Request, limit: int = 50) -> dict[str, Any]:
                 "created_at": r["created_at"],
                 "response": json.loads(r["response"]),
             }
-            for r in rows
-        ]
+            for r in page_rows[:page_size]
+        ],
+        "next_before": page_rows[page_size - 1]["id"] if len(page_rows) > page_size else None,
     }
 
 

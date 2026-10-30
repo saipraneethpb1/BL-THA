@@ -463,10 +463,34 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
   @media (max-width: 560px) { .url-row { grid-template-columns: 1fr; } .url-row .d { grid-column: 1; } }
   .chipbtn { border: 1px solid var(--line-strong); background: var(--panel); color: var(--text); border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
   .chipbtn[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--panel)); }
-  .health-settings { display: grid; grid-template-columns: 140px repeat(2, minmax(180px, 1fr)) auto; gap: 12px; align-items: end; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
-  @media (max-width: 860px) { .health-settings { grid-template-columns: minmax(0, 1fr); } }
-  .health-settings label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; }
-  .health-settings input, .health-settings select { padding: 7px 10px; }
+  .health-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin: 4px 0 24px; }
+  .health-eyebrow { display: block; color: var(--kb); font-size: 10px; font-weight: 650; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 8px; }
+  .sheet #health-panel .health-heading h2 { font-size: 24px; letter-spacing: -.035em; margin: 0 0 6px; }
+  .health-heading p { color: var(--muted); font-size: 13px; margin: 0; }
+  .health-heading > .badge { margin-top: 24px; flex-shrink: 0; }
+  .health-settings { display: block; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); overflow: hidden; }
+  .health-section-title { padding: 20px 24px; }
+  .health-section-title h3 { font-size: 14px; margin: 0 0 4px; font-weight: 650; }
+  .health-section-title p, .health-rule p { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 0; }
+  .health-rule { display: grid; grid-template-columns: minmax(0, 1fr) 238px; align-items: center; gap: 32px; padding: 20px 24px; border-top: 1px solid var(--line); }
+  .health-rule label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .health-code { display: inline-block; margin-left: 5px; padding: 1px 5px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); font: 10px var(--mono, monospace); vertical-align: middle; }
+  .health-field select { width: 100%; margin: 0; padding: 10px 12px; font-size: 12px; background: var(--sunken); border-radius: 8px; }
+  .health-number { display: flex; align-items: center; gap: 10px; }
+  .health-number input { width: 82px; margin: 0; padding: 9px 12px; background: var(--sunken); border-radius: 8px; }
+  .health-number > span { color: var(--muted); font-size: 12px; }
+  .health-field .presets { display: flex; gap: 6px; margin-top: 8px; }
+  .health-save { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 24px; border-top: 1px solid var(--line); background: var(--sunken); }
+  .health-save > span { font-size: 11px; color: var(--muted); }
+  .health-save .btn { white-space: nowrap; }
+  .health-explainer { margin: 16px 0 24px; padding: 0 4px; color: var(--muted); font-size: 12px; }
+  .health-explainer summary { cursor: pointer; width: fit-content; }
+  .health-explainer p { max-width: 660px; line-height: 1.7; margin-bottom: 0; }
+  @media (max-width: 680px) {
+    .health-heading { flex-direction: column; gap: 10px; } .health-heading > .badge { margin-top: 0; }
+    .health-rule { grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 18px; }
+    .health-section-title, .health-save { padding: 18px; }
+  }
   .hgroup { margin-top: 16px; }
   .hgroup-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
   .hgroup-head h3 { margin: 0; }
@@ -627,7 +651,7 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
   }
   /* ---- Ask = conversation + Knowledge panel ---- */
   .ask { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
-  .kb.kp-open .ask { grid-template-columns: minmax(0, 1fr) 340px; }
+  .kb.kp-open .ask { grid-template-columns: minmax(0, 1fr); }
   .ask > .chat { min-height: 0; }
   .kb-top .kp-toggle { display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--line); background: none;
                        color: var(--muted); font: inherit; font-size: 12.5px; font-weight: 550; cursor: pointer; }
@@ -635,7 +659,10 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
   .kb-top .kp-toggle:hover { color: var(--text); background: var(--panel-2); }
   .kb-top .kp-toggle[aria-expanded="true"] { color: var(--text); background: var(--panel-2); border-color: var(--line-strong); }
   .kb-top .kp-toggle[aria-expanded="true"] svg { color: var(--kb); }
-  .kp { display: none; min-height: 0; flex-direction: column; border-left: 1px solid var(--line); background: var(--sunken); }
+  .kp { display: none; position: fixed; z-index: 51; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); min-height: 0; flex-direction: column;
+        border: 1px solid var(--line-strong); border-radius: 16px; background: var(--bg); box-shadow: var(--shadow-lg); overflow: hidden; }
+  .kp-scrim { position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, .4); backdrop-filter: blur(2px); }
   .kb.kp-open .kp { display: flex; }
   .kp-head { display: flex; align-items: center; gap: 2px; height: 44px; padding: 0 8px 0 16px; border-bottom: 1px solid var(--line); flex: none; }
   .kp-head b { font-size: 13px; font-weight: 650; }
@@ -643,7 +670,7 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
   .kp-ic:hover { color: var(--text); background: var(--panel-2); }
   .kp-ic:disabled { opacity: .4; cursor: default; }
   .kp-ic svg { width: 15px; height: 15px; }
-  .kp-close { display: none; }
+  .kp-close { display: grid; }
   .kp-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 14px 18px; display: grid; gap: 18px; align-content: start; grid-auto-rows: max-content; }
   .kp-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 10px; background: var(--panel); overflow: hidden; }
   .kp-stats div { padding: 10px 10px 9px; border-left: 1px solid var(--line); min-width: 0; }
@@ -690,11 +717,11 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
   .kp-links svg { width: 14px; height: 14px; color: var(--faint); }
   .kp-foot { margin: 0; font-size: 11.5px; color: var(--faint); }
 
-  /* ---- Manage knowledge: a sheet over the right side ---- */
+  /* ---- Manage knowledge: centered card with the existing tabs and controls ---- */
   .sheet-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, .4); backdrop-filter: blur(1px); }
-  .sheet { position: fixed; z-index: 61; top: 0; right: 0; bottom: 0; width: min(940px, calc(100vw - var(--rail-w))); display: flex; flex-direction: column;
-           background: var(--bg); border-left: 1px solid var(--line-strong); box-shadow: var(--shadow-lg); animation: slidein .18s ease-out; }
-  @keyframes slidein { from { transform: translateX(24px); opacity: 0; } }
+  .sheet { position: fixed; z-index: 61; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(940px, calc(100vw - 32px)); height: min(720px, calc(100dvh - 48px)); display: flex; flex-direction: column;
+           background: var(--bg); border: 1px solid var(--line-strong); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-lg); animation: slidein .18s ease-out; }
+  @keyframes slidein { from { opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
   .sheet-head { display: flex; align-items: flex-start; gap: 12px; padding: 18px 20px 10px 24px; flex: none; }
   .sheet-head h2 { font-size: 18px; margin: 0 0 2px; }
@@ -709,18 +736,35 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
   .sheet .panel { border: 0; background: none; box-shadow: none; padding: 0; }
   .sheet .panel + .panel { margin-top: 0; }
   .sheet-pane > .panel > h2:first-child, .sheet-pane > .panel > .row:first-child h2 { font-size: 15px; }
-  .sheet .connect { max-width: 640px; }
+  .sheet .connect { max-width: none; }
+  .sheet .connect-heading h2 { font-size: 24px; letter-spacing: -.035em; margin: 0 0 6px; }
+  #src-form { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); overflow: hidden; }
+  #src-form .source-input-shell { margin: 0 24px 20px; background: var(--sunken); border-color: var(--line); border-radius: 10px; }
+  #src-form .source-input-shell:focus-within { border-color: var(--kb); }
+  #src-form textarea { min-height: 126px; margin: 0; }
+  #src-form .source-input-caption { font-size: 11px; text-transform: none; letter-spacing: 0; font-weight: 550; }
+  #src-form .src-check:empty { display: none; }
+  #src-form .src-check:not(:empty) { margin: 0 24px 16px; }
+  #src-form .source-submit-row { margin: 0; padding: 16px 24px; border-top: 1px solid var(--line); background: var(--sunken); }
+  #src-form .source-submit-row .btn { order: 3; margin-left: auto; padding: 9px 14px; font-size: 12px; }
+  .source-preview-note { font-size: 11px; color: var(--muted); }
+  #src-meta:empty { display: none; }
+  #src-meta:not(:empty) + .source-preview-note { display: none; }
+  .connect-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 24px 4px; }
+  .connect-steps > div { display: flex; align-items: flex-start; gap: 10px; }
+  .connect-steps > div > span { font-size: 10px; color: var(--kb); border: 1px solid var(--line); border-radius: 7px; padding: 5px 7px; background: var(--panel); }
+  .connect-steps b { font-size: 12px; font-weight: 600; }
+  .connect-steps p { margin: 4px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+  @media (max-width: 680px) {
+    #src-form .source-input-shell { margin: 0 18px 18px; }
+    #src-form .source-submit-row { padding: 16px 18px; }
+    .connect-steps { grid-template-columns: 1fr; gap: 16px; }
+  }
   .sheet .connect h3 { margin: 0 0 4px; font-size: 15px; }
   .sheet .source-pipeline { padding: 14px 0 0; border-top: 0; }
   .sheet .src-preview-wide:not(:empty) { padding: 4px 0 18px; border-top: 0; }
   #connect-crawl:not([hidden]) { margin-top: 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
 
-  /* Narrower screens: the Knowledge panel slides over the conversation */
-  @media (max-width: 1179px) {
-    .kb.kp-open .ask { grid-template-columns: minmax(0, 1fr); }
-    .kb.kp-open .kp { position: fixed; z-index: 36; top: var(--top-h); bottom: var(--bottom-h); right: 0; width: min(360px, 92vw); box-shadow: var(--shadow-lg); }
-    .kp-close { display: grid; }
-  }
   @media (max-width: 760px) { .kb-top .kp-toggle span { display: none; } .sheet-head { padding: 14px 14px 8px 16px; } .sheet-tabs { padding: 0 10px; } .sheet-body { padding: 16px; } }
 </style>
 </head>
@@ -758,10 +802,11 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
       <button role="tab" data-tab="queue" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Expert queue <span class="count" id="queue-count" hidden>0</span></button>
     </nav>
     <div class="kb-hist">
-      <div class="kb-hist-head"><span>Your questions</span><button class="btn ghost small" id="history-clear" type="button" hidden>Clear</button></div>
+      <div class="kb-hist-head"><span>Chat history</span><button class="btn ghost small" id="history-clear" type="button" hidden>Clear</button></div>
       <input id="history-filter" type="search" placeholder="Filter your questions" aria-label="Filter your questions" hidden>
-      <ul class="hist-q" id="history-list"></ul>
-      <p class="kb-hist-note">Kept for you only: your demo account, or this browser.</p>
+      <ul class="hist-q" id="history-list"><li class="hint">Loading chat history…</li></ul>
+      <button class="btn ghost small" id="history-more" type="button" hidden>Load older questions</button>
+      <p class="kb-hist-note" id="history-note" role="status">Answers are saved automatically. Return with this browser or your demo account to reopen them.</p>
     </div>
   </aside>
   <div class="kb-scrim" id="kb-scrim" hidden></div>
@@ -772,7 +817,7 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
       <div class="kb-crumb"><span>Knowledge Brain</span><span class="sl">/</span><b id="kb-crumb">Ask</b></div>
       <span class="spacer"></span>
       <span data-suite-status></span>
-      <button class="kp-toggle" type="button" id="kp-toggle" aria-controls="kp" aria-expanded="true" title="Show or hide the Knowledge panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span>Knowledge</span></button>
+      <button class="kp-toggle" type="button" id="kp-toggle" aria-controls="sheet" aria-haspopup="dialog" aria-expanded="false" title="Manage knowledge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span>Knowledge</span></button>
     </header>
     <div class="kb-alerts">
       <div id="banner" class="banner err" hidden></div>
@@ -815,7 +860,8 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
       <p class="composer-note">Answers come only from the help center and expert replies, with sources. Check anything important.</p>
     </div>
    </div>
-    <aside class="kp" id="kp" aria-label="Knowledge">
+    <div class="kp-scrim" id="kp-scrim" hidden></div>
+    <aside class="kp" id="kp" role="dialog" aria-modal="true" aria-label="Knowledge">
       <header class="kp-head">
         <b>Knowledge</b>
         <span class="spacer"></span>
@@ -870,12 +916,12 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
     <div class="sheet-body" id="sheet-body">
       <section class="sheet-pane" data-pane="connect">
         <div class="connect">
-          <h3>Connect a website</h3>
-          <p class="sub">Add a sitemap URL, or import a text file with one URL per line. You'll see every page it lists before anything is crawled, and you can stop the crawl at any time.</p>
+          <div class="health-heading connect-heading"><div><span class="health-eyebrow">Knowledge sources</span><h2>Add a website</h2><p>Bring your website's content into the Brain's answers.</p></div><span class="badge info">Preview before adding</span></div>
           <form id="src-form">
+            <div class="health-section-title"><h3>Connect your content</h3><p id="source-help">Paste a sitemap link below. Add one URL per line, or import a text file.</p></div>
             <div class="source-input-shell">
               <label class="source-input-caption" for="src-urls">Sitemap URLs · one per line</label>
-              <textarea id="src-urls" rows="3" placeholder="https://your-website.com/sitemap.xml" spellcheck="false" autocomplete="off" aria-describedby="src-meta"></textarea>
+              <textarea id="src-urls" rows="3" placeholder="https://your-website.com/sitemap.xml" spellcheck="false" autocomplete="off" aria-describedby="source-help src-meta"></textarea>
               <div class="source-tools">
                 <button class="source-action" type="button" id="src-new-line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add another URL</button>
                 <button class="source-action" type="button" id="src-import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M4 15v5h16v-5"/></svg>Import URL list</button>
@@ -883,13 +929,14 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
               </div>
             </div>
             <ul class="src-check" id="src-live" aria-live="polite"></ul>
-            <div class="source-submit-row"><button class="btn source-action" id="src-add" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7l8-4Z"/><path d="m8 12 3 3 5-6"/></svg><span id="src-add-label">Check & preview</span></button><span class="meta" id="src-meta" role="status"></span></div>
+            <div class="source-submit-row"><button class="btn source-action" id="src-add" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7l8-4Z"/><path d="m8 12 3 3 5-6"/></svg><span id="src-add-label">Check & preview</span></button><span class="meta" id="src-meta" role="status" aria-live="polite"></span><span class="source-preview-note">Review the pages before the crawl starts.</span></div>
           </form>
           <div id="src-activity"></div>
           <div id="connect-crawl" class="runbar" hidden></div>
         </div>
         <div id="src-preview" class="src-preview-wide"></div>
-        <div class="source-pipeline"><span><b>01</b>Preview every nested sitemap</span><span class="arrow" aria-hidden="true">→</span><span><b>02</b>Confirm</span><span class="arrow" aria-hidden="true">→</span><span><b>03</b>Crawl & embed</span><span class="arrow" aria-hidden="true">→</span><span><b>04</b>Re-check on its schedule</span></div>
+        <div class="connect-steps" aria-label="What happens next"><div><span>01</span><div><b>Preview</b><p>See the pages your sitemap includes.</p></div></div><div><span>02</span><div><b>Confirm</b><p>Approve the source and refresh schedule.</p></div></div><div><span>03</span><div><b>Stay current</b><p>Content is indexed and checked on schedule.</p></div></div></div>
+        <details class="health-explainer"><summary>What is a sitemap?</summary><p>A sitemap is a list of pages published by a website, usually at <code>/sitemap.xml</code>. Paste the full link, including https://. Nested sitemaps are checked too. You can review the results before adding a source and stop an active crawl at any time.</p></details>
       </section>
       <section class="sheet-pane" data-pane="status">
     <div class="panel" id="status-panel">
@@ -923,14 +970,24 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
       </section>
       <section class="sheet-pane" data-pane="health">
     <div class="panel" id="health-panel">
-      <div class="row" style="margin-top:0;justify-content:space-between"><h2 style="margin:0">URL health</h2><span class="meta" id="health-summary"></span></div>
-      <p class="sub">A page that answers 404 <b>and</b> is missing from its sitemap moves to the Archived KB at once. A 404 on a page its sitemap still lists may be a passing fault, so it's counted check by check. A 301 is followed: the page is re-pointed to its new URL and re-indexed there. Nothing is deleted.</p>
+      <div class="health-heading"><div><span class="health-eyebrow">Knowledge quality</span><h2>URL health</h2><p>Keep broken links out of your answers, with you in control.</p></div><span class="badge info" id="health-summary">Checking health…</span></div>
       <form id="health-form" class="health-settings">
-        <label>Threshold <span class="meta">checks in a row</span><input id="h-threshold" type="number" min="1" max="30" required><span class="presets" id="h-presets"></span></label>
-        <label>404 while still listed in its sitemap<select id="h-gone"><option value="quarantine">Archive, after I confirm</option><option value="flag">Flag only</option></select></label>
-        <label>301 with no new address<select id="h-moved"><option value="quarantine">Archive, after I confirm</option><option value="flag">Flag only</option></select></label>
-        <div class="row" style="margin-top:0;align-self:end"><button class="btn secondary" id="h-save">Save settings</button><span class="meta" id="h-msg"></span></div>
+        <div class="health-section-title"><h3>Monitoring rules</h3><p>Choose when a recurring issue needs your attention.</p></div>
+        <div class="health-rule">
+          <div><label for="h-threshold">Wait before flagging</label><p id="threshold-help">Consecutive failed checks before a page needs review. A successful check resets the count.</p></div>
+          <div class="health-field"><div class="health-number"><input id="h-threshold" type="number" min="1" max="30" required aria-describedby="threshold-help"><span>checks</span></div><span class="presets" id="h-presets"></span></div>
+        </div>
+        <div class="health-rule">
+          <div><label for="h-gone">Page not found <span class="health-code">404</span></label><p id="gone-help">The sitemap still lists this page, but the page is unavailable.</p></div>
+          <div class="health-field"><select id="h-gone" aria-describedby="gone-help"><option value="quarantine">Review before archiving</option><option value="flag">Flag only</option></select></div>
+        </div>
+        <div class="health-rule">
+          <div><label for="h-moved">Redirect without a destination <span class="health-code">301</span></label><p id="moved-help">The page has moved, but provides no new address.</p></div>
+          <div class="health-field"><select id="h-moved" aria-describedby="moved-help"><option value="quarantine">Review before archiving</option><option value="flag">Flag only</option></select></div>
+        </div>
+        <div class="health-save"><span id="h-msg" role="status" aria-live="polite">Changes apply to future checks.</span><button class="btn primary" id="h-save">Save changes</button></div>
       </form>
+      <details class="health-explainer"><summary>How automatic checks work</summary><p>Pages that return 404 and are missing from their sitemap are archived immediately. Valid redirects are followed and re-indexed at the new address. Archived content is kept and can be restored.</p></details>
       <div id="health-lists"></div>
     </div>
       </section>
@@ -1529,16 +1586,18 @@ $("#kb-scrim").onclick = () => setSide(false);
 // crawl with Stop, and shortcuts into the Manage knowledge sheet.
 const REFRESH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>';
 const TRASH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
-const wideKp = matchMedia("(min-width: 1180px)");
-function setKp(open, remember = false) {
+let kpReturn = null;
+function setKp(open) {
+  if (open && !$("#kb").classList.contains("kp-open")) kpReturn = document.activeElement;
   $("#kb").classList.toggle("kp-open", open);
-  $("#kp-toggle").setAttribute("aria-expanded", String(open));
-  if (remember && wideKp.matches) try { localStorage.setItem("kb-kp", open ? "1" : "0"); } catch {}
+  $("#kp-scrim").hidden = !open;
+  if (open) $("#kp-close").focus();
+  else kpReturn?.focus?.();
 }
-setKp(wideKp.matches && (() => { try { return localStorage.getItem("kb-kp") !== "0"; } catch { return true; } })());
-wideKp.addEventListener("change", (e) => setKp(e.matches && (() => { try { return localStorage.getItem("kb-kp") !== "0"; } catch { return true; } })()));
-$("#kp-toggle").onclick = () => setKp(!$("#kb").classList.contains("kp-open"), true);
-$("#kp-close").onclick = () => setKp(false, true);
+setKp(false);
+$("#kp-toggle").onclick = () => openSheet("status");
+$("#kp-close").onclick = () => setKp(false);
+$("#kp-scrim").onclick = () => setKp(false);
 $("#kp-add").onclick = () => openSheet("connect");
 $("#kp-manage").onclick = () => openSheet("status");
 document.querySelectorAll(".kp-links [data-open]").forEach((b) => b.onclick = () => openSheet(b.dataset.open));
@@ -1579,6 +1638,7 @@ function openSheet(pane = "status") {
   if (!PANE_LOAD[pane]) pane = "status";
   if (!sheetPane) sheetReturn = document.activeElement;
   sheetPane = pane;
+  $("#kp-toggle").setAttribute("aria-expanded", "true");
   $("#sheet").hidden = false; $("#sheet-scrim").hidden = false;
   document.querySelectorAll(".sheet-tabs [data-pane]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.pane === pane)));
   document.querySelectorAll(".sheet-pane").forEach((sec) => { sec.hidden = sec.dataset.pane !== pane; });
@@ -1590,6 +1650,7 @@ function openSheet(pane = "status") {
 function closeSheet() {
   if (!sheetPane) return;
   sheetPane = null;
+  $("#kp-toggle").setAttribute("aria-expanded", "false");
   $("#sheet").hidden = true; $("#sheet-scrim").hidden = true;
   history.replaceState(null, "", location.pathname);
   sheetReturn?.focus?.();
@@ -1597,7 +1658,18 @@ function closeSheet() {
 document.querySelectorAll(".sheet-tabs [data-pane]").forEach((b) => b.onclick = () => openSheet(b.dataset.pane));
 $("#sheet-close").onclick = closeSheet;
 $("#sheet-scrim").onclick = closeSheet;
-document.addEventListener("keydown", (e) => { if (e.key === "Escape" && sheetPane && !document.querySelector(".s-cmdk, .lightbox, .s-modal")) closeSheet(); });
+document.addEventListener("keydown", (e) => {
+  if (document.querySelector(".s-cmdk, .lightbox, .s-modal")) return;
+  const modal = sheetPane ? $("#sheet") : $("#kb").classList.contains("kp-open") ? $("#kp") : null;
+  if (!modal) return;
+  if (e.key === "Escape") { e.preventDefault(); sheetPane ? closeSheet() : setKp(false); }
+  if (e.key === "Tab") {
+    const controls = [...modal.querySelectorAll('button, input, textarea, select, a[href], [tabindex="0"]')].filter((el) => !el.disabled && el.getClientRects().length);
+    const first = controls[0], last = controls.at(-1);
+    if (e.shiftKey && (document.activeElement === first || !modal.contains(document.activeElement))) { e.preventDefault(); last?.focus(); }
+    else if (!e.shiftKey && (document.activeElement === last || !modal.contains(document.activeElement))) { e.preventDefault(); first?.focus(); }
+  }
+});
 // Links within the page (#add-source, #manage-runs, #queue, …) open the right place too.
 window.addEventListener("hashchange", () => {
   const h = location.hash.slice(1);
@@ -1620,6 +1692,11 @@ function fitComposer() { qBox.style.height = "auto"; qBox.style.height = `${Math
 qBox.addEventListener("input", fitComposer);
 qBox.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("#ask-form").requestSubmit(); } });
 let busy = false;
+let visibleHistoryIds = [], threadRevision = 0;
+function rememberThread() {
+  threadRevision++;
+  try { localStorage.setItem("kb-visible-history", JSON.stringify(visibleHistoryIds)); } catch {}
+}
 
 function newTurn(question) {
   $("#chat-empty").hidden = true;
@@ -1630,6 +1707,8 @@ function newTurn(question) {
   return turn;
 }
 function newChat() {
+  if (busy) return;
+  visibleHistoryIds = []; rememberThread();
   $("#thread").innerHTML = ""; $("#chat-empty").hidden = false;
   $("#history-list").querySelectorAll("[data-h]").forEach((x) => x.setAttribute("aria-current", "false"));
   showTab("ask"); qBox.value = ""; fitComposer(); qBox.focus();
@@ -1647,6 +1726,7 @@ $("#ask-form").addEventListener("submit", async (e) => {
   const question = qBox.value.trim();
   if (question.length < 3 || busy) return;
   busy = true; qBox.value = ""; fitComposer();
+  threadRevision++;
   const turn = newTurn(question), el = $(".body", turn);
   $(".answer-head", el).innerHTML = `<span class="badge info">Working</span>`;
   turn.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1655,6 +1735,8 @@ $("#ask-form").addEventListener("submit", async (e) => {
     const r = await apiStream("/query/stream", { question, caller: "chat-ui" }, act.step);
     act.finish();
     renderAnswer(r, question, el);
+    if (r.history_id) { visibleHistoryIds.push(r.history_id); rememberThread(); }
+    else $("#history-note").textContent = "This answer could not be saved. Allow browser storage to keep guest history.";
     loadQueueCount(); loadHistory(r.history_id);
   } catch (err) {
     act.step({ icon: "error", text: "Stopped", detail: err.status === 503 ? "answering is switched off" : suite.friendlyError(err.message) });
@@ -1689,8 +1771,50 @@ function renderAnswer(r, question, el) {
 
 // Chat history: this person's past questions, each reopening its full answer.
 let historyItems = [];
-async function loadHistory(current) {
-  try { historyItems = (await api("/chat/history?limit=60")).items; } catch { return; }
+let historyCursor = null, historyLoading = false, pendingHistoryCurrent = null;
+async function loadHistory(current, older = false, restore = false) {
+  if (historyLoading) { if (current) pendingHistoryCurrent = current; return; }
+  historyLoading = true;
+  const revision = threadRevision;
+  $("#history-more").disabled = true;
+  try {
+    let saved = null;
+    if (restore) {
+      try { saved = JSON.parse(localStorage.getItem("kb-visible-history")); } catch {}
+      if (!Array.isArray(saved) || !saved.every(Number.isInteger)) saved = null;
+    }
+    let page = await api(`/chat/history?limit=60${older && historyCursor ? `&before=${historyCursor}` : ""}`);
+    historyItems = older ? [...historyItems, ...page.items] : page.items;
+    historyCursor = page.next_before;
+    // Fetch enough history to restore a previously opened older conversation.
+    while (restore && saved?.length && historyCursor && Math.min(...saved) < historyCursor) {
+      page = await api(`/chat/history?limit=200&before=${historyCursor}`);
+      historyItems.push(...page.items); historyCursor = page.next_before;
+    }
+    if (restore && revision === threadRevision && !busy) {
+      const ids = saved ?? historyItems.slice(0, 1).map((h) => h.id);
+      const turns = ids.map((id) => historyItems.find((h) => h.id === id)).filter(Boolean);
+      $("#thread").innerHTML = "";
+      $("#chat-empty").hidden = !!turns.length;
+      for (const h of turns) renderAnswer(h.response, h.question, $(".body", newTurn(h.question)));
+      visibleHistoryIds = turns.map((h) => h.id);
+      current = visibleHistoryIds.at(-1);
+    }
+    $("#history-more").textContent = "Load older questions";
+    $("#history-more").hidden = !historyCursor;
+    $("#history-note").textContent = "Answers are saved automatically. Return with this browser or your demo account to reopen them.";
+  } catch {
+    $("#history-note").textContent = "Couldn't load chat history. Your saved answers have not been removed.";
+    $("#history-more").textContent = "Retry loading history";
+    $("#history-more").hidden = false;
+    return;
+  } finally {
+    historyLoading = false; $("#history-more").disabled = false;
+    if (pendingHistoryCurrent) {
+      const pending = pendingHistoryCurrent; pendingHistoryCurrent = null;
+      queueMicrotask(() => loadHistory(pending));
+    }
+  }
   $("#history-clear").hidden = !historyItems.length;
   $("#history-filter").hidden = historyItems.length < 6;
   drawHistory(current);
@@ -1706,7 +1830,8 @@ function drawHistory(current) {
   }).join("") : `<li class="hint">${f ? "No questions match." : "Questions you ask appear here."}</li>`;
   $("#history-list").querySelectorAll("[data-h]").forEach((b) => b.onclick = () => {
     const h = historyItems.find((x) => x.id === Number(b.dataset.h));
-    if (!h) return;
+    if (!h || busy) return;
+    visibleHistoryIds = [h.id]; rememberThread();
     showTab("ask");
     $("#thread").innerHTML = "";
     const turn = newTurn(h.question);
@@ -1716,9 +1841,11 @@ function drawHistory(current) {
   });
 }
 $("#history-filter").addEventListener("input", () => drawHistory());
+$("#history-more").onclick = () => loadHistory(undefined, !!historyCursor);
 $("#history-clear").onclick = async () => {
+  if (busy || historyLoading) return;
   if (!confirm("Clear your question history? Only your own history is removed.")) return;
-  try { await api("/chat/history", { method: "DELETE" }); loadHistory(); } catch (err) { showBanner(err.message); }
+  try { await api("/chat/history", { method: "DELETE" }); newChat(); await loadHistory(); } catch (err) { showBanner(err.message); }
 };
 
 // The command palette (Ctrl K) knows this page's views, and asks questions in place.
@@ -2258,7 +2385,7 @@ $("#refresh-btn").addEventListener("click", async () => {
   else if (start === "status" || start === "knowledge") setKp(true);
   else if (start === "add-source") openSheet("connect");
   else if (start.startsWith("manage-")) openSheet(start.slice(7));
-  loadQueueCount(); loadHistory(); loadStatus();
+  loadQueueCount(); loadHistory(undefined, false, true); loadStatus();
   const handed = new URLSearchParams(location.search).get("q");
   if (handed) { history.replaceState(null, "", location.pathname + location.hash); ask(handed); }
 })();
