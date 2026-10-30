@@ -12,7 +12,7 @@ function harness(saved, pages) {
     $: (key) => { if (!elements.has(key)) elements.set(key, {}); return elements.get(key); },
     api: async () => { const page = pages.shift(); if (page instanceof Error) throw page; return page; },
     renderAnswer: (_, question) => rendered.push(question), newTurn: () => ({}),
-    drawHistory: () => {}, queueMicrotask,
+    drawHistory: () => {}, showLatestMessage: () => {}, queueMicrotask,
   });
   vm.runInContext('let visibleHistoryIds = [], threadRevision = 0, busy = false;\n' + code, context);
   return { context, elements, rendered, load: () => vm.runInContext('loadHistory(undefined, false, true)', context) };
@@ -75,4 +75,23 @@ test('each answer renders inside its own message instead of overwriting the firs
   `, context);
   assert.equal(first.answer.innerHTML, 'Open the My Account menu');
   assert.equal(second.answer.innerHTML, 'Next, choose Create New Ticket');
+});
+
+
+test('opening a conversation scrolls to the latest message after all turns render', async () => {
+  const frames = [], rendered = [], viewport = {scrollHeight: 0, scrollTo(options) { this.position = options.top; }};
+  const ctx = vm.createContext({
+    threadRevision: 0, busy: false, activeThreadId: null, visibleHistoryIds: [],
+    requestAnimationFrame: (fn) => frames.push(fn),
+    $: (selector) => selector === '#chat-scroll' ? viewport : {},
+    api: async () => ({items: [{id: 2, question: 'Follow-up', response: {}}, {id: 1, question: 'First', response: {}}], next_before: null}),
+    rememberThread: () => {}, showTab: () => {}, drawHistory: () => {},
+    newTurn: () => { viewport.scrollHeight += 400; return {}; },
+    renderAnswer: (_, question) => rendered.push(question),
+  });
+  const code = html.slice(html.indexOf('function showLatestMessage()'), html.indexOf('// Chat history:'));
+  await vm.runInContext(code + '\nopenConversation({id: 1});', ctx);
+  assert.deepEqual(rendered, ['First', 'Follow-up']);
+  frames.forEach((fn) => fn());
+  assert.equal(viewport.position, 800);
 });

@@ -1791,6 +1791,15 @@ function renderAnswer(r, question, el) {
   $("[data-again]", el).onclick = () => ask(question);
 }
 
+function showLatestMessage() {
+  const revision = threadRevision;
+  requestAnimationFrame(() => {
+    if (revision !== threadRevision) return;
+    const viewport = $("#chat-scroll");
+    viewport.scrollTo({ top: viewport.scrollHeight, behavior: "instant" });
+  });
+}
+
 async function openConversation(h) {
   if (busy) return;
   const revision = ++threadRevision, id = h.thread_id || h.id;
@@ -1805,6 +1814,7 @@ async function openConversation(h) {
   showTab("ask"); $("#thread").innerHTML = "";
   for (const h of turns.reverse()) renderAnswer(h.response, h.question, $(".body", newTurn(h.question)));
   drawHistory(id);
+  showLatestMessage();
 }
 
 // Chat history: this person's past questions, each reopening its full answer.
@@ -1840,6 +1850,7 @@ async function loadHistory(current, older = false, restore = false) {
       activeThreadId = turns.at(-1)?.thread_id || turns.at(-1)?.id || null;
       current = visibleHistoryIds.at(-1);
       if (turns.at(-1)?.thread_id) await openConversation(turns.at(-1));
+      else showLatestMessage();
     }
     $("#history-more").textContent = "Load older questions";
     $("#history-more").hidden = !historyCursor;
@@ -1876,7 +1887,6 @@ function drawHistory(current) {
     const h = historyItems.find((x) => x.id === Number(b.dataset.h));
     if (!h || busy) return;
     try { await openConversation(h); } catch { showBanner("Could not open this conversation. Please try again."); }
-    $("#chat-scroll").scrollTop = 0;
   });
   $("#history-list").querySelectorAll("[data-edit-thread]").forEach((b) => b.onclick = () => {
     if (busy) return;
