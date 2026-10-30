@@ -176,6 +176,7 @@ def test_followups_share_a_thread_and_receive_context(
     assert ask["question"] in questions[0] and reply["question"] in questions[0]
     thread = client.get(f"/chat/history?thread_id={first['thread_id']}", headers=me).json()["items"]
     assert [row["id"] for row in thread] == [second["history_id"], first["history_id"]]
+    assert all(row["title"] == ask["question"] for row in thread)
     other = {**H, "X-Chat-Id": "f" * 32}
     assert (
         client.get(f"/chat/history?thread_id={first['thread_id']}", headers=other).json()["items"]

@@ -1849,13 +1849,14 @@ async function loadHistory(current, older = false, restore = false) {
 }
 function drawHistory(current) {
   const f = $("#history-filter").value.trim().toLowerCase();
-  const matching = f ? historyItems.filter((h) => h.question.toLowerCase().includes(f)) : historyItems;
-  const items = [...new Map(matching.map((h) => [h.thread_id || h.id, h])).values()];
+  const matching = f ? historyItems.filter((h) => (h.title || h.question).toLowerCase().includes(f) || h.question.toLowerCase().includes(f)) : historyItems;
+  const seen = new Set();
+  const items = matching.filter((h) => { const id = h.thread_id || h.id; if (seen.has(id)) return false; seen.add(id); return true; });
   const prev = $("#history-list [aria-current='true']")?.dataset.h;
   const cur = current ?? (prev ? Number(prev) : null);
   $("#history-list").innerHTML = items.length ? items.map((h) => {
     const [label, kind] = STATUS[h.response.status] || [h.response.status, ""];
-    return `<li><button type="button" data-h="${h.id}" aria-current="${(h.thread_id || h.id) === (activeThreadId || cur)}" title="${esc(h.question)}"><span class="q">${esc(h.question)}</span><span class="t"><i class="${kind}"></i>${esc(label)} · ${esc(new Date(h.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }))}</span></button></li>`;
+    return `<li><button type="button" data-h="${h.id}" aria-current="${(h.thread_id || h.id) === (activeThreadId || cur)}" title="${esc(h.title || h.question)}"><span class="q">${esc(h.title || h.question)}</span><span class="t"><i class="${kind}"></i>${esc(label)} · ${esc(new Date(h.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }))}</span></button></li>`;
   }).join("") : `<li class="hint">${f ? "No questions match." : "Questions you ask appear here."}</li>`;
   $("#history-list").querySelectorAll("[data-h]").forEach((b) => b.onclick = async () => {
     const h = historyItems.find((x) => x.id === Number(b.dataset.h));

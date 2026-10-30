@@ -42,3 +42,23 @@ test('history failure exposes retry without claiming history is empty', async ()
 });
 // Parse every inline script to catch syntax errors outside the exercised section.
 for (const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)) new vm.Script(match[1]);
+
+
+test('a follow-up keeps one sidebar entry with the original conversation title', () => {
+  const list = { innerHTML: '', querySelectorAll: () => [] };
+  const ctx = vm.createContext({
+    $: (selector) => selector === '#history-filter' ? {value: ''} : selector.includes('aria-current') ? null : list,
+    STATUS: {answered: ['Answered', 'ok']}, esc: (value) => value,
+    activeThreadId: 10,
+    historyItems: [
+      {id: 11, thread_id: 10, title: 'How to submit a ticket?', question: "So what's the first step?", response: {status: 'answered'}, created_at: '2026-10-30T11:15:00Z'},
+      {id: 10, thread_id: 10, title: 'How to submit a ticket?', question: 'How to submit a ticket?', response: {status: 'answered'}, created_at: '2026-10-30T10:54:00Z'},
+    ],
+  });
+  const draw = html.slice(html.indexOf('function drawHistory(current)'), html.indexOf('$("#history-filter").addEventListener'));
+  vm.runInContext(draw + '\ndrawHistory();', ctx);
+  assert.equal((list.innerHTML.match(/data-h=/g) || []).length, 1);
+  assert.match(list.innerHTML, /How to submit a ticket/);
+  assert.doesNotMatch(list.innerHTML, /So what's the first step/);
+  assert.match(list.innerHTML, /aria-current="true"/);
+});

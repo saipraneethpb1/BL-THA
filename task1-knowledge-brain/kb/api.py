@@ -1230,7 +1230,7 @@ async def chat_history(
     page_size = max(1, min(limit, 200))
     async with connect(settings.db_path) as db:
         rows = await db.execute_fetchall(
-            "SELECT id, question, response, created_at, COALESCE(thread_id, id) AS thread_id FROM chat_history "
+            "SELECT h.id, h.question, h.response, h.created_at, COALESCE(h.thread_id, h.id) AS thread_id, (SELECT question FROM chat_history root WHERE root.id=COALESCE(h.thread_id,h.id) AND root.owner=h.owner) AS title FROM chat_history h "
             "WHERE owner=? AND (? IS NULL OR id < ?) AND (? IS NULL OR COALESCE(thread_id,id)=?) ORDER BY id DESC LIMIT ?",
             (owner, before, before, thread_id, thread_id, page_size + 1),
         )
@@ -1240,6 +1240,7 @@ async def chat_history(
             {
                 "id": r["id"],
                 "thread_id": r["thread_id"],
+                "title": r["title"] or r["question"],
                 "question": r["question"],
                 "created_at": r["created_at"],
                 "response": json.loads(r["response"]),
