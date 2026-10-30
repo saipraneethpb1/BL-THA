@@ -567,13 +567,13 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
   .kb-scrim { display: none; }
 
   /* ---- Ask: a threaded conversation with the composer pinned to the bottom ---- */
-  .turn.working .av { position: relative; animation: agent-breathe 1.6s ease-in-out infinite; }
-  .turn.working .av::after { content: ""; position: absolute; inset: -4px; border: 1.5px solid transparent; border-top-color: var(--kb); border-right-color: var(--kb); border-radius: 12px; animation: agent-orbit 1.8s linear infinite; }
-  .turn.working .av svg { animation: agent-spark 1.6s ease-in-out infinite; }
-  @keyframes agent-breathe { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--kb) 8%, transparent); } }
-  @keyframes agent-orbit { to { transform: rotate(360deg); } }
-  @keyframes agent-spark { 50% { opacity: .45; transform: scale(.85); } }
-  @media (prefers-reduced-motion: reduce) { .turn.working .av, .turn.working .av::after, .turn.working .av svg { animation: none; } }
+  .turn.working .av svg { transform-origin: center; animation: agent-spark 2.4s ease-in-out infinite; }
+  @keyframes agent-spark {
+    0% { transform: rotate(0deg) scale(1); opacity: 1; }
+    50% { transform: rotate(180deg) scale(.78); opacity: .55; }
+    100% { transform: rotate(360deg) scale(1); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) { .turn.working .av svg { animation: none; } }
   .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .chat-scroll { flex: 1; min-height: 0; overflow-y: auto; scroll-behavior: smooth; }
   .chat-col { max-width: 800px; margin: 0 auto; padding: 28px 24px 24px; }
