@@ -144,7 +144,7 @@ class FeasibilityResult(BaseModel):
     how_to: str | None
     limitation: str | None
     clarifying_question: str | None
-    kb_status: Literal["answered", "partial", "insufficient_evidence", "unavailable"]
+    kb_status: Literal["answered", "partial", "insufficient_evidence", "conflict", "unavailable"]
     kb_sources: list[KnowledgeSource]
 
 

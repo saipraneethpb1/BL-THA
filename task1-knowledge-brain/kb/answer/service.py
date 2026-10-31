@@ -9,6 +9,7 @@
 5. Anything not fully answered opens (or bumps) a task for a human expert.
 """
 
+import asyncio
 import json
 import time
 from dataclasses import dataclass, field
@@ -16,12 +17,13 @@ from typing import Literal
 
 import aiosqlite
 
+from kb.answer.claims import Entailment, check_claims, local_entailment
 from kb.answer.escalations import open_escalation
 from kb.answer.llm import Answerer, LLMResult, PassageInput
 from kb.progress import Progress, report
 from kb.retrieval.search import Searcher, SearchHit
 
-Status = Literal["answered", "partial", "insufficient_evidence"]
+Status = Literal["answered", "partial", "insufficient_evidence", "conflict"]
 
 
 @dataclass
@@ -49,6 +51,9 @@ class QueryResult:
     output_tokens: int = 0
     cost_usd: float = 0.0
     latency_ms: float = 0.0
+    claims: int = 0
+    claims_supported: int = 0
+    status_overridden: bool = False
 
 
 NOT_COVERED = "The help center doesn't cover this yet. I've passed the question to a human expert."
@@ -115,6 +120,7 @@ async def answer_question(
     answerer: Answerer,
     question: str,
     *,
+    entailment: Entailment | None = None,
     k: int = 6,
     min_score: float = 0.60,
     caller: str | None = None,
@@ -124,6 +130,8 @@ async def answer_question(
     hits = await searcher.search(db, question, k=k, progress=progress)
     top_score = hits[0].score if hits else 0.0
 
+    supported: list[str] = []
+    unsupported: list[str] = []
     llm: LLMResult | None = None
     missing: str | None
     cited_hits: list[SearchHit] = []
@@ -153,9 +161,19 @@ async def answer_question(
         draft = llm.draft
         valid = sorted({n for n in draft.cited_passages if 1 <= n <= len(hits)})
         cited_hits = [hits[n - 1] for n in valid]
-        status, answer, missing = draft.status, draft.answer, draft.missing_info
-        if status != "insufficient_evidence" and not cited_hits:
-            status, answer = "insufficient_evidence", NOT_COVERED
+        supported, unsupported = await asyncio.to_thread(
+            check_claims, draft.answer, [h.text for h in cited_hits], entailment or local_entailment
+        )
+        status = (
+            "answered"
+            if supported and not unsupported
+            else "partial"
+            if supported
+            else "insufficient_evidence"
+        )
+        answer = "\n".join(supported) if supported else NOT_COVERED
+        missing = "\n".join(unsupported) or None
+        if not cited_hits:
             missing = "model answered without citing any passage"
         if status == "insufficient_evidence":
             cited_hits = []
@@ -181,6 +199,9 @@ async def answer_question(
         )
 
     result = QueryResult(
+        claims=len(supported) + len(unsupported),
+        claims_supported=len(supported),
+        status_overridden=llm is not None and llm.draft.status != status,
         status=status,
         answer=answer,
         sources=await _sources(db, cited_hits),
@@ -197,8 +218,8 @@ async def answer_question(
     )
     await db.execute(
         """INSERT INTO query_log(question, status, model, prompt_version, top_score, cited,
-           input_tokens, output_tokens, cost_usd, latency_ms, caller)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           input_tokens, output_tokens, cost_usd, latency_ms, caller, claims, claims_supported)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             question,
             result.status,
@@ -211,6 +232,8 @@ async def answer_question(
             result.cost_usd,
             result.latency_ms,
             caller,
+            result.claims,
+            result.claims_supported,
         ),
     )
     await db.commit()

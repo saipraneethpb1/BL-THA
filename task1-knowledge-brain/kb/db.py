@@ -263,6 +263,10 @@ CREATE TABLE IF NOT EXISTS images (
 
 # Columns added after the first release. init_db adds any that an older database lacks.
 MIGRATIONS = {
+    "query_log": {
+        "claims": "INTEGER NOT NULL DEFAULT 0",
+        "claims_supported": "INTEGER NOT NULL DEFAULT 0",
+    },
     "chat_history": {"thread_id": "INTEGER", "title": "TEXT"},
     "pages": {
         # Which sitemap listed the page: 'help-center' or a custom sitemap's URL.

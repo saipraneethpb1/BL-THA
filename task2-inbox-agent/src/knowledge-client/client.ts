@@ -14,7 +14,7 @@ const Source = z.object({
 });
 
 export const KnowledgeAnswer = z.object({
-  status: z.enum(["answered", "partial", "insufficient_evidence"]),
+  status: z.enum(["answered", "partial", "insufficient_evidence", "conflict"]),
   answer: z.string(),
   sources: z.array(Source),
   needs_human: z.boolean(),

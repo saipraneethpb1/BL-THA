@@ -42,5 +42,7 @@ jobs:
         run: |
           mkdir -p data
           [ -f data/knowledge.db ] || curl -fsSL "$SNAPSHOT_URL" -o data/knowledge.db
+      - name: Reindex snapshot with the current chunker
+        run: uv run python -m kb.retrieval.cli index --force
       - name: Retrieval smoke eval (fails on a drop)
         run: uv run python -m evaluation.run_retrieval_eval --smoke --no-save --check evaluation/baselines/smoke.json

@@ -69,8 +69,10 @@ class FeasibilityAgent:
 
         verdict = j.verdict
         explanation = j.explanation
-        no_evidence = answer.status == "insufficient_evidence" or not answer.sources
-        if verdict in ("existing_configuration", "existing_with_limitation") and no_evidence:
+        no_evidence = answer.status in ("insufficient_evidence", "conflict") or not answer.sources
+        invalid_configuration = verdict == "existing_configuration" and answer.status != "answered"
+        invalid_limitation = verdict == "existing_with_limitation" and (not j.limitation or j.limitation.casefold() not in answer.answer.casefold())
+        if no_evidence or invalid_configuration or invalid_limitation:
             verdict = "needs_clarification"
             explanation = (
                 "The product documentation does not confirm this feature, so it is not "

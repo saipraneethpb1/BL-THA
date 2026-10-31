@@ -55,29 +55,29 @@ class VectorIndex:
     """All chunk vectors in one in-memory matrix. ~8k x 384 floats = ~12 MB, and a
     brute-force dot product over it takes a few milliseconds, so no vector DB is needed."""
 
-    def __init__(self) -> None:
+    def __init__(self, embedder: Embedder) -> None:
+        self.embedder = embedder
         self.ids: np.ndarray = np.zeros(0, dtype=np.int64)
         self.matrix: Vector = np.zeros((0, 0), dtype=np.float32)
         self._version: tuple[int, int] | None = None
 
     async def refresh(self, db: aiosqlite.Connection) -> None:
-        rows = list(
-            await db.execute_fetchall(
-                "SELECT count(*) AS n, max(chunk_id) AS m FROM chunks WHERE is_active=1"
-            )
+        models = await db.execute_fetchall(
+            "SELECT DISTINCT embedding_model FROM chunks WHERE is_active=1 AND source='article'"
         )
-        version = (rows[0]["n"], rows[0]["m"] or 0)
-        if version == self._version:
-            return
+        if len(models) > 1:
+            raise RuntimeError(
+                "Mixed active article embedding models; reindex before serving queries"
+            )
         data = await db.execute_fetchall(
             "SELECT chunk_id, embedding FROM chunks WHERE embedding IS NOT NULL AND is_active=1 "
-            "ORDER BY chunk_id"
+            "AND embedding_model=? AND embedding_dim=? ORDER BY chunk_id",
+            (self.embedder.model_name, self.embedder.dim),
         )
         ids = [r["chunk_id"] for r in data]
         vecs = [np.frombuffer(r["embedding"], dtype=np.float32) for r in data]
         self.ids = np.array(ids, dtype=np.int64)
         self.matrix = np.vstack(vecs) if vecs else np.zeros((0, 0), dtype=np.float32)
-        self._version = version
 
     def top(self, query_vec: Vector, k: int) -> list[tuple[int, float]]:
         if self.matrix.size == 0:
@@ -117,7 +117,7 @@ class Searcher:
         self.embedder = embedder
         # Optional: also search with the question rephrased in help-center vocabulary.
         self.rewriter = rewriter
-        self.vectors = VectorIndex()
+        self.vectors = VectorIndex(embedder)
         # Keyword hits count less than meaning hits in the merge: the retrieval eval
         # showed plain OR-matching drags in noise for conversational questions.
         self.keyword_weight = keyword_weight

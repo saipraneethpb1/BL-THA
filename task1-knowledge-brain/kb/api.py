@@ -79,6 +79,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         )
     # The rewrite prompt is data the agent maintains: start with its active version.
     async with connect(settings.db_path) as db:
+        await app.state.searcher.vectors.refresh(db)
         await prompt_registry.ensure_seeded(db, prompt_tuning.NAME, "rewrite_v1")
         live = await prompt_registry.active(db, prompt_tuning.NAME)
     rw = getattr(app.state.searcher, "rewriter", None)
@@ -1135,7 +1136,10 @@ class SourceOut(BaseModel):
 
 
 class QueryResponse(BaseModel):
-    status: Literal["answered", "partial", "insufficient_evidence"] = Field(
+    claims: int = 0
+    claims_supported: int = 0
+    status_overridden: bool = False
+    status: Literal["answered", "partial", "insufficient_evidence", "conflict"] = Field(
         description="answered: fully supported by sources. partial: some of it is. "
         "insufficient_evidence: the help center does not cover it; a human task was opened."
     )

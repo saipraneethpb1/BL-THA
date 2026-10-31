@@ -15,7 +15,7 @@ class KBSource(BaseModel):
 
 
 class KBAnswer(BaseModel):
-    status: Literal["answered", "partial", "insufficient_evidence"]
+    status: Literal["answered", "partial", "insufficient_evidence", "conflict"]
     answer: str
     sources: list[KBSource]
     needs_human: bool

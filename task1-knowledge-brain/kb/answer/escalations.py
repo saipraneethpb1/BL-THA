@@ -113,9 +113,18 @@ async def add_expert_answer(
     text = f"Expert answer: {question}\n\n{answer}"
     vector = embedder.embed_documents([text])[0]
     await db.execute(
-        """INSERT INTO chunks(article_id, source, position, section, text, image_ids, embedding)
-           VALUES (?, 'expert', 0, ?, ?, '[]', ?)""",
-        (f"expert:{answer_id}", question, text, vector.tobytes()),
+        """INSERT INTO chunks(article_id, source, position, section, text, image_ids, embedding,
+           embedding_model, embedding_dim, chunk_key, is_active)
+           VALUES (?, 'expert', 0, ?, ?, '[]', ?, ?, ?, ?, 1)""",
+        (
+            f"expert:{answer_id}",
+            question,
+            text,
+            vector.tobytes(),
+            embedder.model_name,
+            embedder.dim,
+            f"expert:{answer_id}:{version}",
+        ),
     )
     if escalation_id is not None:
         await db.execute(

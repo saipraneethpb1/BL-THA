@@ -108,6 +108,7 @@ export class InboxAgent {
             question,
             status: a.value.status,
             answer: a.value.answer,
+            missing_info: a.value.missing_info,
             sources: a.value.sources.map((s) => ({ title: s.title, url: s.url })),
           });
         } else if (a.reason instanceof KnowledgeUnavailableError) {
@@ -117,7 +118,7 @@ export class InboxAgent {
         }
       });
     }
-    const knowledgeGap = knowledgeUnavailable || evidence.some((e) => e.status !== "answered");
+    const knowledgeGap = knowledgeUnavailable || evidence.some((e) => e.status === "insufficient_evidence" || e.status === "conflict" || (e.status === "partial" && Boolean(e.missing_info?.trim())));
 
     let subject = `Re: ${email.subject}`;
     let body = "";

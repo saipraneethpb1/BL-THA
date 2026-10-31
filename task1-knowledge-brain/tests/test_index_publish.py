@@ -127,3 +127,22 @@ def test_overlap_never_copies_a_screenshot_into_the_next_chunk() -> None:
     )
     assert [c.image_ids for c in chunks] == [["img0"], ["img1"], ["img2"]]
     assert sum("[Screenshot: Save button]" in c.text for c in chunks) == 1
+
+async def test_vector_index_rejects_mixed_article_models(db: aiosqlite.Connection) -> None:
+    await sync_index(db, FakeEmbedder())
+    await db.execute("UPDATE chunks SET embedding_model='other' WHERE article_id='1'")
+    with pytest.raises(RuntimeError, match="Mixed active article"):
+        await Searcher(FakeEmbedder()).vectors.refresh(db)
+
+
+async def test_vector_index_filters_dimension_and_refreshes_updates(db: aiosqlite.Connection) -> None:
+    await sync_index(db, FakeEmbedder())
+    index = Searcher(FakeEmbedder()).vectors
+    await index.refresh(db)
+    count = len(index.ids)
+    await db.execute("UPDATE chunks SET embedding_dim=999 WHERE article_id='1'")
+    await index.refresh(db)
+    assert len(index.ids) < count
+    await db.execute("UPDATE chunks SET embedding_dim=64 WHERE article_id='1'")
+    await index.refresh(db)
+    assert len(index.ids) == count

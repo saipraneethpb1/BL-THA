@@ -310,3 +310,50 @@ This replaces the role-plays (see DESIGN.md §5). The meetings are ES2002b, ES20
 
   The Anthropic Console is the authority on the exact total.
 - **Ongoing spend is capped:** each service has a budget ($4.50 / $2.50 / $2.50), each visitor is rate-limited, and the Anthropic account has a monthly spend limit.
+
+
+## 2026-10-31 handoff implementation: validation incomplete
+
+Configured stack: BAAI/bge-small-en-v1.5, ChunkingConfig with 12% overlap,
+claude-haiku-4-5 rewriting enabled, evidence gate 0.66, claude-opus-4-6 with low effort.
+The forced rebuild completed: 1,537 articles, 7,636 chunks. Model/dimension filtering,
+mixed-model startup rejection, and expert chunk metadata are implemented.
+
+Offline retrieval results (rewriting disabled, not a production headline):
+- Dev: task1-knowledge-brain/evaluation/results/retrieval_20261031T104155Z.json
+- Held-out: task1-knowledge-brain/evaluation/results/retrieval_20261031T104203Z.json
+- Smoke: task1-knowledge-brain/evaluation/results/retrieval_20261031T104008Z.json
+- Index metadata and offline candidate gate: task1-knowledge-brain/evaluation/results/handoff_step_a.json
+
+The smoke baseline was intentionally regenerated against the rebuilt database. CI now
+reindexes the downloaded snapshot before checking it; matching the published snapshot's
+article content remains required. The production+rewrite run repeatedly returned HTTP
+429 and fell back to original questions, so it was stopped. The live gate remains 0.66;
+production calibration and held-out confirmation are NOT complete.
+
+Claims now use lazy local quantized ONNX Xenova/nli-deberta-v3-small entailment, with
+an initial 0.8 support threshold. Sentence-level checks overwrite draft status, retain
+supported text, expose unsupported text in missing_info, and log claim counts.
+The answer eval retains its substring smoke grade and records entailment counts and
+status overrides. This initial checker threshold is not yet answer-eval calibrated.
+Inbox receives separate answer/missing_info fields and blocks auto-send on missing info.
+Scope requires answered plus sources for existing_configuration, and an explicitly
+supported limitation for existing_with_limitation. Conflict is accepted by all clients.
+
+Validation: brain 158 tests, Inbox 83 tests plus TypeScript, Scope 39 tests passed.
+The local NLI model loaded and supported a direct removal-event fixture sentence.
+Paid answer evaluation encountered HTTP 429. Inbox held-out evaluation failed because
+AWS credentials were unavailable. The temporary brain API had answering disabled;
+feasibility results from that attempt cannot measure the status changes. These attempts
+were stopped; no improvement on the six emails or F08 is claimed. Production answer,
+Inbox and feasibility evaluations must be rerun with working model access before steps
+A and B can be marked complete.
+
+
+Follow-up: Bedrock connectivity recovered. A single end-to-end refund question completed
+with rewriting and answering retries disabled: status answered, eight of eight draft
+sentences supported. This is a connectivity check, not a substitute for the full eval.
+The user explicitly deferred production calibration and the answer/Inbox/Scope evals
+and authorized pushing the current implementation to main. Resume these evaluations
+only when requested; the gate remains unchanged. Failed-attempt logs and the feasibility
+run against the disabled API were removed during cleanup.

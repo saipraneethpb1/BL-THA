@@ -3,14 +3,14 @@
   "split": "smoke",
   "index": {
     "chunks": 7636,
-    "chunk_text_sha256": "1aff632ec6c6154f",
+    "chunk_text_sha256": "f27932aae07e3423",
     "embedding_model": "BAAI/bge-small-en-v1.5"
   },
   "summary": {
     "recall@5": 0.8461538461538461,
     "recall@10": 0.8461538461538461,
-    "mrr@10": 0.6410256410256411,
-    "ndcg@10": 0.666436072480119,
+    "mrr@10": 0.6371794871794871,
+    "ndcg@10": 0.6655674775318098,
     "in_context@6": 0.8461538461538461,
     "wrongly_answered": 0.75,
     "wrongly_refused": 0.0

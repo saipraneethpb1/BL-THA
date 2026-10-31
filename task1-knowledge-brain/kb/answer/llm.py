@@ -33,7 +33,7 @@ def price(model: str) -> tuple[float, float]:
 class AnswerDraft(BaseModel):
     """What the model must return. Validated by the SDK against this schema."""
 
-    status: Literal["answered", "partial", "insufficient_evidence"]
+    status: Literal["answered", "partial", "insufficient_evidence", "conflict"]
     answer: str
     cited_passages: list[int] = Field(description="Numbers of the passages the answer relies on")
     missing_info: str | None = Field(

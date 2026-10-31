@@ -86,6 +86,7 @@ export interface EmailForModel {
 }
 
 export interface EvidenceItem {
+  missing_info?: string | null;
   number: number;
   question: string;
   status: string;
@@ -126,7 +127,7 @@ export function renderEvidence(evidence: EvidenceItem[]): string {
   if (evidence.length === 0) return "<evidence>none</evidence>";
   const items = evidence.map((e) => {
     const sources = e.sources.map((s) => `${s.title} (${s.url ?? "expert answer"})`).join("; ");
-    return `<evidence number="${e.number}" question="${e.question}" status="${e.status}">\n${e.answer}\nSources: ${sources || "none"}\n</evidence>`;
+    return `<evidence number="${e.number}" question="${e.question}" status="${e.status}">\n<answer>${e.answer}</answer>\n<missing_info>${e.missing_info ?? ""}</missing_info>\nSources: ${sources || "none"}\n</evidence>`;
   });
   return items.join("\n");
 }

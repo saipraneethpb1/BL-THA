@@ -226,7 +226,7 @@ async def test_first_build_then_approval_gate(setup: tuple[Store, ScopeBuilder, 
     ]
     assert {f.verdict for f in v.data.feasibility} == {
         "existing_configuration",
-        "custom_development",
+        "needs_clarification",
     }
     assert "Already possible with built-in features" in v.data.proposal_md
     assert "DRAFT" in v.data.proposal_md

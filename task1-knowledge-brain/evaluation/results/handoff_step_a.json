@@ -1,0 +1,813 @@
+{
+  "dev": {
+    "file": "retrieval_20261031T104155Z.json",
+    "summary": {
+      "hit@1": 0.5925925925925926,
+      "recall@5": 0.8765432098765432,
+      "recall@10": 0.9135802469135802,
+      "in_context@6": 0.8765432098765432,
+      "mrr@10": 0.7034440525181266,
+      "ndcg@10": 0.7298782348220018,
+      "wrongly_refused": 0.012345679012345678,
+      "wrongly_answered": 0.36363636363636365,
+      "answerable_cases": 81,
+      "refuse_cases": 22,
+      "recall@5_ci95": [
+        0.8024691358024691,
+        0.9382716049382716
+      ],
+      "mrr@10_ci95": [
+        0.6261610817166373,
+        0.784411130707427
+      ],
+      "ndcg@10_ci95": [
+        0.6620285546600564,
+        0.7973180780991509
+      ],
+      "recall@5_by_category": {
+        "adversarial": {
+          "n": 3,
+          "recall@5": 1.0
+        },
+        "follow-up": {
+          "n": 3,
+          "recall@5": 0.3333333333333333
+        },
+        "how-to": {
+          "n": 48,
+          "recall@5": 0.8958333333333334
+        },
+        "multi-part": {
+          "n": 4,
+          "recall@5": 1.0
+        },
+        "pricing": {
+          "n": 6,
+          "recall@5": 1.0
+        },
+        "troubleshooting": {
+          "n": 11,
+          "recall@5": 0.8181818181818182
+        },
+        "typo": {
+          "n": 6,
+          "recall@5": 0.8333333333333334
+        }
+      },
+      "p50_ms": 95.8372999994026,
+      "p95_ms": 148.11790000021574,
+      "failures": {
+        "R06": "retrieval miss",
+        "R24": "retrieval miss",
+        "R33": "retrieval miss",
+        "R37": "retrieval miss",
+        "R41": "retrieval miss",
+        "R62": "retrieval miss",
+        "R67": "retrieval miss",
+        "R96": "retrieval miss",
+        "R109": "retrieval miss",
+        "R110": "retrieval miss",
+        "R116": "wrongly answered",
+        "R117": "wrong refusal",
+        "R120": "wrongly answered",
+        "R121": "wrongly answered",
+        "O07": "wrongly answered",
+        "O13": "wrongly answered",
+        "O14": "wrongly answered",
+        "O15": "wrongly answered",
+        "O17": "wrongly answered"
+      },
+      "gate_sweep": [
+        {
+          "threshold": 0.486,
+          "wrongly_answered": 0.9545454545454546,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.508,
+          "wrongly_answered": 0.9545454545454546,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.533,
+          "wrongly_answered": 0.9090909090909091,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.535,
+          "wrongly_answered": 0.8181818181818182,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.541,
+          "wrongly_answered": 0.7727272727272727,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.546,
+          "wrongly_answered": 0.7727272727272727,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.571,
+          "wrongly_answered": 0.7272727272727273,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.586,
+          "wrongly_answered": 0.6818181818181818,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.59,
+          "wrongly_answered": 0.5909090909090909,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.611,
+          "wrongly_answered": 0.5909090909090909,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.634,
+          "wrongly_answered": 0.5,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.636,
+          "wrongly_answered": 0.45454545454545453,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.643,
+          "wrongly_answered": 0.4090909090909091,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.658,
+          "wrongly_answered": 0.4090909090909091,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.659,
+          "wrongly_answered": 0.36363636363636365,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.661,
+          "wrongly_answered": 0.3181818181818182,
+          "wrongly_refused": 0.014084507042253521
+        },
+        {
+          "threshold": 0.685,
+          "wrongly_answered": 0.3181818181818182,
+          "wrongly_refused": 0.014084507042253521
+        },
+        {
+          "threshold": 0.688,
+          "wrongly_answered": 0.3181818181818182,
+          "wrongly_refused": 0.014084507042253521
+        },
+        {
+          "threshold": 0.692,
+          "wrongly_answered": 0.3181818181818182,
+          "wrongly_refused": 0.028169014084507043
+        },
+        {
+          "threshold": 0.694,
+          "wrongly_answered": 0.2727272727272727,
+          "wrongly_refused": 0.04225352112676056
+        },
+        {
+          "threshold": 0.696,
+          "wrongly_answered": 0.2727272727272727,
+          "wrongly_refused": 0.07042253521126761
+        },
+        {
+          "threshold": 0.699,
+          "wrongly_answered": 0.2727272727272727,
+          "wrongly_refused": 0.07042253521126761
+        },
+        {
+          "threshold": 0.702,
+          "wrongly_answered": 0.2727272727272727,
+          "wrongly_refused": 0.07042253521126761
+        },
+        {
+          "threshold": 0.706,
+          "wrongly_answered": 0.22727272727272727,
+          "wrongly_refused": 0.07042253521126761
+        },
+        {
+          "threshold": 0.707,
+          "wrongly_answered": 0.22727272727272727,
+          "wrongly_refused": 0.07042253521126761
+        },
+        {
+          "threshold": 0.709,
+          "wrongly_answered": 0.18181818181818182,
+          "wrongly_refused": 0.09859154929577464
+        },
+        {
+          "threshold": 0.71,
+          "wrongly_answered": 0.13636363636363635,
+          "wrongly_refused": 0.09859154929577464
+        },
+        {
+          "threshold": 0.711,
+          "wrongly_answered": 0.13636363636363635,
+          "wrongly_refused": 0.09859154929577464
+        },
+        {
+          "threshold": 0.715,
+          "wrongly_answered": 0.13636363636363635,
+          "wrongly_refused": 0.11267605633802817
+        },
+        {
+          "threshold": 0.718,
+          "wrongly_answered": 0.13636363636363635,
+          "wrongly_refused": 0.1267605633802817
+        },
+        {
+          "threshold": 0.72,
+          "wrongly_answered": 0.13636363636363635,
+          "wrongly_refused": 0.14084507042253522
+        },
+        {
+          "threshold": 0.721,
+          "wrongly_answered": 0.13636363636363635,
+          "wrongly_refused": 0.14084507042253522
+        },
+        {
+          "threshold": 0.723,
+          "wrongly_answered": 0.13636363636363635,
+          "wrongly_refused": 0.14084507042253522
+        },
+        {
+          "threshold": 0.725,
+          "wrongly_answered": 0.13636363636363635,
+          "wrongly_refused": 0.15492957746478872
+        },
+        {
+          "threshold": 0.726,
+          "wrongly_answered": 0.13636363636363635,
+          "wrongly_refused": 0.18309859154929578
+        },
+        {
+          "threshold": 0.727,
+          "wrongly_answered": 0.09090909090909091,
+          "wrongly_refused": 0.19718309859154928
+        },
+        {
+          "threshold": 0.729,
+          "wrongly_answered": 0.09090909090909091,
+          "wrongly_refused": 0.2112676056338028
+        },
+        {
+          "threshold": 0.733,
+          "wrongly_answered": 0.09090909090909091,
+          "wrongly_refused": 0.23943661971830985
+        },
+        {
+          "threshold": 0.736,
+          "wrongly_answered": 0.09090909090909091,
+          "wrongly_refused": 0.2535211267605634
+        },
+        {
+          "threshold": 0.74,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.2676056338028169
+        },
+        {
+          "threshold": 0.744,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.29577464788732394
+        },
+        {
+          "threshold": 0.745,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.30985915492957744
+        },
+        {
+          "threshold": 0.746,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.30985915492957744
+        },
+        {
+          "threshold": 0.747,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.3380281690140845
+        },
+        {
+          "threshold": 0.749,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.3380281690140845
+        },
+        {
+          "threshold": 0.755,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.36619718309859156
+        },
+        {
+          "threshold": 0.757,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.38028169014084506
+        },
+        {
+          "threshold": 0.759,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.39436619718309857
+        },
+        {
+          "threshold": 0.76,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.39436619718309857
+        },
+        {
+          "threshold": 0.761,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.4225352112676056
+        },
+        {
+          "threshold": 0.762,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.4225352112676056
+        },
+        {
+          "threshold": 0.765,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.43661971830985913
+        },
+        {
+          "threshold": 0.767,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.4647887323943662
+        },
+        {
+          "threshold": 0.768,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.4647887323943662
+        },
+        {
+          "threshold": 0.77,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.49295774647887325
+        },
+        {
+          "threshold": 0.771,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.5070422535211268
+        },
+        {
+          "threshold": 0.772,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.5492957746478874
+        },
+        {
+          "threshold": 0.773,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.5633802816901409
+        },
+        {
+          "threshold": 0.776,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.5774647887323944
+        },
+        {
+          "threshold": 0.777,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.5915492957746479
+        },
+        {
+          "threshold": 0.779,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.6056338028169014
+        },
+        {
+          "threshold": 0.784,
+          "wrongly_answered": 0.045454545454545456,
+          "wrongly_refused": 0.6338028169014085
+        },
+        {
+          "threshold": 0.785,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.6338028169014085
+        },
+        {
+          "threshold": 0.786,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.647887323943662
+        },
+        {
+          "threshold": 0.788,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.676056338028169
+        },
+        {
+          "threshold": 0.789,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.6901408450704225
+        },
+        {
+          "threshold": 0.793,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.6901408450704225
+        },
+        {
+          "threshold": 0.794,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.704225352112676
+        },
+        {
+          "threshold": 0.796,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.7183098591549296
+        },
+        {
+          "threshold": 0.798,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.7323943661971831
+        },
+        {
+          "threshold": 0.805,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.7605633802816901
+        },
+        {
+          "threshold": 0.806,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.7605633802816901
+        },
+        {
+          "threshold": 0.807,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.7746478873239436
+        },
+        {
+          "threshold": 0.811,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.8028169014084507
+        },
+        {
+          "threshold": 0.817,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.8169014084507042
+        },
+        {
+          "threshold": 0.819,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.8309859154929577
+        },
+        {
+          "threshold": 0.82,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.8309859154929577
+        },
+        {
+          "threshold": 0.835,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.8732394366197183
+        },
+        {
+          "threshold": 0.839,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.8873239436619719
+        },
+        {
+          "threshold": 0.855,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.9014084507042254
+        },
+        {
+          "threshold": 0.856,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.9154929577464789
+        },
+        {
+          "threshold": 0.858,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.9154929577464789
+        },
+        {
+          "threshold": 0.865,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.9436619718309859
+        },
+        {
+          "threshold": 0.867,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.9577464788732394
+        },
+        {
+          "threshold": 0.873,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.9577464788732394
+        },
+        {
+          "threshold": 0.874,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.9859154929577465
+        },
+        {
+          "threshold": 0.879,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 1.0
+        }
+      ],
+      "suggested_threshold": 0.694
+    }
+  },
+  "heldout": {
+    "file": "retrieval_20261031T104203Z.json",
+    "summary": {
+      "hit@1": 0.5714285714285714,
+      "recall@5": 0.8857142857142857,
+      "recall@10": 0.9142857142857143,
+      "in_context@6": 0.9142857142857143,
+      "mrr@10": 0.7033333333333334,
+      "ndcg@10": 0.7234425024312205,
+      "wrongly_refused": 0.0,
+      "wrongly_answered": 0.5555555555555556,
+      "answerable_cases": 35,
+      "refuse_cases": 9,
+      "recall@5_ci95": [
+        0.7714285714285715,
+        0.9714285714285714
+      ],
+      "mrr@10_ci95": [
+        0.589047619047619,
+        0.8166666666666667
+      ],
+      "ndcg@10_ci95": [
+        0.6304427296283116,
+        0.8202445190875205
+      ],
+      "recall@5_by_category": {
+        "adversarial": {
+          "n": 2,
+          "recall@5": 1.0
+        },
+        "follow-up": {
+          "n": 1,
+          "recall@5": 1.0
+        },
+        "how-to": {
+          "n": 20,
+          "recall@5": 0.95
+        },
+        "multi-part": {
+          "n": 2,
+          "recall@5": 0.5
+        },
+        "pricing": {
+          "n": 2,
+          "recall@5": 1.0
+        },
+        "troubleshooting": {
+          "n": 5,
+          "recall@5": 0.6
+        },
+        "typo": {
+          "n": 3,
+          "recall@5": 1.0
+        }
+      },
+      "p50_ms": 99.3437500019354,
+      "p95_ms": 146.73889999903622,
+      "failures": {
+        "R95": "retrieval miss",
+        "R101": "retrieval miss",
+        "R104": "multi-part miss",
+        "R118": "wrongly answered",
+        "R119": "wrongly answered",
+        "O05": "wrongly answered",
+        "O12": "wrongly answered",
+        "O16": "wrongly answered"
+      },
+      "gate_sweep": [
+        {
+          "threshold": 0.501,
+          "wrongly_answered": 0.8888888888888888,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.532,
+          "wrongly_answered": 0.8888888888888888,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.553,
+          "wrongly_answered": 0.6666666666666666,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.654,
+          "wrongly_answered": 0.6666666666666666,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.661,
+          "wrongly_answered": 0.5555555555555556,
+          "wrongly_refused": 0.0
+        },
+        {
+          "threshold": 0.664,
+          "wrongly_answered": 0.4444444444444444,
+          "wrongly_refused": 0.03125
+        },
+        {
+          "threshold": 0.665,
+          "wrongly_answered": 0.4444444444444444,
+          "wrongly_refused": 0.0625
+        },
+        {
+          "threshold": 0.676,
+          "wrongly_answered": 0.3333333333333333,
+          "wrongly_refused": 0.0625
+        },
+        {
+          "threshold": 0.682,
+          "wrongly_answered": 0.3333333333333333,
+          "wrongly_refused": 0.09375
+        },
+        {
+          "threshold": 0.688,
+          "wrongly_answered": 0.3333333333333333,
+          "wrongly_refused": 0.09375
+        },
+        {
+          "threshold": 0.696,
+          "wrongly_answered": 0.3333333333333333,
+          "wrongly_refused": 0.125
+        },
+        {
+          "threshold": 0.699,
+          "wrongly_answered": 0.3333333333333333,
+          "wrongly_refused": 0.15625
+        },
+        {
+          "threshold": 0.704,
+          "wrongly_answered": 0.3333333333333333,
+          "wrongly_refused": 0.21875
+        },
+        {
+          "threshold": 0.706,
+          "wrongly_answered": 0.3333333333333333,
+          "wrongly_refused": 0.25
+        },
+        {
+          "threshold": 0.708,
+          "wrongly_answered": 0.3333333333333333,
+          "wrongly_refused": 0.28125
+        },
+        {
+          "threshold": 0.709,
+          "wrongly_answered": 0.3333333333333333,
+          "wrongly_refused": 0.3125
+        },
+        {
+          "threshold": 0.717,
+          "wrongly_answered": 0.3333333333333333,
+          "wrongly_refused": 0.3125
+        },
+        {
+          "threshold": 0.723,
+          "wrongly_answered": 0.2222222222222222,
+          "wrongly_refused": 0.34375
+        },
+        {
+          "threshold": 0.729,
+          "wrongly_answered": 0.2222222222222222,
+          "wrongly_refused": 0.34375
+        },
+        {
+          "threshold": 0.738,
+          "wrongly_answered": 0.1111111111111111,
+          "wrongly_refused": 0.375
+        },
+        {
+          "threshold": 0.742,
+          "wrongly_answered": 0.1111111111111111,
+          "wrongly_refused": 0.375
+        },
+        {
+          "threshold": 0.748,
+          "wrongly_answered": 0.1111111111111111,
+          "wrongly_refused": 0.46875
+        },
+        {
+          "threshold": 0.753,
+          "wrongly_answered": 0.1111111111111111,
+          "wrongly_refused": 0.5
+        },
+        {
+          "threshold": 0.754,
+          "wrongly_answered": 0.1111111111111111,
+          "wrongly_refused": 0.53125
+        },
+        {
+          "threshold": 0.755,
+          "wrongly_answered": 0.1111111111111111,
+          "wrongly_refused": 0.53125
+        },
+        {
+          "threshold": 0.767,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.53125
+        },
+        {
+          "threshold": 0.769,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.59375
+        },
+        {
+          "threshold": 0.774,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.625
+        },
+        {
+          "threshold": 0.776,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.625
+        },
+        {
+          "threshold": 0.785,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.65625
+        },
+        {
+          "threshold": 0.792,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.71875
+        },
+        {
+          "threshold": 0.794,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.75
+        },
+        {
+          "threshold": 0.799,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.78125
+        },
+        {
+          "threshold": 0.82,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.84375
+        },
+        {
+          "threshold": 0.821,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.90625
+        },
+        {
+          "threshold": 0.83,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.90625
+        },
+        {
+          "threshold": 0.831,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 0.9375
+        },
+        {
+          "threshold": 0.88,
+          "wrongly_answered": 0.0,
+          "wrongly_refused": 1.0
+        }
+      ],
+      "suggested_threshold": 0.664
+    }
+  },
+  "offline_candidate_threshold": 0.688,
+  "production_gate_changed": false,
+  "reason": "Production rewriting returns HTTP 429; offline candidate is not production calibration.",
+  "index_meta": [
+    [
+      "overlap12",
+      "BAAI/bge-small-en-v1.5",
+      384,
+      "fastembed default",
+      "{\"max_chars\": 1500, \"min_chars\": 200, \"overlap\": 0.12, \"heading_path\": false}",
+      "shadow",
+      "data\\shadow\\overlap12.db",
+      7636,
+      null,
+      "2026-10-30T09:20:31Z",
+      null
+    ],
+    [
+      "headpath",
+      "BAAI/bge-small-en-v1.5",
+      384,
+      "fastembed default",
+      "{\"max_chars\": 1500, \"min_chars\": 200, \"overlap\": 0.0, \"heading_path\": true}",
+      "shadow",
+      "data\\shadow\\headpath.db",
+      7636,
+      null,
+      "2026-10-30T09:36:31Z",
+      null
+    ]
+  ]
+}
