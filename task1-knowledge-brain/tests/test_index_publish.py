@@ -128,6 +128,7 @@ def test_overlap_never_copies_a_screenshot_into_the_next_chunk() -> None:
     assert [c.image_ids for c in chunks] == [["img0"], ["img1"], ["img2"]]
     assert sum("[Screenshot: Save button]" in c.text for c in chunks) == 1
 
+
 async def test_vector_index_rejects_mixed_article_models(db: aiosqlite.Connection) -> None:
     await sync_index(db, FakeEmbedder())
     await db.execute("UPDATE chunks SET embedding_model='other' WHERE article_id='1'")
@@ -135,7 +136,9 @@ async def test_vector_index_rejects_mixed_article_models(db: aiosqlite.Connectio
         await Searcher(FakeEmbedder()).vectors.refresh(db)
 
 
-async def test_vector_index_filters_dimension_and_refreshes_updates(db: aiosqlite.Connection) -> None:
+async def test_vector_index_filters_dimension_and_refreshes_updates(
+    db: aiosqlite.Connection,
+) -> None:
     await sync_index(db, FakeEmbedder())
     index = Searcher(FakeEmbedder()).vectors
     await index.refresh(db)
@@ -146,3 +149,24 @@ async def test_vector_index_filters_dimension_and_refreshes_updates(db: aiosqlit
     await db.execute("UPDATE chunks SET embedding_dim=64 WHERE article_id='1'")
     await index.refresh(db)
     assert len(index.ids) == count
+
+
+async def test_eval_fingerprint_ignores_row_ids_but_detects_content(
+    db: aiosqlite.Connection,
+) -> None:
+    from evaluation.run_retrieval_eval import index_info
+
+    embedder = FakeEmbedder()
+    await sync_index(db, embedder)
+    before = await index_info(db, embedder.model_name)
+    await db.execute("UPDATE chunks SET chunk_id=chunk_id+100000")
+    assert (await index_info(db, embedder.model_name)) == before
+    await sync_index(db, embedder, force=True)
+    after = await index_info(db, embedder.model_name)
+    assert after["chunk_text_sha256"] == before["chunk_text_sha256"]
+    await db.execute("UPDATE chunks SET text=text || ' changed' WHERE article_id='1'")
+    assert (await index_info(db, embedder.model_name))["chunk_text_sha256"] != before[
+        "chunk_text_sha256"
+    ]
+    await db.execute("UPDATE chunks SET is_active=0 WHERE article_id='1'")
+    assert (await index_info(db, embedder.model_name))["chunks"] < before["chunks"]

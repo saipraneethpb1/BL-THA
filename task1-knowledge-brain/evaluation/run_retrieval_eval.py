@@ -103,10 +103,17 @@ def search_text(case: dict[str, Any]) -> str:
 
 
 async def index_info(db: aiosqlite.Connection, embedding_model: str) -> dict[str, Any]:
-    rows = list(await db.execute_fetchall("SELECT chunk_id, text FROM chunks ORDER BY chunk_id"))
+    # Row IDs are allocation history, not index content: force-reindex changes them.
+    rows = list(
+        await db.execute_fetchall(
+            "SELECT article_id, source, position, section, parent_section, text, image_ids, "
+            "embedding_model, embedding_dim FROM chunks WHERE is_active=1"
+        )
+    )
     digest = hashlib.sha256()
-    for r in rows:
-        digest.update(f"{r['chunk_id']}\x00{r['text']}\x01".encode())
+    records = sorted(json.dumps(list(r), ensure_ascii=False, separators=(",", ":")) for r in rows)
+    for record in records:
+        digest.update(record.encode("utf-8") + b"\n")
     info: dict[str, Any] = {
         "chunks": len(rows),
         "chunk_text_sha256": digest.hexdigest()[:16],

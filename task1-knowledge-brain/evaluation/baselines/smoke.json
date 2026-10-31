@@ -3,7 +3,7 @@
   "split": "smoke",
   "index": {
     "chunks": 7636,
-    "chunk_text_sha256": "f27932aae07e3423",
+    "chunk_text_sha256": "6f0b518a3c61ac0a",
     "embedding_model": "BAAI/bge-small-en-v1.5"
   },
   "summary": {
