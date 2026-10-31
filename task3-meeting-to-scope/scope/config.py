@@ -14,12 +14,12 @@ class Settings(BaseSettings):
     kb_api_key: str | None = None
 
     # Models per step. Starting points; the Task 3 evals decide the final choice.
-    analyst_model: str = "claude-sonnet-5-5"
-    feasibility_model: str = "claude-haiku-5-5"
-    scope_model: str = "claude-sonnet-5-5"
-    estimate_model: str = "claude-sonnet-5-5"
-    proposal_model: str = "claude-sonnet-5-5"
-    changes_model: str = "claude-sonnet-5-5"
+    analyst_model: str = "claude-sonnet-4-6"
+    feasibility_model: str = "claude-haiku-4-5"
+    scope_model: str = "claude-sonnet-4-6"
+    estimate_model: str = "claude-sonnet-4-6"
+    proposal_model: str = "claude-sonnet-4-6"
+    changes_model: str = "claude-sonnet-4-6"
 
     # Commercial settings: pricing is arithmetic on these, never model output.
     hourly_rate: float = 35.0

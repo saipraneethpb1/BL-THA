@@ -1,0 +1,662 @@
+{
+  "summary": [
+    {
+      "model": "ollama:llama3.2",
+      "cases": 32,
+      "pass_rate": 0.5,
+      "answered_when_answerable": 0.5652173913043478,
+      "citation_hit": 0.9230769230769231,
+      "facts_ok": 0.6153846153846154,
+      "abstained_when_unanswerable": 0.8888888888888888,
+      "forbidden_hits": 0,
+      "cost_per_question_usd": 0.0,
+      "total_cost_usd": 0.0,
+      "p50_ms": 23207.112199999756,
+      "p95_ms": 46855.45099999945
+    }
+  ],
+  "cases": [
+    {
+      "model": "ollama:llama3.2",
+      "id": "A01",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "We recommend using images with the following dimensions: 1800px wide by 600px high.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000078952-design-settings-homepage-hero-background-image"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 22276.543899999524,
+      "behaviour_ok": true,
+      "citation_ok": false,
+      "facts_ok": false,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A02",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "partial",
+      "answer": "To give a member their money back from the admin, go to Finance \u00bb Transaction History > Payment History, find the payment that was made in error, and click Actions \u00bb Refund Payment.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000674165-how-refunds-work",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000051955-manual-billing-management-accept-cash-bank-transfers-or-unsupported-payment-gateways"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 46050.23670000082,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": false,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A03",
+      "expect": "answer",
+      "tags": [
+        "fact",
+        "trap_outdated"
+      ],
+      "status": "partial",
+      "answer": "You can set up an email forwarder by following these steps: ",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000558373-email-forwarders",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000681841-how-to-send-emails-through-a-gmail-account",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000003535-how-to-setup-a-third-party-email-application-to-access-the-email-accounts"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 18474.258800000825,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": false,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A04",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 58.65609999818844,
+      "behaviour_ok": false,
+      "citation_ok": false,
+      "facts_ok": false,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A05",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "partial",
+      "answer": "To change the order members appear in search results, navigate to MY CONTENT > EDIT POST SETTINGS, select the post type, and click on \"Edit\". Then, go to the Search Results Design tab and scroll down to the \"Order Results By\" section.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000024824-how-to-change-search-results-sorting-options",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000038355-displaying-member-sub-level-categories-getmembersubcategory-function-"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 29488.583700000163,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A06",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "To change the default language of your website, go to Settings >> General Settings >> Localization and select the desired language from the Default Website Language dropdown.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682670-how-to-edit-change-default-language-of-websites",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000042159-settings-general-settings-localization"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 23394.51890000055,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A07",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "No, the software is designed to allow members to select only one Top Level Category. However, a workaround is available to allow members to select multiple Top Level Categories.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000057947-workaround-members-selecting-multiple-top-level-categories"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 31017.663700000412,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A08",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "You can import up to 3 levels of categories: Top Level Categories, Sub Level Categories, and Sub-Sub Level Categories.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000558401-how-to-import-categories-via-csv-file"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 28846.09030000138,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A09",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "Yes, you can give members discount codes when they sign up by enabling the Easy Coupon Codes add-on and setting the 'Apply to Recurring Payments?' option to 'Yes' during the coupon code creation process.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000032881-easy-coupon-codes"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 25293.58890000003,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A10",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 55801.639199999045,
+      "behaviour_ok": false,
+      "citation_ok": false,
+      "facts_ok": false,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A11",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "To set a new password for a member, navigate to My Members \u00bb Search Members, locate the target member in the results table, click the Actions dropdown for that member's record, select Change Password from the dropdown options, and enter the new password in the Change Password module.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000049987-changing-a-members-password"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 31473.345600003086,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": false,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A12",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "partial",
+      "answer": "You can see the site exactly the way a specific member sees it by using the search results with the 'Protect Profile Pages' option enabled, but the 'Protect Contact Page' and 'Protect Write a Review Page' options disabled.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682638-members-only-content"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 39145.687400003226,
+      "behaviour_ok": false,
+      "citation_ok": false,
+      "facts_ok": false,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A13",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "partial",
+      "answer": "You can remove free membership plans entirely and replace them with a nominal paid entry point.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000065513-how-to-prevent-and-minimize-unwanted-spam-sign-ups-to-free-membership-plans"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 17816.668299998128,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A14",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "To let members move from the Basic plan to the Premium plan, follow these steps: 1. Go to Finance \u00bb Membership Plans, 2. Click on Actions and select Move Members, 3. Select the Premium plan as the destination plan, 4. Click Yes, Continue, and then click Yes, Continue again to confirm the deletion of the Basic plan.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000021382-bulk-delete-or-move-all-members-from-a-specific-membership-plan",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000008978-how-to-setup-upgrade-downgrade-options-for-membership-plans"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 50215.72159999778,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A15",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "To add your GA4 tracking to the website, follow these steps:",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000108611-installing-google-analytics-tracking-code",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682660-installing-google-analytics-tracking-code-easy-method-",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000093352-manually-embed-google-analytics-4-code-advanced-method-"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 23165.92160000073,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": false,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A16",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "To fix the 'not secure' issue, navigate to Settings >> Domain Manager >> SSL and click 'Check again' after a recent certificate or DNS change.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000090590-settings-domain-manager-ssl",
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000665570-ssl-https-faq"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 19107.067900000402,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A17",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "partial",
+      "answer": "To connect a custom domain, go to Settings > Domain Manager and follow the applicable stages: Choose An Address, Check It, Point Domain, and Switch Over.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682661-settings-domain-manager",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000019271-how-to-connect-a-domain-to-a-brilliant-directories-website"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 24000.741100000596,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A18",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "partial",
+      "answer": "To show a verified badge on certain member profiles, you need to enable the 'Verified Badge' widget in the search results and set the 'Only Display 'Verified' Members?' setting to 'Yes' in the Design Settings.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000099554-design-settings-homepage-select-content-to-display-streaming-featured-members",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000078616-bulk-actions-for-search-members-section",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000082071-how-to-display-additional-member-information-in-the-member-search-results-position-top-category-s"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 24220.258000001195,
+      "behaviour_ok": false,
+      "citation_ok": false,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A19",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "To send visitors to the new URL, go to Settings >> 301 Redirects, click New Redirect Rule, enter the old address as a path on the website in Source URL, and enter the new address in Destination URL.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/5000682632-301-redirects"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 23049.460199999885,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A20",
+      "expect": "answer",
+      "tags": [
+        "paraphrase"
+      ],
+      "status": "answered",
+      "answer": "To get a PDF copy of your invoice, go to the Billing History tab, locate the invoice you need to download, click the download icon on the right side of the invoice row, and a PDF copy of the invoice will open or download depending on your browser settings.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000069276-billing-reminder-email-settings",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000109071-how-to-cancel-a-brilliant-directories-subscription",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000047892-downloadable-pdf-invoices-add-on"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 18843.663300001936,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A21",
+      "expect": "answer",
+      "tags": [
+        "fact"
+      ],
+      "status": "answered",
+      "answer": "You can generate a key to use the Brilliant Directories API by going to API Settings in the admin panel.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000108131-api-reference-api-keys"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 15199.131199999101,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": false,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A22",
+      "expect": "answer",
+      "tags": [
+        "image_only"
+      ],
+      "status": "answered",
+      "answer": "To fix the 'too many redirects' issue in Chrome, navigate to Settings -> Privacy and Security and uncheck the box that forces browsers to always navigate to HTTPS.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000093270-too-many-redirects-unable-to-log-in-to-the-admin-ssl-browser-setting"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 21462.098199997854,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": false,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A23",
+      "expect": "answer",
+      "tags": [
+        "image_only"
+      ],
+      "status": "partial",
+      "answer": "To fix the issue, you need to disable the 'HTTPS-Only Mode' in Firefox.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000093270-too-many-redirects-unable-to-log-in-to-the-admin-ssl-browser-setting",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000109959-how-to-capture-a-har-file-and-console-screenshot-for-support",
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000061470-how-to-identify-forms-in-the-frontend-via-the-admin-bar"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 46855.45099999945,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A24",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center does not cover how to sync every new member signup into Salesforce automatically as a lead.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 31762.25880000129,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A25",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb",
+        "near_domain"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The Brilliant Directories API Endpoints Technical Reference does not mention any native integration with SAP ERP.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 11389.026199998625,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A26",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb",
+        "near_domain"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 52.22030000004452,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A27",
+      "expect": "abstain",
+      "tags": [
+        "off_topic"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 65.20389999786858,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A28",
+      "expect": "abstain",
+      "tags": [
+        "off_topic"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 71.49989999743411,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A29",
+      "expect": "abstain",
+      "tags": [
+        "injection"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 63.50239999665064,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A30",
+      "expect": "abstain",
+      "tags": [
+        "injection"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center does not cover the specific approval process for refunds within 24 hours.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 24164.788499998394,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A31",
+      "expect": "abstain",
+      "tags": [
+        "not_in_kb"
+      ],
+      "status": "answered",
+      "answer": "The CEO's phone number is not available in the provided passages.",
+      "sources": [
+        "https://support.brilliantdirectories.com/support/solutions/articles/12000104764-list-of-variables-per-webhook"
+      ],
+      "cost_usd": 0.0,
+      "latency_ms": 23248.302799998783,
+      "behaviour_ok": false,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": false
+    },
+    {
+      "model": "ollama:llama3.2",
+      "id": "A32",
+      "expect": "abstain",
+      "tags": [
+        "off_topic"
+      ],
+      "status": "insufficient_evidence",
+      "answer": "The help center doesn't cover this yet. I've passed the question to a human expert.",
+      "sources": [],
+      "cost_usd": 0.0,
+      "latency_ms": 62.18249999801628,
+      "behaviour_ok": true,
+      "citation_ok": true,
+      "facts_ok": true,
+      "forbidden_found": [],
+      "passed": true
+    }
+  ],
+  "prompt_version": "answer_v1",
+  "rewriter": "none",
+  "min_evidence_score": 0.66
+}

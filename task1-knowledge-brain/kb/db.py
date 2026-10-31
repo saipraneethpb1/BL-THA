@@ -227,6 +227,24 @@ CREATE TABLE IF NOT EXISTS page_listings (
     PRIMARY KEY (article_id, source)
 );
 
+-- Every vector index that was built: the live one and shadow candidates built beside it.
+-- Queries must be embedded with the same model and input preparation as the index, so
+-- this is stored with the index, not only in settings. A shadow index lives in its own
+-- database file (`path`) until the eval passes and it is promoted.
+CREATE TABLE IF NOT EXISTS index_meta (
+    name            TEXT PRIMARY KEY,
+    embedding_model TEXT NOT NULL,
+    dim             INTEGER NOT NULL,
+    input_type      TEXT NOT NULL,     -- e.g. the "query: " / "passage: " prefixes of e5
+    chunking        TEXT NOT NULL,     -- JSON: the ChunkingConfig it was built with
+    status          TEXT NOT NULL,     -- building | shadow | active | retired
+    path            TEXT,              -- database file of a shadow index
+    chunks          INTEGER,
+    eval            TEXT,              -- JSON: the eval numbers it was promoted on
+    created_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    promoted_at     TEXT
+);
+
 -- Screenshots, kept with the text around them so they make sense on their own.
 CREATE TABLE IF NOT EXISTS images (
     image_id       TEXT NOT NULL,
@@ -262,6 +280,19 @@ MIGRATIONS = {
         # Pages in its last preview (totals, first/last URL per nested sitemap), as JSON.
         "summary": "TEXT",
     },
+    "chunks": {
+        # Stable id (article id, position, content hash): unchanged chunks keep their key
+        # across re-indexing, so their vectors are reused instead of recomputed.
+        "chunk_key": "TEXT",
+        # The level-2 heading the chunk's section sits under (kb/retrieval/chunker.py).
+        "parent_section": "TEXT",
+        # A page's new chunks are written inactive and switched on together when the page
+        # is complete, so a search never sees half a page.
+        "is_active": "INTEGER NOT NULL DEFAULT 1",
+        "run_id": "INTEGER",  # the index run that wrote the chunk
+        "embedding_model": "TEXT",
+        "embedding_dim": "INTEGER",
+    },
     "ingestion_runs": {
         "sources": "TEXT",  # which sitemaps this run checked (JSON list)
         "planned": "INTEGER NOT NULL DEFAULT 0",  # pages queued for fetching
@@ -278,6 +309,7 @@ async def init_db(path: Path) -> None:
             for name, ddl in columns.items():
                 if name not in have:
                     await db.execute(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}")
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_chunks_key ON chunks(chunk_key)")
         await db.commit()
 
 

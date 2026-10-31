@@ -5,7 +5,8 @@ description = "Meeting to Scope of Work (Task 3): transcripts to scope, estimate
 requires-python = ">=3.12"
 dependencies = [
     "aiosqlite>=0.22.1",
-    "anthropic>=1.15.0",
+    # Below 2.0: 2.0 sends API version 2026-10-21, which Bedrock rejects for Claude 4.6 and older.
+    "anthropic[bedrock]>=1.15.0,<2",
     "fastapi>=0.143.3",
     "httpx>=0.28.1",
     "pydantic>=2.14.1",

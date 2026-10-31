@@ -21,12 +21,12 @@ from pathlib import Path
 from typing import Any
 
 from evaluation.common import load_root_env, p50_p95, save, table
-from kb.answer.llm import PRICES
+from kb.answer.llm import price
 from kb.config import settings
 from kb.ingestion.vision import ClaudeImageDescriber, ImageJob
 
 HERE = Path(__file__).parent
-DEFAULT_MODELS = "claude-haiku-5-5,claude-sonnet-5-5"
+DEFAULT_MODELS = "claude-haiku-4-5,claude-sonnet-4-6"
 
 
 def norm(text: str) -> str:
@@ -70,7 +70,7 @@ async def run(models: list[str], cases: list[dict[str, Any]]) -> dict[str, Any]:
             except Exception as exc:  # a failed image counts as zero labels found
                 text, tokens, error = "", (0, 0), repr(exc)
             hits = label_hits(text, case["labels"])
-            price_in, price_out = PRICES.get(model, (0, 0))
+            price_in, price_out = price(model)
             row = {
                 "model": model,
                 "id": case["id"],

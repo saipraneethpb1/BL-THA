@@ -10,8 +10,8 @@
  *
  * Nothing changes the prompt silently: every step is a row in lesson_events.
  */
-import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import { claudeClient, effortFor, modelId } from "../llm/claude.js";
 import { z } from "zod";
 import { COMPANY } from "../company.js";
 import { checkDraft } from "../drafting/policy.js";
@@ -47,7 +47,7 @@ export interface LessonMiner {
 }
 
 export class ClaudeLessonMiner implements LessonMiner {
-  private readonly client = new Anthropic({ maxRetries: 3, timeout: 120_000 });
+  private readonly client = claudeClient({ maxRetries: 3, timeout: 120_000 });
   constructor(private readonly model: string) {}
 
   async mine(category: CategoryId, current: Lesson[], corrections: Correction[]): Promise<MinedLessons> {
@@ -58,11 +58,11 @@ export class ClaudeLessonMiner implements LessonMiner {
     });
     const user = JSON.stringify({ current_lessons: current.map((l) => l.text), corrections }, null, 1);
     const r = await this.client.messages.parse({
-      model: this.model,
+      model: modelId(this.model),
       max_tokens: 4000,
       system,
       messages: [{ role: "user", content: user }],
-      output_config: { effort: "medium", format: zodOutputFormat(MinedLessons) },
+      output_config: { ...effortFor(this.model, "medium"), format: zodOutputFormat(MinedLessons) },
     });
     if (!r.parsed_output) throw new LearningError(`lesson miner returned nothing (${r.stop_reason})`);
     return r.parsed_output;
@@ -134,7 +134,7 @@ export class LearningService {
         `need at least ${this.opts.minCorrections} corrections in ${category} since the current lessons; have ${cases.length}`,
       );
     }
-    if (!this.miner) throw new LearningUnavailableError("proposing lessons needs ANTHROPIC_API_KEY");
+    if (!this.miner) throw new LearningUnavailableError("proposing lessons needs Claude (Amazon Bedrock)");
     const current = this.store.activeLessons(category).lessons;
     const mined = await this.miner.mine(
       category,
@@ -156,7 +156,7 @@ export class LearningService {
     const candidate = this.store.lessonVersion(category, version);
     if (!candidate || candidate.status !== "candidate") throw new LearningError(`v${version} is not a candidate`);
     const drafter = this.drafter;
-    if (!drafter) throw new LearningUnavailableError("the regression check needs ANTHROPIC_API_KEY");
+    if (!drafter) throw new LearningUnavailableError("the regression check needs Claude (Amazon Bedrock)");
     const baseline = this.store.activeLessons(category);
     const seen = new Set(candidate.mined_from);
     const cases = this.store.reviewedCases(category).slice(-this.opts.evalLimit);

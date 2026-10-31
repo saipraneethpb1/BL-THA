@@ -7,12 +7,12 @@ pre-built demo project), so nobody has to spend credit on a first build.
 """
 
 import asyncio
-import os
 import shutil
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from scope import claude
 from scope.pipeline import ScopeBuilder
 from scope.session import GUEST, is_account
 from scope.store import Store
@@ -30,7 +30,7 @@ class Workspaces:
         self.starter_db = starter_db
         self._open: dict[str, tuple[Store, ScopeBuilder | None]] = {}
         self._lock = asyncio.Lock()
-        self.building = bool(os.environ.get("ANTHROPIC_API_KEY"))
+        self.building = claude.configured()
 
     def path_for(self, account: str) -> Path:
         if account == GUEST:

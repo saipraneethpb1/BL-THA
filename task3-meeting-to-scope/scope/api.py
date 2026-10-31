@@ -11,6 +11,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
+from scope import claude
 from scope.config import settings
 from scope.guard import RateLimiter, over_budget
 from scope.knowledge import HttpKnowledgeClient
@@ -36,7 +37,7 @@ SAMPLES = {
 
 
 def _make_builder(store: Store) -> ScopeBuilder | None:
-    if not os.environ.get("ANTHROPIC_API_KEY"):
+    if not claude.configured():
         return None
     return ScopeBuilder(
         store, ClaudeLLM(), HttpKnowledgeClient(settings.kb_url, settings.kb_api_key), settings
@@ -201,7 +202,7 @@ async def build(pid: int, request: Request) -> dict[str, int]:
     """Starts building a new draft version in the background; poll the version for status."""
     builder = (await workspace(request))[1]
     if builder is None:
-        raise HTTPException(503, "building is disabled: ANTHROPIC_API_KEY is not configured")
+        raise HTTPException(503, f"building is disabled: {claude.missing()}")
     build_limiter.check(request)
     over_budget((await site_usage(request))["total_usd"], settings.budget_usd)
     try:

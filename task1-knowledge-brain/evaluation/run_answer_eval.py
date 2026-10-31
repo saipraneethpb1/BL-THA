@@ -2,7 +2,12 @@
 
     uv run python -m evaluation.run_answer_eval                 # dry run: shows the plan
     uv run python -m evaluation.run_answer_eval --run           # spends API credits
-    uv run python -m evaluation.run_answer_eval --run --models claude-haiku-5-5,claude-sonnet-5-5
+    uv run python -m evaluation.run_answer_eval --run --models claude-haiku-4-5,claude-sonnet-4-6
+    uv run python -m evaluation.run_answer_eval --run --models ollama:llama3.2 --rewriter none
+
+Models named `ollama:<model>` run locally through Ollama (free, kb/answer/local.py).
+`--rewriter` picks the query rewriter: `haiku` (paid, the old production setting), `none`,
+or `ollama:<model>`.
 
 Runs against a throwaway copy of the knowledge base, so eval questions never create
 real escalations. A case passes only if every check passes:
@@ -22,17 +27,18 @@ from pathlib import Path
 from typing import Any
 
 from evaluation.common import load_root_env, p50_p95, save, table
-from kb.answer.llm import ClaudeAnswerer
+from kb.answer.llm import Answerer, ClaudeAnswerer
+from kb.answer.local import OllamaAnswerer, OllamaQueryRewriter
 from kb.answer.service import QueryResult, answer_question
 from kb.config import settings
-from kb.db import connect
+from kb.db import connect, init_db
 from kb.retrieval.embedder import FastEmbedder
 from kb.retrieval.rewrite import ClaudeQueryRewriter
 from kb.retrieval.search import Searcher
 from kb.snapshot import make_snapshot
 
 HERE = Path(__file__).parent
-DEFAULT_MODELS = "claude-haiku-5-5,claude-sonnet-5-5,claude-opus-5-5"
+DEFAULT_MODELS = "claude-haiku-4-5,claude-sonnet-4-6,claude-opus-4-6"
 
 
 def load_cases(tags: set[str] | None = None) -> list[dict[str, Any]]:
@@ -83,21 +89,36 @@ def summarise(model: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-async def run(models: list[str], cases: list[dict[str, Any]]) -> dict[str, Any]:
+def make_answerer(model: str) -> Answerer:
+    if model.startswith("ollama:"):
+        return OllamaAnswerer(model.removeprefix("ollama:"), settings.answer_prompt_version)
+    return ClaudeAnswerer(model, settings.answer_prompt_version, settings.answer_effort)
+
+
+def make_rewriter(name: str) -> ClaudeQueryRewriter | OllamaQueryRewriter | None:
+    if name == "none":
+        return None
+    if name.startswith("ollama:"):
+        return OllamaQueryRewriter(name.removeprefix("ollama:"))
+    return ClaudeQueryRewriter(settings.rewrite_model)
+
+
+async def run(
+    models: list[str], cases: list[dict[str, Any]], rewriter: str = "haiku"
+) -> dict[str, Any]:
     with tempfile.TemporaryDirectory() as tmp:
         db_copy = Path(tmp) / "eval.db"
         make_snapshot(settings.db_path, db_copy)
-        searcher = Searcher(  # same retrieval as production, including query rewriting
+        await init_db(db_copy)  # schema migrations, as at API start-up
+        searcher = Searcher(  # same retrieval as production
             FastEmbedder(settings.embedding_model, settings.model_cache_dir),
-            rewriter=ClaudeQueryRewriter(settings.rewrite_model),
+            rewriter=make_rewriter(rewriter),
         )
         summaries, per_case = [], []
         async with connect(db_copy) as db:
             await searcher.vectors.refresh(db)
             for model in models:
-                answerer = ClaudeAnswerer(
-                    model, settings.answer_prompt_version, settings.answer_effort
-                )
+                answerer = make_answerer(model)
                 rows = []
                 for case in cases:
                     t = time.perf_counter()
@@ -131,6 +152,8 @@ async def run(models: list[str], cases: list[dict[str, Any]]) -> dict[str, Any]:
         "summary": summaries,
         "cases": per_case,
         "prompt_version": settings.answer_prompt_version,
+        "rewriter": rewriter,
+        "min_evidence_score": settings.min_evidence_score,
     }
 
 
@@ -138,7 +161,8 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--models", default=DEFAULT_MODELS)
     ap.add_argument("--tags", default="", help="only cases with any of these tags, comma-separated")
-    ap.add_argument("--run", action="store_true", help="actually call the API (costs money)")
+    ap.add_argument("--run", action="store_true", help="actually run (Claude models cost money)")
+    ap.add_argument("--rewriter", default="haiku", help="haiku | none | ollama:<model>")
     args = ap.parse_args()
     models = [m.strip() for m in args.models.split(",") if m.strip()]
     cases = load_cases(set(filter(None, args.tags.split(","))) or None)
@@ -150,7 +174,7 @@ def main() -> None:
         print("Dry run. Add --run to execute.")
         return
     load_root_env()
-    result = asyncio.run(run(models, cases))
+    result = asyncio.run(run(models, cases, args.rewriter))
     path = save("answers", result)
     print(
         table(

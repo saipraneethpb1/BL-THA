@@ -1268,7 +1268,8 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
   scanMics();
   new MutationObserver(scanMics).observe(document.body, { childList: true, subtree: true });
 
-  // AI usage: Claude spend recorded by this site and whether the API is currently answering.
+  // AI usage: Claude spend recorded by this site and whether Claude (on Amazon Bedrock) is
+  // currently answering.
   // A ring in the rail (click for details); a bar along the bottom only when the API is paused
   // or the budget is used up. Deployed, the proxy exposes all three services' figures on every
   // host (/_usage/...); locally, only this service's own figure is shown.
@@ -1282,6 +1283,16 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
     const money = (v) => `$${v < 1 ? v.toFixed(3) : v.toFixed(2)}`;
     const ago = (iso) => { if (!iso) return "never"; const m = Math.round((Date.now() - Date.parse(iso)) / 60000); return m < 1 ? "just now" : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
     let last = null;
+    // Why the last Claude call failed, in a few words (Amazon Bedrock and Anthropic API errors).
+    const pauseReason = (msg) => {
+      const m = String(msg ?? "");
+      if (/credit balance|payment|billing|insufficient.*credit|credits? (are )?(exhausted|expired)/i.test(m)) return "out of AWS credits";
+      if (/security token|token (has )?expired|expiredtoken|unrecognizedclient|signature|invalid.*(bearer|api.?key)|401/i.test(m)) return "AWS credentials rejected or expired";
+      if (/don't have access to the model|not authorized|accessdenied|403/i.test(m)) return "no access to this model in Bedrock";
+      if (/inference profile|on-demand throughput/i.test(m)) return "model id needs an inference profile";
+      if (/throttl|too many requests|rate.?limit|429/i.test(m)) return "rate-limited by Bedrock";
+      return "last call failed";
+    };
     const details = () => {
       const u = last; if (!u) return "";
       return `<h4>AI usage</h4><div class="pad">
@@ -1290,7 +1301,7 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
         <div class="kv"><span class="muted">Today</span><b>${money(u.today)}</b></div>
         <div class="kv"><span class="muted">Total</span><b>${money(u.total)}${u.budget ? ` <span class="muted">of $${Number(u.budget).toFixed(2)}</span>` : ""}</b></div>
         <div class="kv"><span class="muted">Last AI call</span><b>${ago(u.lastOk)}</b></div>
-        <p class="meta" style="margin:8px 0 0">Spend recorded by ${esc(u.scope)} from each call's token counts at list prices. The account's credit balance is shown in the Anthropic Console.</p></div>`;
+        <p class="meta" style="margin:8px 0 0">Spend recorded by ${esc(u.scope)} from each call's token counts at Anthropic's list prices. Claude runs on Amazon Bedrock: actual charges and remaining credits are in AWS Billing, and can be a little higher (regional profiles such as au. cost about 10% more).</p></div>`;
     };
     if (btn) btn.onclick = () => popover(btn, details());
     async function refresh() {
@@ -1317,8 +1328,8 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
       const pct = budget ? Math.min(100, (total / budget) * 100) : null;
       const paused = Boolean(apiPaused || capped.length), near = pct !== null && pct >= 80;
       const headline = capped.length ? `AI budget for this demo used up (${capped.join(", ")}): browsing still works`
-        : apiPaused ? `Claude API paused: ${/credit balance/i.test(lastErr.message) ? "out of credit" : "last call failed"}. Everything else still works.`
-        : "Claude API answering";
+        : apiPaused ? `Claude paused: ${pauseReason(lastErr.message)}. Everything else still works.`
+        : "Claude answering (Amazon Bedrock)";
       last = { today, total, budget, pct, lastOk, paused, near, headline, scope };
       if (btn) {
         btn.hidden = false;
@@ -1425,13 +1436,16 @@ body.has-usage-bar { --bottom-h: 42px; padding-bottom: 42px; }
       const onKey = (e) => { if (e.key === "Escape") close(); };
       box.onclick = close; document.addEventListener("keydown", onKey);
     },
-    // Turns a raw error from the Claude API into one sentence a reviewer can act on.
+    // Turns a raw error from Claude (Amazon Bedrock or the Anthropic API) into one sentence a
+    // reviewer can act on.
     friendlyError(text) {
       const raw = String(text ?? "");
-      if (/credit balance is too low/i.test(raw)) return "The Claude API account is out of credit, so AI features are paused. Everything else still works.";
-      if (/overloaded|529/i.test(raw)) return "The Claude API is busy right now. Please try again in a minute.";
-      if (/rate.?limit|429/i.test(raw)) return "Too many requests to the Claude API right now. Please try again in a minute.";
-      if (/authentication|invalid x-api-key|401/i.test(raw) && /claude|anthropic|api/i.test(raw)) return "The Claude API key was rejected, so AI features are paused.";
+      if (/credit balance is too low|payment|billing|insufficient.*credit|credits? (are )?(exhausted|expired)/i.test(raw)) return "The AWS account's credits for Claude are used up, so AI features are paused. Everything else still works.";
+      if (/overloaded|529|serviceunavailable|model ?not ?ready|503/i.test(raw)) return "Claude on Amazon Bedrock is busy right now. Please try again in a minute.";
+      if (/throttl|too many requests|rate.?limit|429/i.test(raw)) return "Too many requests to Claude on Amazon Bedrock right now. Please try again in a minute.";
+      if (/security token|token (has )?expired|expiredtoken|unrecognizedclient|signature|authentication|invalid x-api-key|401/i.test(raw)) return "The AWS credentials for Claude on Amazon Bedrock were rejected or have expired, so AI features are paused.";
+      if (/don't have access to the model|not authorized|accessdenied|403/i.test(raw)) return "This AWS account has no access to the Claude model it asked for. Enable it under Bedrock model access.";
+      if (/inference profile|on-demand throughput/i.test(raw)) return "Bedrock needs an inference profile for this model: check CLAUDE_BEDROCK_PROFILE or the model id.";
       const m = raw.match(/['"]message['"]\s*:\s*['"]([^'"]{4,300})['"]/);
       return m ? m[1] : raw;
     },
@@ -1764,7 +1778,7 @@ $("#ask-form").addEventListener("submit", async (e) => {
     act.step({ icon: "error", text: "Stopped", detail: err.status === 503 ? "answering is switched off" : suite.friendlyError(err.message) });
     act.finish(false);
     $(".answer-head", el).innerHTML = `<span class="badge warn">Not answered</span>`;
-    if (err.status === 503) showBanner("Answering is switched off: the Claude API key is not configured. The expert queue and status still work.", "info");
+    if (err.status === 503) showBanner("Answering is switched off: Claude on Amazon Bedrock is not configured. The expert queue and status still work.", "info");
     else if (err.message !== "offline") showBanner(suite.friendlyError(err.message), err.status === 502 || err.status === 429 ? "warn" : "err");
   } finally { turn.classList.remove("working"); turn.setAttribute("aria-busy", "false"); busy = false; fitComposer(); qBox.focus(); window.dispatchEvent(new Event("suite:usage-changed")); }
 });
@@ -2362,7 +2376,7 @@ async function loadPrompts() {
     ...Object.entries(sum.all.by_kind).map(([k, v]) => stat(pct0(v), `${KIND_LABEL[k] || k}: right article in the top 5`)),
   ].join("") : `<p class="meta">v${p.active_version} hasn't been tested yet: "Improve the prompt now" tests it first.</p>`;
   $("#tune-btn").disabled = !p.can_tune;
-  if (!p.can_tune) $("#tune-meta").textContent = "Needs the Claude API key and query rewriting.";
+  if (!p.can_tune) $("#tune-meta").textContent = "Needs Claude (Amazon Bedrock) and query rewriting.";
   const latestRetired = p.versions.find((v) => v.status === "retired");
   $("#prompt-versions").innerHTML = p.versions.map((v) => {
     const badge = { active: "ok", candidate: "info", rejected: "err", retired: "" }[v.status] || "";

@@ -16,6 +16,7 @@
     "eval": "tsx src/eval/run.ts"
   },
   "dependencies": {
+    "@anthropic-ai/bedrock-sdk": "^0.36.0",
     "@anthropic-ai/sdk": "^0.135.0",
     "fastify": "^5.12.7",
     "tsx": "^4.23.15",

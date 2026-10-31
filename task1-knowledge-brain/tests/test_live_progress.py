@@ -201,7 +201,9 @@ def test_rename_and_delete_apply_to_only_the_owned_conversation(client: TestClie
     assert client.delete(path, headers=other).status_code == 404
     assert client.patch(path, json={"title": "   "}, headers=me).status_code == 422
     assert client.patch(path, json={"title": "x" * 121}, headers=me).status_code == 422
-    assert client.patch(path, json={"title": "  My support tickets  "}, headers=me).json() == {"title": "My support tickets"}
+    assert client.patch(path, json={"title": "  My support tickets  "}, headers=me).json() == {
+        "title": "My support tickets"
+    }
     rows = client.get(f"/chat/history?thread_id={thread_id}", headers=me).json()["items"]
     assert len(rows) == 2 and all(h["title"] == "My support tickets" for h in rows)
     assert client.delete(path, headers=me).json() == {"deleted": 2}

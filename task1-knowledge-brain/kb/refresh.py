@@ -49,7 +49,7 @@ class Refresher:
     ) -> None:
         self.settings = settings
         self.embedder = embedder
-        self.describer = describer  # None = no API key: screenshots stay undescribed
+        self.describer = describer  # None = Claude not configured: screenshots stay undescribed
         self.transport = transport
         self._lock = asyncio.Lock()
         self.last: RefreshResult | None = None

@@ -1,0 +1,84 @@
+{
+  "config": "production",
+  "split": "smoke",
+  "index": {
+    "chunks": 7636,
+    "chunk_text_sha256": "1aff632ec6c6154f",
+    "embedding_model": "BAAI/bge-small-en-v1.5"
+  },
+  "summary": {
+    "recall@5": 0.8461538461538461,
+    "recall@10": 0.8461538461538461,
+    "mrr@10": 0.6410256410256411,
+    "ndcg@10": 0.666436072480119,
+    "in_context@6": 0.8461538461538461,
+    "wrongly_answered": 0.75,
+    "wrongly_refused": 0.0
+  },
+  "cases": {
+    "R10": {
+      "hit@5": true,
+      "passes_gate": true
+    },
+    "R29": {
+      "hit@5": true,
+      "passes_gate": true
+    },
+    "R33": {
+      "hit@5": false,
+      "passes_gate": true
+    },
+    "R35": {
+      "hit@5": true,
+      "passes_gate": true
+    },
+    "R41": {
+      "hit@5": false,
+      "passes_gate": true
+    },
+    "R48": {
+      "hit@5": true,
+      "passes_gate": true
+    },
+    "R66": {
+      "hit@5": true,
+      "passes_gate": true
+    },
+    "R72": {
+      "hit@5": true,
+      "passes_gate": true
+    },
+    "R76": {
+      "hit@5": true,
+      "passes_gate": true
+    },
+    "R92": {
+      "hit@5": true,
+      "passes_gate": true
+    },
+    "R93": {
+      "hit@5": true,
+      "passes_gate": true
+    },
+    "R103": {
+      "hit@5": true,
+      "passes_gate": true
+    },
+    "R111": {
+      "hit@5": true,
+      "passes_gate": true
+    },
+    "R116": {
+      "passes_gate": true
+    },
+    "O07": {
+      "passes_gate": true
+    },
+    "O17": {
+      "passes_gate": true
+    },
+    "O18": {
+      "passes_gate": false
+    }
+  }
+}

@@ -32,24 +32,37 @@ class Settings(BaseSettings):
     # Retrieval
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     model_cache_dir: Path = Path("data/models")
+    # Optional local cross-encoder that re-orders the best 20 passages (kb/retrieval/rerank.py),
+    # scoring the first `rerank_chars` characters of each. None = off. See EVALS.md.
+    reranker_model: str | None = None
+    rerank_chars: int | None = 1000
 
-    # Answering. Opus 5.5 passed 88% of the answer eval vs Sonnet 81% at ~2 cents a question.
-    answer_model: str = "claude-opus-5-5"  # chosen on the 32-question answer eval (see EVALS.md)
+    # Answering. Models are the ones the Amazon Bedrock account can use (kb/claude.py): a bare
+    # name or a full Bedrock id such as "au.anthropic.claude-opus-4-6-v1". The answer eval
+    # chose Opus 5.5 (88% vs Sonnet 5.5 81%); Opus 4.6 is the Opus on this account and has not
+    # been through that eval yet. "ollama:<model>" answers with a local open-weight model.
+    answer_model: str = "claude-opus-4-6"
     answer_prompt_version: str = "answer_v1"
+    # Opus/Sonnet 4.6 take low, medium, high or max (xhigh needs Opus 4.7 or later).
     answer_effort: Literal["low", "medium", "high", "xhigh", "max"] = "low"
-    # Below this cosine score we do not ask the model at all (calibrated on the eval set:
-    # real questions scored >= 0.68, unrelated ones <= 0.56).
-    min_evidence_score: float = 0.60
-    # Rephrase questions into help-center vocabulary before searching (needs the API key).
+    # Below this cosine score we do not ask the model at all. Recalibrated for bge-small on
+    # the 147-case retrieval eval (EVALS.md): 0.60 let 59% of the must-refuse dev questions
+    # through; 0.66 lets 36% through and refuses 1% of answerable ones (held-out: 56%, 0%).
+    # Recalibrate whenever the embedding model changes: cosine scales differ per model.
+    min_evidence_score: float = 0.66
+    # Rephrase questions into help-center vocabulary before searching (needs Claude: kb/claude.py).
     query_rewrite: bool = True
-    rewrite_model: str = "claude-haiku-5-5"
+    rewrite_model: str = "claude-haiku-4-5"  # or "ollama:<model>" (local, free)
+    # Skip the rewrite when the question as asked already finds a passage this similar
+    # (dev: 20% of rewrites skipped, no recall lost). None = always rewrite.
+    rewrite_skip_above: float | None = 0.80
     # Self-directed prompt engineering (kb/tuning): the model that rewrites the rewrite
     # prompt, and how often the agent checks and improves it on its own (0 = only on demand).
-    prompt_writer_model: str = "claude-sonnet-5-5"
+    prompt_writer_model: str = "claude-sonnet-4-6"
     prompt_tune_days: int = 7
 
     # Screenshots. Haiku is the starting point; the vision eval compares it with Sonnet.
-    vision_model: str = "claude-haiku-5-5"
+    vision_model: str = "claude-haiku-4-5"
 
     # Daily refresh, in UTC. Set refresh_enabled=false to run refreshes only on demand.
     refresh_enabled: bool = True

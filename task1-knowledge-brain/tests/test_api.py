@@ -312,3 +312,15 @@ def test_url_health_settings_pending_list_and_decisions(client: TestClient) -> N
         "/url-health/actions", json={"action": "delete", "article_ids": ["a"]}, headers=H
     )
     assert bad_action.status_code == 422
+
+
+def test_bedrock_error_reason_is_read_from_its_body() -> None:
+    import anthropic
+    import httpx
+
+    msg = "You don't have access to the model with the specified model ID."
+    response = httpx.Response(
+        403, request=httpx.Request("POST", "https://bedrock-runtime.amazonaws.com")
+    )
+    exc = anthropic.PermissionDeniedError(msg, response=response, body={"message": msg})
+    assert api.claude_error_message(exc) == msg

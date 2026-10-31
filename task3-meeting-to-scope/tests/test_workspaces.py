@@ -19,6 +19,7 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
             delattr(api.app.state, attr)
     monkeypatch.setattr(api.settings, "db_path", tmp_path / "scope.db")
     monkeypatch.setattr(api.settings, "starter_db_path", None)
+    monkeypatch.setenv("CLAUDE_PROVIDER", "anthropic")  # no Claude configured: building off
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     return TestClient(api.app)
 

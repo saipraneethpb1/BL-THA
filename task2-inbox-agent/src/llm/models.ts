@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import { claudeClient, effortFor, modelId } from "./claude.js";
 import { z } from "zod";
 import { COMPANY } from "../company.js";
 import { costUsd } from "../config.js";
@@ -143,7 +144,7 @@ function usageOf(model: string, version: string, u: Anthropic.Usage): Usage {
 }
 
 export class ClaudeClassifier implements Classifier {
-  private readonly client = new Anthropic({ maxRetries: 3, timeout: 60_000 });
+  private readonly client = claudeClient({ maxRetries: 3, timeout: 60_000 });
   private readonly system: string;
 
   constructor(
@@ -156,7 +157,7 @@ export class ClaudeClassifier implements Classifier {
 
   async classify(email: EmailForModel, topics: readonly Topic[] = DEFAULT_TOPICS) {
     const response = await this.client.messages.parse({
-      model: this.model,
+      model: modelId(this.model),
       max_tokens: 2000,
       system: [
         { type: "text", text: this.system, cache_control: { type: "ephemeral" } },
@@ -164,7 +165,7 @@ export class ClaudeClassifier implements Classifier {
         { type: "text", text: `Topics (id, parent setting type › name: what belongs there):\n${topicsForPrompt(topics)}`, cache_control: { type: "ephemeral" } },
       ],
       messages: [{ role: "user", content: renderEmail(email) }],
-      output_config: { effort: "low", format: zodOutputFormat(RawClassification) },
+      output_config: { ...effortFor(this.model, "low"), format: zodOutputFormat(RawClassification) },
     });
     if (!response.parsed_output) {
       throw new Error(`classifier returned no result (stop_reason=${response.stop_reason})`);
@@ -182,7 +183,7 @@ export function lessonsBlock(lessons: string[]): string {
 }
 
 export class ClaudeDrafter implements Drafter {
-  private readonly client = new Anthropic({ maxRetries: 3, timeout: 120_000 });
+  private readonly client = claudeClient({ maxRetries: 3, timeout: 120_000 });
 
   constructor(
     private readonly model: string,
@@ -210,7 +211,7 @@ export class ClaudeDrafter implements Drafter {
       `Sign as: ${COMPANY.signature}`,
     ].join("\n\n");
     const response = await this.client.messages.parse({
-      model: this.model,
+      model: modelId(this.model),
       max_tokens: 4000,
       system: [
         {
@@ -220,7 +221,7 @@ export class ClaudeDrafter implements Drafter {
         },
       ],
       messages: [{ role: "user", content: user }],
-      output_config: { effort: "medium", format: zodOutputFormat(DraftOutput) },
+      output_config: { ...effortFor(this.model, "medium"), format: zodOutputFormat(DraftOutput) },
     });
     if (!response.parsed_output) {
       throw new Error(`drafter returned no result (stop_reason=${response.stop_reason})`);

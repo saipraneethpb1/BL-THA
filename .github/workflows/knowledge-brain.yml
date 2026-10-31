@@ -1,0 +1,43 @@
+# Knowledge Brain (Task 1): unit tests, then the retrieval smoke eval on the published
+# snapshot. The smoke eval fails the build when a metric drops below
+# task1-knowledge-brain/evaluation/baselines/smoke.json (search is deterministic, so any
+# drop is real). Free and local only: no API key is used or needed.
+name: knowledge-brain
+
+on:
+  pull_request:
+    paths: ["task1-knowledge-brain/**", ".github/workflows/knowledge-brain.yml"]
+  push:
+    branches: [main]
+    paths: ["task1-knowledge-brain/**", ".github/workflows/knowledge-brain.yml"]
+
+jobs:
+  test-and-smoke-eval:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: task1-knowledge-brain
+    env:
+      KB_SEED_URL: https://github.com/saipraneethpb1/BL-THA/releases/download/kb-snapshot-2026-10-18/knowledge.db
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.12"
+      - run: uv sync --frozen
+      - run: uv run ruff check kb evaluation tests
+      - run: uv run pytest -q
+      - name: Cache the embedding model and the snapshot
+        uses: actions/cache@v4
+        with:
+          path: |
+            task1-knowledge-brain/data/models
+            task1-knowledge-brain/data/knowledge.db
+          key: kb-eval-${{ hashFiles('task1-knowledge-brain/evaluation/baselines/smoke.json') }}-bge-small-en-v1.5
+      - name: Download the knowledge-base snapshot
+        run: |
+          mkdir -p data
+          [ -f data/knowledge.db ] || curl -fsSL "$KB_SEED_URL" -o data/knowledge.db
+      - name: Retrieval smoke eval (fails on a drop)
+        run: uv run python -m evaluation.run_retrieval_eval --smoke --no-save --check evaluation/baselines/smoke.json

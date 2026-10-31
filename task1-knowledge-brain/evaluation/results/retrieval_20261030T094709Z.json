@@ -1,0 +1,1075 @@
+{
+  "cases": 44,
+  "split": "heldout",
+  "threshold": 0.72,
+  "rerank_threshold": 0.0,
+  "code_version": "1068e14+dirty",
+  "cases_sha256": "fcc9b2e859ece770",
+  "index": {
+    "chunks": 7636,
+    "chunk_text_sha256": "f27932aae07e3423",
+    "embedding_model": "BAAI/bge-small-en-v1.5",
+    "index_meta": [
+      {
+        "name": "overlap12",
+        "embedding_model": "BAAI/bge-small-en-v1.5",
+        "dim": 384,
+        "input_type": "fastembed default",
+        "chunking": "{\"max_chars\": 1500, \"min_chars\": 200, \"overlap\": 0.12, \"heading_path\": false}",
+        "status": "shadow",
+        "path": "data\\shadow\\overlap12.db",
+        "chunks": 7636,
+        "eval": null,
+        "created_at": "2026-10-30T09:20:31Z",
+        "promoted_at": null
+      }
+    ]
+  },
+  "results": {
+    "rewrite-llama3.2-skip0.80": {
+      "config": {
+        "mode": "hybrid",
+        "keyword_weight": 0.3,
+        "changelog_weight": 0.5,
+        "max_per_article": 2,
+        "rewrite": false,
+        "rerank": null,
+        "gate": "cosine",
+        "rerank_depth": 20,
+        "rerank_chars": null,
+        "rewriter": "ollama:llama3.2",
+        "rewrite_skip_above": 0.8
+      },
+      "runs": [
+        {
+          "hit@1": 0.5142857142857142,
+          "recall@5": 0.8857142857142857,
+          "recall@10": 0.9142857142857143,
+          "in_context@6": 0.8857142857142857,
+          "mrr@10": 0.684047619047619,
+          "ndcg@10": 0.7201516401406663,
+          "wrongly_refused": 0.2,
+          "wrongly_answered": 0.5555555555555556,
+          "answerable_cases": 35,
+          "refuse_cases": 9,
+          "recall@5_ci95": [
+            0.7714285714285715,
+            0.9714285714285714
+          ],
+          "mrr@10_ci95": [
+            0.5666666666666667,
+            0.7961904761904762
+          ],
+          "ndcg@10_ci95": [
+            0.6220487238437169,
+            0.8139418847787445
+          ],
+          "recall@5_by_category": {
+            "adversarial": {
+              "n": 2,
+              "recall@5": 1.0
+            },
+            "follow-up": {
+              "n": 1,
+              "recall@5": 1.0
+            },
+            "how-to": {
+              "n": 20,
+              "recall@5": 0.95
+            },
+            "multi-part": {
+              "n": 2,
+              "recall@5": 0.5
+            },
+            "pricing": {
+              "n": 2,
+              "recall@5": 1.0
+            },
+            "troubleshooting": {
+              "n": 5,
+              "recall@5": 0.6
+            },
+            "typo": {
+              "n": 3,
+              "recall@5": 1.0
+            }
+          },
+          "p50_ms": 1383.0097499976546,
+          "p95_ms": 1736.8863000010606,
+          "failures": {
+            "R16": "retrieval miss",
+            "R28": "wrong refusal",
+            "R31": "wrong refusal",
+            "R81": "wrong refusal",
+            "R85": "wrong refusal",
+            "R90": "wrong refusal",
+            "R94": "retrieval miss",
+            "R95": "retrieval miss",
+            "R101": "wrong refusal",
+            "R104": "multi-part miss",
+            "R118": "wrongly answered",
+            "R119": "wrongly answered",
+            "O05": "wrongly answered",
+            "O12": "wrongly answered",
+            "O16": "wrongly answered"
+          },
+          "gate_sweep": [
+            {
+              "threshold": 0.543,
+              "wrongly_answered": 1.0,
+              "wrongly_refused": 0.0
+            },
+            {
+              "threshold": 0.559,
+              "wrongly_answered": 0.7777777777777778,
+              "wrongly_refused": 0.0
+            },
+            {
+              "threshold": 0.594,
+              "wrongly_answered": 0.6666666666666666,
+              "wrongly_refused": 0.0
+            },
+            {
+              "threshold": 0.681,
+              "wrongly_answered": 0.6666666666666666,
+              "wrongly_refused": 0.0
+            },
+            {
+              "threshold": 0.685,
+              "wrongly_answered": 0.6666666666666666,
+              "wrongly_refused": 0.06451612903225806
+            },
+            {
+              "threshold": 0.69,
+              "wrongly_answered": 0.5555555555555556,
+              "wrongly_refused": 0.06451612903225806
+            },
+            {
+              "threshold": 0.7,
+              "wrongly_answered": 0.5555555555555556,
+              "wrongly_refused": 0.06451612903225806
+            },
+            {
+              "threshold": 0.701,
+              "wrongly_answered": 0.5555555555555556,
+              "wrongly_refused": 0.0967741935483871
+            },
+            {
+              "threshold": 0.714,
+              "wrongly_answered": 0.5555555555555556,
+              "wrongly_refused": 0.12903225806451613
+            },
+            {
+              "threshold": 0.719,
+              "wrongly_answered": 0.5555555555555556,
+              "wrongly_refused": 0.16129032258064516
+            },
+            {
+              "threshold": 0.723,
+              "wrongly_answered": 0.4444444444444444,
+              "wrongly_refused": 0.1935483870967742
+            },
+            {
+              "threshold": 0.724,
+              "wrongly_answered": 0.4444444444444444,
+              "wrongly_refused": 0.1935483870967742
+            },
+            {
+              "threshold": 0.733,
+              "wrongly_answered": 0.3333333333333333,
+              "wrongly_refused": 0.1935483870967742
+            },
+            {
+              "threshold": 0.738,
+              "wrongly_answered": 0.1111111111111111,
+              "wrongly_refused": 0.1935483870967742
+            },
+            {
+              "threshold": 0.739,
+              "wrongly_answered": 0.1111111111111111,
+              "wrongly_refused": 0.22580645161290322
+            },
+            {
+              "threshold": 0.741,
+              "wrongly_answered": 0.1111111111111111,
+              "wrongly_refused": 0.22580645161290322
+            },
+            {
+              "threshold": 0.742,
+              "wrongly_answered": 0.1111111111111111,
+              "wrongly_refused": 0.25806451612903225
+            },
+            {
+              "threshold": 0.744,
+              "wrongly_answered": 0.1111111111111111,
+              "wrongly_refused": 0.3225806451612903
+            },
+            {
+              "threshold": 0.751,
+              "wrongly_answered": 0.1111111111111111,
+              "wrongly_refused": 0.3225806451612903
+            },
+            {
+              "threshold": 0.752,
+              "wrongly_answered": 0.1111111111111111,
+              "wrongly_refused": 0.3548387096774194
+            },
+            {
+              "threshold": 0.753,
+              "wrongly_answered": 0.1111111111111111,
+              "wrongly_refused": 0.3870967741935484
+            },
+            {
+              "threshold": 0.754,
+              "wrongly_answered": 0.1111111111111111,
+              "wrongly_refused": 0.45161290322580644
+            },
+            {
+              "threshold": 0.758,
+              "wrongly_answered": 0.1111111111111111,
+              "wrongly_refused": 0.45161290322580644
+            },
+            {
+              "threshold": 0.759,
+              "wrongly_answered": 0.1111111111111111,
+              "wrongly_refused": 0.4838709677419355
+            },
+            {
+              "threshold": 0.765,
+              "wrongly_answered": 0.1111111111111111,
+              "wrongly_refused": 0.5161290322580645
+            },
+            {
+              "threshold": 0.767,
+              "wrongly_answered": 0.0,
+              "wrongly_refused": 0.5483870967741935
+            },
+            {
+              "threshold": 0.787,
+              "wrongly_answered": 0.0,
+              "wrongly_refused": 0.5483870967741935
+            },
+            {
+              "threshold": 0.792,
+              "wrongly_answered": 0.0,
+              "wrongly_refused": 0.5806451612903226
+            },
+            {
+              "threshold": 0.794,
+              "wrongly_answered": 0.0,
+              "wrongly_refused": 0.6451612903225806
+            },
+            {
+              "threshold": 0.796,
+              "wrongly_answered": 0.0,
+              "wrongly_refused": 0.6774193548387096
+            },
+            {
+              "threshold": 0.797,
+              "wrongly_answered": 0.0,
+              "wrongly_refused": 0.7096774193548387
+            },
+            {
+              "threshold": 0.799,
+              "wrongly_answered": 0.0,
+              "wrongly_refused": 0.7419354838709677
+            },
+            {
+              "threshold": 0.806,
+              "wrongly_answered": 0.0,
+              "wrongly_refused": 0.7741935483870968
+            },
+            {
+              "threshold": 0.812,
+              "wrongly_answered": 0.0,
+              "wrongly_refused": 0.8064516129032258
+            },
+            {
+              "threshold": 0.82,
+              "wrongly_answered": 0.0,
+              "wrongly_refused": 0.8387096774193549
+            },
+            {
+              "threshold": 0.821,
+              "wrongly_answered": 0.0,
+              "wrongly_refused": 0.9032258064516129
+            },
+            {
+              "threshold": 0.825,
+              "wrongly_answered": 0.0,
+              "wrongly_refused": 0.9032258064516129
+            },
+            {
+              "threshold": 0.83,
+              "wrongly_answered": 0.0,
+              "wrongly_refused": 0.9032258064516129
+            },
+            {
+              "threshold": 0.831,
+              "wrongly_answered": 0.0,
+              "wrongly_refused": 0.9354838709677419
+            },
+            {
+              "threshold": 0.88,
+              "wrongly_answered": 0.0,
+              "wrongly_refused": 1.0
+            }
+          ],
+          "suggested_threshold": 0.681
+        }
+      ],
+      "per_case": [
+        {
+          "id": "R07",
+          "category": "troubleshooting",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 0.8503449055347546,
+          "top_score": 0.7435116171836853,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R08",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 0.9197207891481876,
+          "top_score": 0.759344220161438,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R15",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 0.9674679834891693,
+          "top_score": 0.820888876914978,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R16",
+          "category": "how-to",
+          "answerable": true,
+          "rank": null,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@6": false,
+          "hit@10": false,
+          "rr@10": 0.0,
+          "ndcg@10": 0.0,
+          "top_score": 0.7009806632995605,
+          "passes_gate": false,
+          "wrongly_refused": true,
+          "failure": "retrieval miss",
+          "top_titles": [
+            "Google Maps: Verify Domain",
+            "How to Verify a Listing",
+            "How To Edit The SEO & Social Media Elements Of A Static Web Page",
+            "Toolbox \u00bb Form Manager",
+            "How To Edit The SEO Settings Of  Dynamic (Search Results) Pages"
+          ]
+        },
+        {
+          "id": "R18",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 1.0,
+          "top_score": 0.7387113571166992,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R20",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 1.0,
+          "top_score": 0.8116440773010254,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R21",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 3,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 0.3333333333333333,
+          "ndcg@10": 0.23463936301137822,
+          "top_score": 0.7516295909881592,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R27",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 2,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 0.5,
+          "ndcg@10": 0.5802792108518124,
+          "top_score": 0.7966845035552979,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R28",
+          "category": "pricing",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 1.0,
+          "top_score": 0.7136422395706177,
+          "passes_gate": false,
+          "wrongly_refused": true,
+          "failure": "wrong refusal",
+          "top_titles": [
+            "Tax and VAT Manager",
+            "Finance \u00bb Membership Plans - Sign Ups & Upgrades",
+            "Billing Reminder Email Settings",
+            "List of Variables Per Webhook",
+            "Finance \u00bb Payment Gateways \u00bb Additional Settings \u00bb Billing Address Countries"
+          ]
+        },
+        {
+          "id": "R31",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 2,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 0.5,
+          "ndcg@10": 0.6309297535714575,
+          "top_score": 0.6845085620880127,
+          "passes_gate": false,
+          "wrongly_refused": true,
+          "failure": "wrong refusal",
+          "top_titles": [
+            "Optimizing Website Performance",
+            "Insta-Load Search Results",
+            "Upload Files With A Unique Name To Leverage Browser Caching",
+            "Settings \u00bb Advanced Settings",
+            "Instant Business Data"
+          ]
+        },
+        {
+          "id": "R43",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 1.0,
+          "top_score": 0.8201432228088379,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R44",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 2,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 0.5,
+          "ndcg@10": 0.6309297535714575,
+          "top_score": 0.742186427116394,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R49",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 1.0,
+          "top_score": 0.7651771903038025,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R50",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 1.0,
+          "top_score": 0.8198534250259399,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R52",
+          "category": "pricing",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 1.0,
+          "top_score": 0.7526286244392395,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R57",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 4,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 0.25,
+          "ndcg@10": 0.43067655807339306,
+          "top_score": 0.8796687126159668,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R61",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 1.0,
+          "top_score": 0.787349283695221,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R80",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 1.0,
+          "top_score": 0.830413281917572,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R81",
+          "category": "typo",
+          "answerable": true,
+          "rank": 5,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 0.2,
+          "ndcg@10": 0.38685280723454163,
+          "top_score": 0.7001538276672363,
+          "passes_gate": false,
+          "wrongly_refused": true,
+          "failure": "wrong refusal",
+          "top_titles": [
+            "Export Member Data",
+            "Importing Tricks - Importing CSV Files With Special Characters",
+            "How To Import Members Via CSV File",
+            "Content \u00bb Manage Posts",
+            "Smart List & Export Functionality for Leads"
+          ]
+        },
+        {
+          "id": "R82",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 2,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 0.5,
+          "ndcg@10": 0.6309297535714575,
+          "top_score": 0.7533846497535706,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R83",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 1.0,
+          "top_score": 0.7939854860305786,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R85",
+          "category": "troubleshooting",
+          "answerable": true,
+          "rank": 2,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 0.5,
+          "ndcg@10": 0.6309297535714575,
+          "top_score": 0.7193856835365295,
+          "passes_gate": false,
+          "wrongly_refused": true,
+          "failure": "wrong refusal",
+          "top_titles": [
+            "How to Set a Default Social Media Image",
+            "How to upload a Social Media Sharing Image to the site",
+            "How To Set The Social Share Image For Member Profiles",
+            "API Reference - User Metadata",
+            "API Reference - Table of Contents"
+          ]
+        },
+        {
+          "id": "R86",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 2,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 0.5,
+          "ndcg@10": 0.6309297535714575,
+          "top_score": 0.8311311602592468,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R87",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 1.0,
+          "top_score": 0.758115828037262,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R88",
+          "category": "typo",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 1.0,
+          "top_score": 0.7959765195846558,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R90",
+          "category": "typo",
+          "answerable": true,
+          "rank": 2,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 0.5,
+          "ndcg@10": 0.6309297535714575,
+          "top_score": 0.7142197489738464,
+          "passes_gate": false,
+          "wrongly_refused": true,
+          "failure": "wrong refusal",
+          "top_titles": [
+            "Everything About Froala WYSIWYG Text Editor",
+            "How To Enable Paste Plain Text Option In Froala WYSIWYG HTML Editor",
+            "Settings \u00bb Advanced Settings",
+            "Database to utf8mb4 (Emoji Support) - Dashboard Installer",
+            "FROALA Text Editor: Versions and their Upload Functionalities"
+          ]
+        },
+        {
+          "id": "R94",
+          "category": "troubleshooting",
+          "answerable": true,
+          "rank": 8,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@6": false,
+          "hit@10": true,
+          "rr@10": 0.125,
+          "ndcg@10": 0.31546487678572877,
+          "top_score": 0.7439136505126953,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": "retrieval miss",
+          "top_titles": [
+            "Admin Universal Search",
+            "API Reference - Users",
+            "My Members Search Members \u00bb Search Filters",
+            "Content \u00bb Web Page Builder",
+            "My Members \u00bb Member Categories"
+          ]
+        },
+        {
+          "id": "R95",
+          "category": "troubleshooting",
+          "answerable": true,
+          "rank": null,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@6": false,
+          "hit@10": false,
+          "rr@10": 0.0,
+          "ndcg@10": 0.0,
+          "top_score": 0.8247712850570679,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": "retrieval miss",
+          "top_titles": [
+            "Auto-Match Workflows \u00bb Additional Notifications Settings",
+            "Edit Form Settings \u00bb Email Notifications",
+            "Member Leads \u00bb Lead Settings \u00bb Additional Notifications Settings",
+            "Toolbox \u00bb Forms Inbox \u00bb Contact Us Form",
+            "Settings \u00bb General Settings Tab"
+          ]
+        },
+        {
+          "id": "R100",
+          "category": "how-to",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 1.0,
+          "top_score": 0.7987730503082275,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R101",
+          "category": "troubleshooting",
+          "answerable": true,
+          "rank": 5,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 0.2,
+          "ndcg@10": 0.38685280723454163,
+          "top_score": 0.6813472509384155,
+          "passes_gate": false,
+          "wrongly_refused": true,
+          "failure": "wrong refusal",
+          "top_titles": [
+            "How to Rename Images & Files from the Media Manager",
+            "Settings \u00bb General Settings \u00bb Brand Images Tab",
+            "Design Settings \u00bb Homepage \u00bb Select Content to Display \u00bb Homepage Hero Divider",
+            "Modifying Invoices",
+            "Guide 2. How to Configure General Settings"
+          ]
+        },
+        {
+          "id": "R104",
+          "category": "multi-part",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": false,
+          "hit@6": false,
+          "hit@10": false,
+          "rr@10": 1.0,
+          "ndcg@10": 0.8318724637288826,
+          "top_score": 0.7513841390609741,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": "multi-part miss",
+          "top_titles": [
+            "Manually Embed Google Analytics 4 Code  (advanced method)",
+            "Installing Google Analytics Tracking Code (easy method)",
+            "Installing Google Analytics Tracking Code",
+            "Settings \u00bb General Settings \u00bb Integrations Tab",
+            "Google Analytics 4: Tracking Membership Plan Sign-Ups Using Key Events (Conversions)"
+          ]
+        },
+        {
+          "id": "R105",
+          "category": "multi-part",
+          "answerable": true,
+          "rank": 1,
+          "hit@1": true,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 1.0,
+          "ndcg@10": 0.75369761125927,
+          "top_score": 0.7413456439971924,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R108",
+          "category": "follow-up",
+          "answerable": true,
+          "rank": 3,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 0.3333333333333333,
+          "ndcg@10": 0.5,
+          "top_score": 0.7921085953712463,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R114",
+          "category": "adversarial",
+          "answerable": true,
+          "rank": 2,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 0.5,
+          "ndcg@10": 0.6309297535714575,
+          "top_score": 0.7538379430770874,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R115",
+          "category": "adversarial",
+          "answerable": true,
+          "rank": 2,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@6": true,
+          "hit@10": true,
+          "rr@10": 0.5,
+          "ndcg@10": 0.6309297535714575,
+          "top_score": 0.805885374546051,
+          "passes_gate": true,
+          "wrongly_refused": false,
+          "failure": null
+        },
+        {
+          "id": "R118",
+          "category": "adversarial",
+          "answerable": false,
+          "top_score": 0.7379881739616394,
+          "passes_gate": true,
+          "wrongly_answered": true,
+          "failure": "wrongly answered",
+          "top_titles": [
+            "Encrypt Member Passwords - Dashboard Installer",
+            "Account Dashboard \u00bb Change Password",
+            "Settings \u00bb General Settings \u00bb Integrations Tab",
+            "API Overview and Testing the API From Admin Area",
+            "Admin Login"
+          ]
+        },
+        {
+          "id": "R119",
+          "category": "adversarial",
+          "answerable": false,
+          "top_score": 0.724165678024292,
+          "passes_gate": true,
+          "wrongly_answered": true,
+          "failure": "wrongly answered",
+          "top_titles": [
+            "Google Website Translator",
+            "Add Support For Spanish Text Labels - Dashboard Installer",
+            "Settings \u00bb General Settings \u00bb Localization",
+            "How To Edit/Change Default Language of Websites",
+            "API Reference - Label Translations"
+          ]
+        },
+        {
+          "id": "O05",
+          "category": "out-of-scope",
+          "answerable": false,
+          "top_score": 0.7333449125289917,
+          "passes_gate": true,
+          "wrongly_answered": true,
+          "failure": "wrongly answered",
+          "top_titles": [
+            "Instant Business Data",
+            "Claimable Business Listings",
+            "API Reference - Business Data Tasks",
+            "Reviews API - How to Edit Reviews Data with API Calls",
+            "API Reference - Pages"
+          ]
+        },
+        {
+          "id": "O08",
+          "category": "out-of-scope",
+          "answerable": false,
+          "top_score": 0.5434075593948364,
+          "passes_gate": false,
+          "wrongly_answered": false,
+          "failure": null
+        },
+        {
+          "id": "O09",
+          "category": "out-of-scope",
+          "answerable": false,
+          "top_score": 0.6896719932556152,
+          "passes_gate": false,
+          "wrongly_answered": false,
+          "failure": null
+        },
+        {
+          "id": "O12",
+          "category": "out-of-scope",
+          "answerable": false,
+          "top_score": 0.7667274475097656,
+          "passes_gate": true,
+          "wrongly_answered": true,
+          "failure": "wrongly answered",
+          "top_titles": [
+            "How to Turn The Brilliant Directories Directory Website into a Mobile Application for Apple & Android",
+            "Brilliant Directories API Endpoints Technical Reference",
+            "Setting Up Locations For UK Directories",
+            "How to Login As Member",
+            "What Access Do I Get With My Brilliant Directories License?"
+          ]
+        },
+        {
+          "id": "O16",
+          "category": "out-of-scope",
+          "answerable": false,
+          "top_score": 0.7226316928863525,
+          "passes_gate": true,
+          "wrongly_answered": true,
+          "failure": "wrongly answered",
+          "top_titles": [
+            "How To Send SMS Notifications To Members When They Receive a Lead",
+            "API Reference - Chat Messages",
+            "List of Variables Per Webhook",
+            "Auto-Match Workflows \u00bb Additional Notifications Settings",
+            "API Reference - Messages"
+          ]
+        },
+        {
+          "id": "O20",
+          "category": "out-of-scope",
+          "answerable": false,
+          "top_score": 0.5937893390655518,
+          "passes_gate": false,
+          "wrongly_answered": false,
+          "failure": null
+        },
+        {
+          "id": "O22",
+          "category": "out-of-scope",
+          "answerable": false,
+          "top_score": 0.5585957169532776,
+          "passes_gate": false,
+          "wrongly_answered": false,
+          "failure": null
+        }
+      ],
+      "rewrites": {
+        "used": 36,
+        "skipped": 8
+      }
+    }
+  }
+}

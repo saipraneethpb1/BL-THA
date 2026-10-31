@@ -31,13 +31,28 @@ def load_jsonl(path: Path) -> list[dict[str, Any]]:
     ]
 
 
+# Claude credentials and routing (scope/claude.py).
+CLAUDE_ENV = (
+    "CLAUDE_PROVIDER",
+    "CLAUDE_BEDROCK_PROFILE",
+    "AWS_REGION",
+    "AWS_BEARER_TOKEN_BEDROCK",
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "AWS_SESSION_TOKEN",
+    "AWS_PROFILE",
+    "ANTHROPIC_API_KEY",
+)
+
+
 def load_root_env() -> None:
-    """Read ANTHROPIC_API_KEY and KB_API_KEY from the repo's .env if unset (never printed)."""
+    """Read the Claude settings (scope/claude.py) and KB_API_KEY from the repo's .env if unset
+    (never printed)."""
     env = Path(__file__).resolve().parents[2] / ".env"
     if not env.exists():
         return
     for line in env.read_text(encoding="utf-8").splitlines():
-        for name in ("ANTHROPIC_API_KEY", "KB_API_KEY"):
+        for name in (*CLAUDE_ENV, "KB_API_KEY"):
             if line.startswith(f"{name}=") and not os.environ.get(name):
                 value = line.split("=", 1)[1].strip()
                 if value:

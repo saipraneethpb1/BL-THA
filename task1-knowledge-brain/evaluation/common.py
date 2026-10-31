@@ -38,12 +38,28 @@ def table(headers: list[str], rows: list[list[Any]]) -> str:
     return "\n".join(lines)
 
 
+# Claude credentials and routing (kb/claude.py): read from the repo's .env when unset.
+CLAUDE_ENV = (
+    "CLAUDE_PROVIDER",
+    "CLAUDE_BEDROCK_PROFILE",
+    "AWS_REGION",
+    "AWS_BEARER_TOKEN_BEDROCK",
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "AWS_SESSION_TOKEN",
+    "AWS_PROFILE",
+    "ANTHROPIC_API_KEY",
+)
+
+
 def load_root_env() -> None:
-    """Read ANTHROPIC_API_KEY from the repo's .env when it isn't already set (never printed)."""
-    if os.environ.get("ANTHROPIC_API_KEY"):
-        return
+    """Read the Claude settings from the repo's .env when they aren't already set (never
+    printed)."""
     env = Path(__file__).resolve().parents[2] / ".env"
-    if env.exists():
-        for line in env.read_text(encoding="utf-8").splitlines():
-            if line.startswith("ANTHROPIC_API_KEY=") and line.split("=", 1)[1].strip():
-                os.environ["ANTHROPIC_API_KEY"] = line.split("=", 1)[1].strip()
+    if not env.exists():
+        return
+    for line in env.read_text(encoding="utf-8").splitlines():
+        name, _, value = line.partition("=")
+        name, value = name.strip(), value.strip()
+        if name in CLAUDE_ENV and value and not os.environ.get(name):
+            os.environ[name] = value

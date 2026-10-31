@@ -14,6 +14,8 @@ from typing import Protocol
 import anthropic
 from pydantic import BaseModel, Field
 
+from kb import claude
+
 log = logging.getLogger(__name__)
 PROMPTS = Path(__file__).resolve().parent.parent / "prompts"
 
@@ -34,7 +36,7 @@ class ClaudeQueryRewriter:
         cache_size: int = 512,
         system: str | None = None,
     ) -> None:
-        self.client = anthropic.AsyncAnthropic(max_retries=2, timeout=20.0)
+        self.client = claude.client(max_retries=2, timeout=20.0)
         self.model = model
         # The prompt is data the agent maintains (kb/tuning): the active version is loaded
         # at start-up and swapped in when a better one is promoted.
@@ -57,13 +59,13 @@ class ClaudeQueryRewriter:
             return self._cache[key]
         try:
             r = await self.client.messages.parse(
-                model=self.model,
+                model=claude.model_id(self.model),
                 max_tokens=300,
                 system=[
                     {"type": "text", "text": self.system, "cache_control": {"type": "ephemeral"}}
                 ],
                 messages=[{"role": "user", "content": f"<question>{question}</question>"}],
-                output_config={"effort": "low"},
+                output_config=claude.output_config(self.model, "low"),
                 output_format=Rewrites,
             )
         except anthropic.APIError as exc:  # search still works on the original question

@@ -5,14 +5,19 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal, Protocol, TypeVar
 
-import anthropic
 from pydantic import BaseModel
+
+from scope import claude
 
 T = TypeVar("T", bound=BaseModel)
 Effort = Literal["low", "medium", "high", "xhigh", "max"]
 PROMPTS = Path(__file__).parent / "prompts"
 
+# Anthropic's list prices per million tokens (input, output), keyed by bare model name.
 PRICES: dict[str, tuple[float, float]] = {
+    "claude-haiku-4-5": (1.00, 5.00),
+    "claude-sonnet-4-6": (3.00, 15.00),
+    "claude-opus-4-6": (5.00, 25.00),
     "claude-haiku-5-5": (0.10, 0.50),
     "claude-sonnet-5-5": (2.00, 10.00),
     "claude-opus-5-5": (4.00, 20.00),
@@ -28,7 +33,7 @@ class Usage:
     by_step: dict[str, float] = field(default_factory=dict)
 
     def add(self, step: str, model: str, input_tokens: int, output_tokens: int) -> None:
-        price_in, price_out = PRICES.get(model, (0.0, 0.0))
+        price_in, price_out = PRICES.get(claude.base_name(model), (0.0, 0.0))
         cost = (input_tokens * price_in + output_tokens * price_out) / 1_000_000
         self.calls += 1
         self.input_tokens += input_tokens
@@ -56,7 +61,7 @@ def load_prompt(name: str) -> str:
 
 class ClaudeLLM:
     def __init__(self) -> None:
-        self.client = anthropic.AsyncAnthropic(max_retries=3, timeout=180.0)
+        self.client = claude.client(max_retries=3, timeout=180.0)
         self._usage = Usage()
 
     @property
@@ -67,11 +72,11 @@ class ClaudeLLM:
         self, *, step: str, model: str, system: str, user: str, schema: type[T], effort: Effort
     ) -> T:
         response = await self.client.messages.parse(
-            model=model,
+            model=claude.model_id(model),
             max_tokens=32000,  # thinking counts too: Haiku ran out at 16k on a long merge
             system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
             messages=[{"role": "user", "content": user}],
-            output_config={"effort": effort},
+            output_config=claude.output_config(model, effort),
             output_format=schema,
         )
         u = response.usage

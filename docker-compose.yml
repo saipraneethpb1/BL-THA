@@ -4,8 +4,9 @@
 #   http://localhost:8002  Inbox Agent (Task 2)        inbox review and autonomy
 #   http://localhost:8003  Scope Builder (Task 3)      transcripts to scope, estimate, proposal
 #
-# Settings come from .env (copy .env.example). Without ANTHROPIC_API_KEY every service
-# still starts; answering, drafting and building show as switched off.
+# Settings come from .env (copy .env.example). Without Claude configured (Amazon Bedrock:
+# AWS_REGION and AWS credentials) every service still starts; answering, drafting and
+# building show as switched off.
 
 x-env: &env
   env_file:

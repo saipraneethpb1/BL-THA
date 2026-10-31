@@ -13,6 +13,8 @@ from kb.retrieval.embedder import Vector
 
 class FakeEmbedder:
     dim = 64
+    model_name = "fake-bag-of-words"
+    input_type = "none"
 
     def _one(self, text: str) -> Vector:
         v = np.zeros(self.dim, dtype=np.float32)

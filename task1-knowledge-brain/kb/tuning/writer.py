@@ -19,10 +19,10 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 import aiosqlite
-import anthropic
 from pydantic import BaseModel, Field
 
-from kb.answer.llm import PRICES
+from kb import claude
+from kb.answer.llm import price
 from kb.progress import Progress, report
 from kb.retrieval.rewrite import PROMPTS, ClaudeQueryRewriter, QueryRewriter
 from kb.retrieval.search import Searcher
@@ -52,7 +52,7 @@ class PromptWriter(Protocol):
 
 class ClaudePromptWriter:
     def __init__(self, model: str) -> None:
-        self.client = anthropic.AsyncAnthropic(max_retries=2, timeout=120.0)
+        self.client = claude.client(max_retries=2, timeout=120.0)
         self.model = model
         self.system = (PROMPTS / "prompt_writer_v1.md").read_text(encoding="utf-8")
 
@@ -65,16 +65,16 @@ class ClaudePromptWriter:
             f"<groups_that_behaved_differently>\n{failures}\n</groups_that_behaved_differently>"
         )
         r = await self.client.messages.parse(
-            model=self.model,
+            model=claude.model_id(self.model),
             max_tokens=6000,
             system=[{"type": "text", "text": self.system, "cache_control": {"type": "ephemeral"}}],
             messages=[{"role": "user", "content": user}],
-            output_config={"effort": "medium"},
+            output_config=claude.output_config(self.model, "medium"),
             output_format=WrittenPrompt,
         )
         if not r.parsed_output:
             raise RuntimeError(f"the prompt writer returned nothing (stop_reason={r.stop_reason})")
-        p_in, p_out = PRICES.get(self.model, (0.0, 0.0))
+        p_in, p_out = price(self.model)
         return r.parsed_output, (r.usage.input_tokens * p_in + r.usage.output_tokens * p_out) / 1e6
 
 
@@ -155,7 +155,7 @@ async def evaluate_text(
 ) -> tuple[list[robustness.GroupResult], dict[str, Any], float]:
     rewriter = make_rewriter(text)
     groups = await robustness.run(db, live, rewriter, cases, progress, label)
-    p_in, p_out = PRICES.get(model, (0.0, 0.0))
+    p_in, p_out = price(model)
     used_in = getattr(rewriter, "input_tokens", 0)
     used_out = getattr(rewriter, "output_tokens", 0)
     return groups, robustness.summary(groups), (used_in * p_in + used_out * p_out) / 1e6

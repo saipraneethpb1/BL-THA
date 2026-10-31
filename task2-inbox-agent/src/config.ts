@@ -1,4 +1,6 @@
 /** All runtime settings come from the environment. Nothing secret lives in code. */
+import { baseName, claudeMissing } from "./llm/claude.js";
+
 export interface Config {
   readonly kbUrl: string;
   readonly kbApiKey: string | undefined;
@@ -28,10 +30,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   return {
     kbUrl: env.KB_URL ?? "http://localhost:8001",
     kbApiKey: env.KB_API_KEY,
-    llmEnabled: Boolean(env.ANTHROPIC_API_KEY),
-    classifyModel: env.INBOX_CLASSIFY_MODEL ?? "claude-haiku-5-5",
-    draftModel: env.INBOX_DRAFT_MODEL ?? "claude-sonnet-5-5",
-    lessonModel: env.INBOX_LESSON_MODEL ?? "claude-sonnet-5-5",
+    llmEnabled: claudeMissing(env) === null,
+    classifyModel: env.INBOX_CLASSIFY_MODEL ?? "claude-haiku-4-5",
+    draftModel: env.INBOX_DRAFT_MODEL ?? "claude-sonnet-4-6",
+    lessonModel: env.INBOX_LESSON_MODEL ?? "claude-sonnet-4-6",
     dbPath: env.INBOX_DB_PATH ?? "data/inbox.db",
     port: Number(env.INBOX_PORT ?? 8002),
     autonomyThreshold: Number(env.INBOX_AUTONOMY_THRESHOLD ?? 20),
@@ -46,12 +48,15 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
 
 /** USD per million tokens (input, output), for cost reporting. */
 export const PRICES: Readonly<Record<string, readonly [number, number]>> = {
+  "claude-haiku-4-5": [1, 5],
+  "claude-sonnet-4-6": [3, 15],
+  "claude-opus-4-6": [5, 25],
   "claude-haiku-5-5": [0.1, 0.5],
   "claude-sonnet-5-5": [2, 10],
   "claude-opus-5-5": [4, 20],
 };
 
 export function costUsd(model: string, inputTokens: number, outputTokens: number): number {
-  const [pin, pout] = PRICES[model] ?? [0, 0];
+  const [pin, pout] = PRICES[baseName(model)] ?? [0, 0];
   return (inputTokens * pin + outputTokens * pout) / 1_000_000;
 }

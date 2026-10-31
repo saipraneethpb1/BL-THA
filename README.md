@@ -12,14 +12,14 @@ Tasks 2 and 3 use Task 1 only through its HTTP API (docs at http://localhost:800
 
 ## Run it (one command)
 
-You need Docker and, for the AI features, an Anthropic API key.
+You need Docker and, for the AI features, access to the Claude models on Amazon Bedrock (an AWS region plus a Bedrock bearer token, AWS keys, or an instance role).
 
 ```bash
-cp .env.example .env        # then put your ANTHROPIC_API_KEY in .env
+cp .env.example .env        # then set AWS_REGION and your Bedrock credentials in .env
 docker compose up --build
 ```
 
-Without a key, all three services still start. Search, the inboxes and review screens work; answering, drafting and building show as switched off.
+Without Claude configured, all three services still start. Search, the inboxes and review screens work; answering, drafting and building show as switched off.
 
 **First start of the Knowledge Brain.** It needs the help center in its database. It tries, in order:
 1. A snapshot at `task1-knowledge-brain/data/snapshot/knowledge.db`. Make one from a crawled install with `uv run python -m kb.snapshot`; it's about 50 MB.
@@ -38,12 +38,12 @@ One AWS EC2 t3.small (2 GB RAM plus 2 GB swap, Ubuntu 24.04) runs the same `dock
   - each service caps its own recorded Claude spend: Knowledge Brain $4.50 (drafts and scope builds use it too), Inbox Agent $2.50, Scope Builder $2.50 (`*_BUDGET_USD`);
   - each visitor is rate-limited on the actions that cost money: questions, drafts, builds and lesson checks. Lesson checks, whose cost isn't recorded, are also limited to 3 a day for the whole site;
   - when a cap is reached the service says so and stops calling Claude, and browsing keeps working.
-- **A spend limit on the Anthropic account** is the final backstop.
+- **An AWS Budgets alert on Amazon Bedrock spend** is the final backstop.
 - **Search engines are asked not to index it** (`X-Robots-Tag` and `robots.txt`).
 - **To require a login again,** add `import protected` back to each site in [`deploy/Caddyfile`](deploy/Caddyfile).
-- **The API key is typed by the owner on the server:** [`deploy/set-secrets.sh`](deploy/set-secrets.sh) prompts for it, and the `.env` it writes never enters git.
+- **Claude's credentials are set by the owner on the server:** [`deploy/set-secrets.sh`](deploy/set-secrets.sh) asks for the Bedrock region and, unless the EC2 instance role is used, a bearer token; the `.env` it writes never enters git.
 
-**Usage bar.** A bar fixed to the bottom of every page shows the Claude spend recorded by the site, today and in total, against a budget (`SITE_BUDGET_USD` in the server's `.env`, default $10). It also says plainly when the API is failing, for example when the account is out of credit. The figures come from each call's token counts at list prices. The account's actual credit balance is only visible in the Anthropic Console: there's no API for it.
+**Usage bar.** A bar fixed to the bottom of every page shows the Claude spend recorded by the site, today and in total, against a budget (`SITE_BUDGET_USD` in the server's `.env`, default $10). It also says plainly when Claude is failing, for example when the AWS credentials are rejected. The figures come from each call's token counts at Anthropic's list prices; actual charges are in AWS Billing, and Bedrock's prices can differ.
 
 To redeploy:
 1. `bash deploy/setup-vm.sh` (once per VM: Docker and swap).

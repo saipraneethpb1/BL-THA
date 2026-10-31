@@ -5,19 +5,29 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, Protocol
 
-import anthropic
 from pydantic import BaseModel, Field
+
+from kb import claude
 
 Effort = Literal["low", "medium", "high", "xhigh", "max"]
 
 PROMPTS = Path(__file__).resolve().parent.parent / "prompts"
 
-# USD per million tokens (input, output). Used to report cost per answer in evals.
+# USD per million tokens (input, output), Anthropic's list prices: used for recorded spend,
+# budget caps and eval costs. Bedrock bills separately and its prices can differ.
 PRICES: dict[str, tuple[float, float]] = {
+    "claude-haiku-4-5": (1.00, 5.00),
+    "claude-sonnet-4-6": (3.00, 15.00),
+    "claude-opus-4-6": (5.00, 25.00),
     "claude-haiku-5-5": (0.10, 0.50),
     "claude-sonnet-5-5": (2.00, 10.00),
     "claude-opus-5-5": (4.00, 20.00),
 }
+
+
+def price(model: str) -> tuple[float, float]:
+    """Prices for a model setting, bare name or full Bedrock id."""
+    return PRICES.get(claude.base_name(model), (0.0, 0.0))
 
 
 class AnswerDraft(BaseModel):
@@ -49,7 +59,7 @@ class LLMResult:
 
     @property
     def cost_usd(self) -> float:
-        price_in, price_out = PRICES.get(self.model, (0.0, 0.0))
+        price_in, price_out = price(self.model)
         return (self.input_tokens * price_in + self.output_tokens * price_out) / 1_000_000
 
 
@@ -70,7 +80,7 @@ class ClaudeAnswerer:
     def __init__(
         self, model: str, prompt_version: str = "answer_v1", effort: Effort = "low"
     ) -> None:
-        self.client = anthropic.AsyncAnthropic(max_retries=3, timeout=60.0)
+        self.client = claude.client(max_retries=3, timeout=60.0)
         self.model = model
         self.prompt_version = prompt_version
         self.effort = effort
@@ -78,12 +88,12 @@ class ClaudeAnswerer:
 
     async def answer(self, question: str, passages: list[PassageInput]) -> LLMResult:
         response = await self.client.messages.parse(
-            model=self.model,
+            model=claude.model_id(self.model),
             max_tokens=4000,
             # The system prompt is identical on every call, so cache it.
             system=[{"type": "text", "text": self.system, "cache_control": {"type": "ephemeral"}}],
             messages=[{"role": "user", "content": render_user_message(question, passages)}],
-            output_config={"effort": self.effort},
+            output_config=claude.output_config(self.model, self.effort),
             output_format=AnswerDraft,
         )
         draft = response.parsed_output

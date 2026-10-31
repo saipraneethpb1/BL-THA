@@ -86,7 +86,7 @@ async def run(models: list[str], cases: list[dict[str, Any]]) -> dict[str, Any]:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--models", default="claude-haiku-5-5,claude-sonnet-5-5")
+    ap.add_argument("--models", default="claude-haiku-4-5,claude-sonnet-4-6")
     ap.add_argument("--run", action="store_true")
     args = ap.parse_args()
     models = [m for m in args.models.split(",") if m]
@@ -96,7 +96,9 @@ def main() -> None:
         f"(+ {len(cases) * len(models)} Knowledge Brain questions)."
     )
     if not args.run:
-        print("Dry run. Add --run to execute (needs ANTHROPIC_API_KEY and the Knowledge Brain).")
+        print(
+            "Dry run. Add --run to execute (needs Claude on Amazon Bedrock and the Knowledge Brain)."
+        )
         return
     load_root_env()
     result = asyncio.run(run(models, cases))

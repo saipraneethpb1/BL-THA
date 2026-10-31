@@ -8,6 +8,7 @@
 """
 
 import asyncio
+import base64
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -16,12 +17,19 @@ from typing import Literal, Protocol
 
 import aiosqlite
 import anthropic
+import httpx
+from anthropic.types import Base64ImageSourceParam, URLImageSourceParam
 from pydantic import BaseModel, Field
 
-from kb.answer.llm import PRICES
+from kb import claude
+from kb.answer.llm import price
+from kb.ingestion.sources import HostGuard, SitemapError, guarded_client
 
 log = logging.getLogger(__name__)
 PROMPTS = Path(__file__).resolve().parent.parent / "prompts"
+# What the Messages API accepts inline (Bedrock takes no image URLs, so we send the bytes).
+IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
+MAX_IMAGE_BYTES = 5_000_000
 
 
 class ImageDescription(BaseModel):
@@ -68,9 +76,38 @@ class ImageDescriber(Protocol):
 
 class ClaudeImageDescriber:
     def __init__(self, model: str, prompt_version: str = "vision_v1") -> None:
-        self.client = anthropic.AsyncAnthropic(max_retries=3, timeout=60.0)
+        self.client = claude.client(max_retries=3, timeout=60.0)
         self.model = model
         self.system = (PROMPTS / f"{prompt_version}.md").read_text(encoding="utf-8")
+        self.guard = HostGuard()
+
+    async def image_source(self, src: str) -> Base64ImageSourceParam | URLImageSourceParam:
+        """Anthropic's API fetches the URL itself; Bedrock needs the image inline. The image
+        URL comes from a crawled page, so the download is guarded like any other fetch."""
+        if claude.provider() == "anthropic":
+            return {"type": "url", "url": src}
+        try:
+            async with (
+                guarded_client(self.guard, timeout=20.0) as http,
+                http.stream("GET", src, follow_redirects=True) as resp,
+            ):
+                if resp.status_code != 200:
+                    raise ValueError(f"image download answered HTTP {resp.status_code}")
+                media_type = resp.headers.get("content-type", "").split(";")[0].strip().lower()
+                if media_type not in IMAGE_TYPES:
+                    raise ValueError(f"unsupported image type {media_type or 'unknown'}")
+                data = b""
+                async for chunk in resp.aiter_bytes():
+                    data += chunk
+                    if len(data) > MAX_IMAGE_BYTES:
+                        raise ValueError("image is larger than 5 MB")
+        except (httpx.HTTPError, SitemapError) as exc:
+            raise ValueError(f"image download failed: {exc}") from exc
+        return {
+            "type": "base64",
+            "media_type": media_type,  # checked against IMAGE_TYPES
+            "data": base64.b64encode(data).decode("ascii"),
+        }
 
     async def describe(self, job: ImageJob) -> DescribeResult:
         context = (
@@ -79,19 +116,19 @@ class ClaudeImageDescriber:
             f"Text after the image:\n{job.context_after or '-'}"
         )
         response = await self.client.messages.parse(
-            model=self.model,
+            model=claude.model_id(self.model),
             max_tokens=1000,
             system=[{"type": "text", "text": self.system, "cache_control": {"type": "ephemeral"}}],
             messages=[
                 {
                     "role": "user",
                     "content": [
-                        {"type": "image", "source": {"type": "url", "url": job.src}},
+                        {"type": "image", "source": await self.image_source(job.src)},
                         {"type": "text", "text": context},
                     ],
                 }
             ],
-            output_config={"effort": "low"},
+            output_config=claude.output_config(self.model, "low"),
             output_format=ImageDescription,
         )
         if response.parsed_output is None:
@@ -112,7 +149,7 @@ class VisionReport:
 
     @property
     def cost_usd(self) -> float:
-        price_in, price_out = PRICES.get(self.model, (0.0, 0.0))
+        price_in, price_out = price(self.model)
         return (self.input_tokens * price_in + self.output_tokens * price_out) / 1_000_000
 
 
@@ -196,7 +233,6 @@ async def describe_pending_images(
 
 def main() -> None:
     import argparse
-    import os
 
     from kb.config import settings
     from kb.db import connect, init_db
@@ -206,8 +242,8 @@ def main() -> None:
     parser.add_argument("--model", default=settings.vision_model)
     parser.add_argument("--retry-failed", action="store_true")
     args = parser.parse_args()
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        raise SystemExit("ANTHROPIC_API_KEY is not set")
+    if reason := claude.missing():
+        raise SystemExit(reason)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
     async def go() -> VisionReport:

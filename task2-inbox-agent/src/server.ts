@@ -8,6 +8,7 @@ import { z } from "zod";
 import { loadConfig, type Config } from "./config.js";
 import { CATEGORIES, CATEGORY_IDS, eligibleByDefault, PARENTS } from "./email/taxonomy.js";
 import { HttpKnowledgeClient } from "./knowledge-client/client.js";
+import { claudeMissing } from "./llm/claude.js";
 import { ClaudeClassifier, ClaudeDrafter } from "./llm/models.js";
 import { ClaudeLessonMiner, LearningError, LearningService, LearningUnavailableError } from "./feedback/learning.js";
 import { InboxAgent, ReviewError, type ReviewAction } from "./pipeline.js";
@@ -65,10 +66,12 @@ export function defaultDeps(config = loadConfig()): AppDeps {
   return { config, ...workspaces.get(GUEST), workspaces, sessionSecret: sessionSecret() };
 }
 
-/** Anthropic's own one-line reason (e.g. out of credit), not the whole error body. */
+/** The provider's own one-line reason (e.g. out of credit, no model access), not the whole error body. */
 export function claudeMessage(err: InstanceType<typeof Anthropic.APIError>): string {
-  const inner = (err.error as { error?: { message?: unknown } } | undefined)?.error;
-  return typeof inner?.message === "string" ? inner.message : err.message;
+  const body = err.error as { error?: { message?: unknown }; message?: unknown } | undefined;
+  if (typeof body?.error?.message === "string") return body.error.message;
+  // Bedrock puts the reason at the top level: {"message": "You don't have access to ..."}.
+  return typeof body?.message === "string" ? body.message : err.message;
 }
 
 /** Drop undefined keys so the parsed body fits ReviewAction under exactOptionalPropertyTypes. */
@@ -165,7 +168,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
 
   app.post<{ Params: { id: string } }>("/api/emails/:id/process", async (req, reply) => {
     const agent = ws(req).agent;
-    if (!agent) return reply.status(503).send({ error: "drafting is disabled: ANTHROPIC_API_KEY is not configured" });
+    if (!agent) return reply.status(503).send({ error: `drafting is disabled: ${claudeMissing() ?? "Claude is not configured"}` });
     draftLimiter.check(req);
     guardSpend();
     const r = await agent.process(req.params.id);
@@ -176,7 +179,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
 
   app.post<{ Params: { id: string } }>("/api/emails/:id/review", async (req, reply) => {
     const agent = ws(req).agent;
-    if (!agent) return reply.status(503).send({ error: "drafting is disabled: ANTHROPIC_API_KEY is not configured" });
+    if (!agent) return reply.status(503).send({ error: `drafting is disabled: ${claudeMissing() ?? "Claude is not configured"}` });
     const action = compact(Review.parse(req.body)) as ReviewAction;
     const r = agent.review(req.params.id, action);
     if (r.outcome === "edited" || r.outcome === "rejected") {

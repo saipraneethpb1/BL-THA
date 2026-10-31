@@ -3,7 +3,7 @@
  *
  *   npm run eval -- --split dev                                 # plan only
  *   npm run eval -- --split test --run                          # held-out numbers for EVALS.md
- *   npm run eval -- --classify claude-haiku-5-5,claude-sonnet-5-5 --draft none --run
+ *   npm run eval -- --classify claude-haiku-4-5,claude-sonnet-4-6 --draft none --run
  *                                                               # classifier comparison only
  *
  * Each (classifier, drafter) pair runs every email through the real pipeline (with the
@@ -13,8 +13,8 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import { claudeClient, effortFor, modelId } from "../llm/claude.js";
 import { z } from "zod";
 import { costUsd, loadConfig } from "../config.js";
 import { loadAndCheck } from "../dataset/check.js";
@@ -35,7 +35,7 @@ const JudgeOutput = z.object({
 });
 
 class Judge {
-  private readonly client = new Anthropic({ maxRetries: 3, timeout: 120_000 });
+  private readonly client = claudeClient({ maxRetries: 3, timeout: 120_000 });
   private readonly system = loadPrompt("judge_v1", {});
   cost = 0;
   constructor(readonly model: string) {}
@@ -48,11 +48,11 @@ class Judge {
       must_not_include: e.labels.mustNotInclude,
     }, null, 1);
     const r = await this.client.messages.parse({
-      model: this.model,
+      model: modelId(this.model),
       max_tokens: 3000,
       system: [{ type: "text", text: this.system, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: user }],
-      output_config: { effort: "medium", format: zodOutputFormat(JudgeOutput) },
+      output_config: { ...effortFor(this.model, "medium"), format: zodOutputFormat(JudgeOutput) },
     });
     this.cost += costUsd(this.model, r.usage.input_tokens, r.usage.output_tokens);
     if (!r.parsed_output) throw new Error(`judge returned nothing (${r.stop_reason})`);
@@ -123,9 +123,9 @@ async function main(): Promise<void> {
   const { values } = parseArgs({
     options: {
       split: { type: "string", default: "dev" },
-      classify: { type: "string", default: "claude-haiku-5-5" },
-      draft: { type: "string", default: "claude-sonnet-5-5,claude-opus-5-5" },
-      judge: { type: "string", default: "claude-opus-5-5" },
+      classify: { type: "string", default: "claude-haiku-4-5" },
+      draft: { type: "string", default: "claude-sonnet-4-6,claude-opus-4-6" },
+      judge: { type: "string", default: "claude-opus-4-6" },
       limit: { type: "string" },
       run: { type: "boolean", default: false },
     },
@@ -146,7 +146,7 @@ async function main(): Promise<void> {
     return;
   }
   if (!values.run) {
-    console.log("Dry run. Add --run to execute (needs ANTHROPIC_API_KEY and, for drafting, the Knowledge Brain).");
+    console.log("Dry run. Add --run to execute (needs Claude on Amazon Bedrock and, for drafting, the Knowledge Brain).");
     return;
   }
   if (drafting) {

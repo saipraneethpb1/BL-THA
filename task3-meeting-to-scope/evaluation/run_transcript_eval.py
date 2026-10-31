@@ -2,7 +2,7 @@
 
     uv run python -m evaluation.run_transcript_eval                 # dry run: lists gold files
     uv run python -m evaluation.run_transcript_eval --run           # needs KB + API key
-    uv run python -m evaluation.run_transcript_eval --run --analyst-models claude-haiku-5-5,claude-sonnet-5-5
+    uv run python -m evaluation.run_transcript_eval --run --analyst-models claude-haiku-4-5,claude-sonnet-4-6
 
 Gold files live in evaluation/gold/<meeting>.json (see TEMPLATE.json). Every gold
 requirement is one case; every expected follow-up change is one case. For each analyst
@@ -194,7 +194,7 @@ async def run(models: list[str], gold: dict[str, dict[str, Any]], live_kb: bool)
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--analyst-models", default="claude-haiku-5-5,claude-sonnet-5-5")
+    ap.add_argument("--analyst-models", default="claude-haiku-4-5,claude-sonnet-4-6")
     ap.add_argument("--run", action="store_true")
     ap.add_argument(
         "--meetings", default="", help="only these first meetings (and their follow-ups)"
@@ -225,7 +225,9 @@ def main() -> None:
     )
     print(f"{len(gold)} meetings, {cases} gold cases, x {len(models)} analyst models.")
     if not args.run:
-        print("Dry run. Add --run to execute (needs ANTHROPIC_API_KEY and the Knowledge Brain).")
+        print(
+            "Dry run. Add --run to execute (needs Claude on Amazon Bedrock and the Knowledge Brain)."
+        )
         return
     load_root_env()
     result = asyncio.run(run(models, gold, args.live_kb))
