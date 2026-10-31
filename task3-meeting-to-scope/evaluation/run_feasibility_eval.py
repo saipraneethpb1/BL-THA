@@ -90,7 +90,7 @@ def main() -> None:
     ap.add_argument("--run", action="store_true")
     args = ap.parse_args()
     models = [m for m in args.models.split(",") if m]
-    cases = load_jsonl(HERE / "feasibility_cases.jsonl")
+    cases = load_jsonl(HERE / "cases" / "feasibility.jsonl")
     print(
         f"{len(cases)} requirements x {len(models)} models = {len(cases) * len(models)} judgements "
         f"(+ {len(cases) * len(models)} Knowledge Brain questions)."

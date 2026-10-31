@@ -28,7 +28,7 @@ def test_feasibility_grading_separates_costly_mistakes() -> None:
     }
     assert grade(built_in, "custom_development")["missed_saving"]
     assert grade(custom, "existing_with_limitation")["false_promise"]
-    cases = load_jsonl(HERE / "feasibility_cases.jsonl")
+    cases = load_jsonl(HERE / "cases" / "feasibility.jsonl")
     assert len(cases) >= 20 and len({c["id"] for c in cases}) == len(cases)
 
 

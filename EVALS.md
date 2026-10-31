@@ -10,7 +10,7 @@ Constraint from the owner: no paid model. So every number in this section is mea
 
 #### Phase 1: the measuring set
 
-- **147 retrieval cases** (`evaluation/retrieval_cases.jsonl`), grown from 42. They follow the brief's case format: category, gold articles, `should_refuse`, `must_not`, difficulty, split, and the docs version they were labelled against (`kb-snapshot-2026-10-18`).
+- **147 retrieval cases** (`task1-knowledge-brain/evaluation/cases/retrieval.jsonl`), grown from 42. They follow the brief's case format: category, gold articles, `should_refuse`, `must_not`, difficulty, split, and the docs version they were labelled against (`kb-snapshot-2026-10-18`).
   - The query log is empty, so there are no real customer questions yet. The 105 new cases were written from the docs.
   - Mix: 101 normal (how-to 68, troubleshooting 16, pricing 8, typos 9), 24 out-of-scope (8 of them close to the product, each checked against the help center), 12 adversarial, 6 multi-part, 4 follow-up. That is 69 / 16 / 7 / 8%, against the brief's 60 / 20 / 10 / 10.
 - **Splits, assigned by a hash of the id within each category (not by hand):** dev 103 (tune on it), held-out 44 (only to compare finished versions), and a smoke subset of 17 dev cases.

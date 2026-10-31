@@ -4,7 +4,7 @@
     uv run python -m evaluation.run_transcript_eval --run           # needs KB + API key
     uv run python -m evaluation.run_transcript_eval --run --analyst-models claude-haiku-4-5,claude-sonnet-4-6
 
-Gold files live in evaluation/gold/<meeting>.json (see TEMPLATE.json). Every gold
+Gold files live in evaluation/cases/gold/<meeting>.json (see TEMPLATE.json). Every gold
 requirement is one case; every expected follow-up change is one case. For each analyst
 model the full pipeline runs in a throwaway database: build v1 from the first meeting,
 approve it, then (for follow-ups) add the next meeting and build v2 against v1.
@@ -32,7 +32,7 @@ from scope.pipeline import ScopeBuilder
 from scope.store import Store
 
 ROOT = Path(__file__).parent.parent
-GOLD = Path(__file__).parent / "gold"
+GOLD = Path(__file__).parent / "cases" / "gold"
 
 
 def matches(text: str, keywords: list[list[str]]) -> bool:
@@ -216,7 +216,7 @@ def main() -> None:
     models = [m for m in args.analyst_models.split(",") if m]
     if not gold:
         print(
-            "No gold files yet. Record the meetings, then copy evaluation/gold/TEMPLATE.json per meeting."
+            "No gold files yet. Record the meetings, then copy evaluation/cases/gold/TEMPLATE.json per meeting."
         )
         return
     cases = sum(

@@ -7,7 +7,7 @@ and how fast? Graded in code against each case's gold articles (see evaluation/m
     uv run python -m evaluation.run_retrieval_eval --repeats 3        # run-to-run noise
     uv run python -m evaluation.run_retrieval_eval --smoke --check evaluation/baselines/smoke.json
 
-The cases (evaluation/retrieval_cases.jsonl) carry a split: `dev` (about 70%, tune on it),
+The cases (evaluation/cases/retrieval.jsonl) carry a split: `dev` (about 70%, tune on it),
 `heldout` (about 30%, run only to compare finished versions) and a `smoke` flag on about
 15% of the dev cases, for every pull request. `--check` fails (exit 1) when a metric falls
 below the baseline by more than the tolerance; with the free configs, search is
@@ -41,7 +41,7 @@ from kb.retrieval.embedder import Embedder, make_embedder
 from kb.retrieval.search import Mode, Searcher
 
 HERE = Path(__file__).parent
-CASES = HERE / "retrieval_cases.jsonl"
+CASES = HERE / "cases" / "retrieval.jsonl"
 DEPTH = 20  # articles ranked per question; recall@10 and nDCG@10 need at least 10
 CONTEXT_K = 6  # passages the answer model actually sees per question
 

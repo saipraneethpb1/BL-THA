@@ -81,12 +81,25 @@ python -m http.server 8000 -d deploy/site                                      #
 ## Layout
 
 ```
-task1-knowledge-brain/   kb/ingestion (crawl, parse, vision), kb/retrieval (chunk, embed, search),
-                         kb/answer (answers, escalations), kb/ui, evaluation/, tests/
-task2-inbox-agent/       src/ (pipeline, policy, autonomy, store, server), prompts/, ui/,
-                         data/emails/ (labelled dataset), tests/
-task3-meeting-to-scope/  scope/agents (analyst, feasibility, scope, estimator, proposal, changes),
-                         scope/prompts, scope/ui, transcripts/, tests/
+task1-knowledge-brain/     Knowledge Brain: kb/ingestion (crawl, parse, vision), kb/retrieval
+                           (chunk, embed, search), kb/answer (answers, escalations), evaluation/, tests/
+task2-inbox-agent/         Inbox Agent: src/ (pipeline, policy, feedback, gmail, store), prompts/,
+                           data/emails/ (labelled dataset), tests/
+task3-meeting-to-scope/    Scope Builder: scope/agents (analyst, feasibility, scope, estimator,
+                           proposal, changes), transcripts/, evaluation/, tests/
+shared/                    the look and top bar shared by all pages (copied in by scripts/sync_suite.py)
+deploy/                    production: Caddy, compose overlay, VM setup, secrets, the home page
+scripts/                   repo tools: UI sync, owner data export
+docs/                      guides: Gmail setup, demo script, data export
+.github/workflows/         CI: Knowledge Brain tests and the retrieval smoke eval
+docker-compose.yml         runs all three services
 ```
 
-More: [DESIGN.md](DESIGN.md) (why it is built this way), [EVALS.md](EVALS.md) (measured quality, cost and speed), [AI_LOG.md](AI_LOG.md) (how AI tools were used).
+Each service folder has its own README with a map of its files.
+
+More:
+- [DESIGN.md](DESIGN.md): why it's built this way.
+- [EVALS.md](EVALS.md): measured quality, cost and speed.
+- [AI_LOG.md](AI_LOG.md): how AI tools were used.
+- [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md): the demo walkthrough.
+- [docs/DATA_EXPORT.md](docs/DATA_EXPORT.md): exporting the stored data.

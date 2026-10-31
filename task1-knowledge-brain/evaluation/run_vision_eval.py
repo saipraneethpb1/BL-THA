@@ -39,7 +39,7 @@ def label_hits(text: str, labels: list[list[str]]) -> list[bool]:
 
 
 def load_cases() -> list[dict[str, Any]]:
-    lines = (HERE / "vision_cases.jsonl").read_text(encoding="utf-8").splitlines()
+    lines = (HERE / "cases" / "vision.jsonl").read_text(encoding="utf-8").splitlines()
     return [json.loads(line) for line in lines if line.strip()]
 
 

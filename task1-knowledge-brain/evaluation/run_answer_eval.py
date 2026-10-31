@@ -42,7 +42,7 @@ DEFAULT_MODELS = "claude-haiku-4-5,claude-sonnet-4-6,claude-opus-4-6"
 
 
 def load_cases(tags: set[str] | None = None) -> list[dict[str, Any]]:
-    lines = (HERE / "answer_cases.jsonl").read_text(encoding="utf-8").splitlines()
+    lines = (HERE / "cases" / "answer.jsonl").read_text(encoding="utf-8").splitlines()
     cases = [json.loads(line) for line in lines if line.strip()]
     return [c for c in cases if not tags or tags & set(c["tags"])]
 
