@@ -19,3 +19,6 @@ task2-inbox-agent/data/*.db*
 # Scope Builder local database
 task3-meeting-to-scope/data/
 deploy/auth.caddy
+
+# Editor settings
+.vscode/
