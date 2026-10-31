@@ -228,6 +228,9 @@ async def test_first_build_then_approval_gate(setup: tuple[Store, ScopeBuilder, 
         "existing_configuration",
         "needs_clarification",
     }
+    assert all(
+        f.limitation is None for f in v.data.feasibility if f.verdict != "existing_with_limitation"
+    )
     assert "Already possible with built-in features" in v.data.proposal_md
     assert "DRAFT" in v.data.proposal_md
     assert v.usage["calls"] > 0

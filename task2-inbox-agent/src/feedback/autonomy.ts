@@ -109,6 +109,7 @@ export interface SendCheck {
   secretsFound: boolean;
   suspectedInjection: boolean;
   knowledgeGap: boolean;
+  missingKnowledge?: boolean;
   /** Whether this label may auto-send at all (settings); defaults to taxonomy.ts. */
   eligible?: boolean;
 }
@@ -120,6 +121,7 @@ export function autoSendBlocker(state: AutonomyState, c: SendCheck): string | nu
   if (c.hasBlockingViolation) return "draft failed a policy check";
   if (c.secretsFound) return "email contained secrets";
   if (c.suspectedInjection) return "email looks like a prompt injection";
+  if (c.missingKnowledge) return "knowledge evidence contains unresolved missing information";
   if (c.knowledgeGap) return "knowledge base could not answer every question";
   if (c.sentiment === "angry") return "customer is angry";
   return null;

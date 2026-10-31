@@ -71,7 +71,9 @@ class FeasibilityAgent:
         explanation = j.explanation
         no_evidence = answer.status in ("insufficient_evidence", "conflict") or not answer.sources
         invalid_configuration = verdict == "existing_configuration" and answer.status != "answered"
-        invalid_limitation = verdict == "existing_with_limitation" and (not j.limitation or j.limitation.casefold() not in answer.answer.casefold())
+        invalid_limitation = verdict == "existing_with_limitation" and (
+            not j.limitation or j.limitation.casefold() not in answer.answer.casefold()
+        )
         if no_evidence or invalid_configuration or invalid_limitation:
             verdict = "needs_clarification"
             explanation = (
@@ -83,7 +85,7 @@ class FeasibilityAgent:
             verdict=verdict,
             explanation=explanation,
             how_to=j.how_to if verdict.startswith("existing") else None,
-            limitation=j.limitation,
+            limitation=j.limitation if verdict == "existing_with_limitation" else None,
             clarifying_question=j.clarifying_question,
             kb_status=answer.status,
             kb_sources=[KnowledgeSource(title=s.title, url=s.url) for s in answer.sources],

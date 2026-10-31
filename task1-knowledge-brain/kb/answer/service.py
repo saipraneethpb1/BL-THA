@@ -4,13 +4,14 @@
 2. Gate: if even the best passage is a weak match, skip the model entirely. It saves
    money and removes the temptation to answer from thin evidence.
 3. Ask Claude for a structured answer that cites passage numbers.
-4. Check the citations in code. An "answered" reply with no valid citation is
-   downgraded: the model is not allowed to answer without evidence.
+4. Validate citations and check each draft sentence with local entailment.
+   Only supported sentences are returned; checker failures go to an expert.
 5. Anything not fully answered opens (or bumps) a task for a human expert.
 """
 
 import asyncio
 import json
+import logging
 import time
 from dataclasses import dataclass, field
 from typing import Literal
@@ -161,9 +162,20 @@ async def answer_question(
         draft = llm.draft
         valid = sorted({n for n in draft.cited_passages if 1 <= n <= len(hits)})
         cited_hits = [hits[n - 1] for n in valid]
-        supported, unsupported = await asyncio.to_thread(
-            check_claims, draft.answer, [h.text for h in cited_hits], entailment or local_entailment
-        )
+        checker_failed = False
+        try:
+            supported, unsupported = await asyncio.to_thread(
+                check_claims,
+                draft.answer,
+                [h.text for h in cited_hits],
+                entailment or local_entailment,
+            )
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "Claim validation failed; escalating without an answer"
+            )
+            supported, unsupported = [], []
+            checker_failed = True
         status = (
             "answered"
             if supported and not unsupported
@@ -173,6 +185,8 @@ async def answer_question(
         )
         answer = "\n".join(supported) if supported else NOT_COVERED
         missing = "\n".join(unsupported) or None
+        if checker_failed:
+            missing = "Claim validation is unavailable; expert verification is required."
         if not cited_hits:
             missing = "model answered without citing any passage"
         if status == "insufficient_evidence":

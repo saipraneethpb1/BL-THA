@@ -155,3 +155,18 @@ async def test_supported_partial_is_promoted(db, searcher):
     assert result.status == "answered" and result.status_overridden
     assert result.claims == result.claims_supported == 1
     assert not result.needs_human
+
+
+async def test_checker_failure_escalates_without_returning_draft(db, searcher):
+    class BrokenEntailment:
+        def supports(self, premise, claim):
+            raise RuntimeError("model unavailable")
+
+    result = await answer_question(
+        db, searcher, FakeAnswerer(), "refund a member", min_score=0, entailment=BrokenEntailment()
+    )
+    assert result.status == "insufficient_evidence"
+    assert result.needs_human and result.escalation_id is not None
+    assert result.sources == [] and result.claims_supported == 0
+    assert "verification" in result.missing_info
+    assert "Go to Finance" not in result.answer

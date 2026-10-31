@@ -166,6 +166,7 @@ export class InboxAgent {
       secretsFound: secrets.length > 0,
       suspectedInjection: classification.suspected_injection,
       knowledgeGap: needsKnowledge && knowledgeGap,
+      missingKnowledge: evidence.some((e) => Boolean(e.missing_info?.trim())),
     });
 
     const draftId = this.store.saveDraft({

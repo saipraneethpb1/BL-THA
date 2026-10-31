@@ -59,13 +59,12 @@ class VectorIndex:
         self.embedder = embedder
         self.ids: np.ndarray = np.zeros(0, dtype=np.int64)
         self.matrix: Vector = np.zeros((0, 0), dtype=np.float32)
-        self._version: tuple[int, int] | None = None
 
     async def refresh(self, db: aiosqlite.Connection) -> None:
         models = await db.execute_fetchall(
             "SELECT DISTINCT embedding_model FROM chunks WHERE is_active=1 AND source='article'"
         )
-        if len(models) > 1:
+        if len(list(models)) > 1:
             raise RuntimeError(
                 "Mixed active article embedding models; reindex before serving queries"
             )

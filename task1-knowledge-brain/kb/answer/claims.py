@@ -7,6 +7,8 @@ from typing import Any, Protocol
 
 import numpy as np
 
+from kb.config import settings
+
 
 class Entailment(Protocol):
     def supports(self, premise: str, claim: str) -> bool: ...
@@ -42,6 +44,9 @@ class LocalEntailment:
             self.session = ort.InferenceSession(
                 download("onnx/model_quantized.onnx"), providers=["CPUExecutionProvider"]
             )
+        # Never truncate the claim itself: that could validate only half an assertion.
+        if len(self.tokenizer.encode(claim).ids) >= 500:
+            return False
         encoded = self.tokenizer.encode(premise, claim)
         values = {
             "input_ids": encoded.ids,
@@ -69,4 +74,4 @@ def check_claims(
     return supported, missing
 
 
-local_entailment = LocalEntailment()
+local_entailment = LocalEntailment(settings.model_cache_dir)
